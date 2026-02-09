@@ -47,7 +47,8 @@ VideoWise will analyze video files and provide human-readable explanations:
 - [x] Implementing basic file validation
 - [x] Integrating ffprobe for metadata extraction
 - [x] Building codec information parser
-- [ ] Creating compatibility rules engine
+- [x] Creating compatibility rules engine (CasparCG, vMix)
+- [ ] Expanding compatibility rules (more systems and platforms)
 - [ ] Writing human-readable explanation system
 
 This is a **learning project** being built incrementally with testing at each step. Progress may be slow, but it will be solid.
@@ -122,27 +123,31 @@ We're building this test-first, so every feature should have tests before implem
 video-codec-checker/
 ├── videowise/          # Core package
 │   ├── analyzer.py     # Video analysis
-│   ├── compatibility.py # Rules engine (coming soon)
+│   ├── compatibility.py # Rules engine
 │   └── explainer.py    # Human-readable output (coming soon)
 └── tests/              # Test suite
     ├── conftest.py    # Test fixtures (video generation)
     ├── test_analyzer.py
-    └── test_codec_parsing.py
+    ├── test_codec_parsing.py
+    └── test_compatibility.py
 ```
 
 ## Roadmap
 
-### Phase 1: Foundation (Current)
+### Phase 1: Foundation
 - [x] Project setup and structure
 - [x] Basic file validation
 - [x] FFprobe integration
 - [x] Parse codec, container, and profile information
-- [ ] Test with various real video files (ProRes, H.264, DNxHD, etc.)
+- [x] Compatibility rules engine foundation
+- [x] CasparCG compatibility checker
+- [x] vMix compatibility checker
 
-### Phase 2: Compatibility Rules
+### Phase 2: Compatibility Rules (In Progress)
+- [ ] OBS Studio compatibility
+- [ ] Linux Show Player compatibility
 - [ ] Browser compatibility database (Chrome, Safari, Firefox, Edge)
 - [ ] Social media platform rules (Instagram, Twitter, TikTok, YouTube)
-- [ ] Live production systems (CasparCG, vMix, OBS, Linux Show Player, Wirecast)
 - [ ] Streaming platform requirements (Twitch, Vimeo, Restream)
 - [ ] Video editor compatibility (Premiere, DaVinci Resolve, Final Cut Pro)
 
