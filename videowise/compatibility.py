@@ -187,14 +187,15 @@ class OBSChecker(CompatibilityChecker):
         if codec in self.RECOMMENDED_CODECS:
             issues.append(CompatibilityIssue(
                 level=CompatibilityLevel.COMPATIBLE,
-                message=f"{codec.upper()} is fully supported by OBS Studio",
+                message=f"{codec.UPPER()} is fully supported by OBS Studio",
                 reason="Hardware acceleration may be available"
             ))
         
-        if 'mkv' in container:
+        # Check for MKV/Matroska container (OBS default)
+        if 'matroska' in container or 'mkv' in container or 'webm' in container:
             issues.append(CompatibilityIssue(
                 level=CompatibilityLevel.COMPATIBLE,
-                message="MKV is OBS's default format and supports all codecs",
+                message="MKV/Matroska is OBS's default format and supports all codecs",
             ))
         elif 'mp4' in container or 'mov' in container:
             issues.append(CompatibilityIssue(
@@ -253,7 +254,7 @@ class QLabChecker(CompatibilityChecker):
         else:
             issues.append(CompatibilityIssue(
                 level=CompatibilityLevel.WARNING,
-                message=f"{codec.upper()} may not perform well in QLab",
+                message=f"{codec.UPPER()} may not perform well in QLab",
                 reason="QLab works best with ProRes codecs",
                 suggestion="Convert to ProRes 422 Proxy for optimal performance"
             ))
@@ -273,7 +274,7 @@ class ProPresenterChecker(CompatibilityChecker):
     """Compatibility checker for ProPresenter."""
     
     SUPPORTED_CODECS = {
-        'h264', 'hevc', 'prores', 'hap',
+        'h264', 'hevc', 'prores', 'prores4444', 'hap',
     }
     
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
@@ -281,10 +282,13 @@ class ProPresenterChecker(CompatibilityChecker):
         codec = video_info.get('codec', '').lower()
         container = video_info.get('container', '').lower()
         
-        if codec not in self.SUPPORTED_CODECS:
+        # Check if codec contains any of the supported codec names
+        codec_supported = any(supported in codec for supported in self.SUPPORTED_CODECS)
+        
+        if not codec_supported:
             issues.append(CompatibilityIssue(
                 level=CompatibilityLevel.INCOMPATIBLE,
-                message=f"ProPresenter does not support {codec.upper()} codec",
+                message=f"ProPresenter does not support {codec.UPPER()} codec",
                 reason=f"Supported codecs: {', '.join(sorted(self.SUPPORTED_CODECS))}",
                 suggestion="Convert to H.264, ProRes, or HAP codec"
             ))
@@ -335,7 +339,7 @@ class SafariChecker(CompatibilityChecker):
         if codec not in self.SUPPORTED_CODECS:
             issues.append(CompatibilityIssue(
                 level=CompatibilityLevel.INCOMPATIBLE,
-                message=f"Safari does not support {codec.upper()} codec",
+                message=f"Safari does not support {codec.UPPER()} codec",
                 reason="Safari only supports H.264 and HEVC (H.265)",
                 suggestion="Convert to H.264 for maximum browser compatibility"
             ))
@@ -350,7 +354,7 @@ class SafariChecker(CompatibilityChecker):
         
         issues.append(CompatibilityIssue(
             level=CompatibilityLevel.COMPATIBLE,
-            message=f"{codec.upper()} is supported by Safari",
+            message=f"{codec.UPPER()} is supported by Safari",
         ))
         
         return issues
@@ -368,12 +372,12 @@ class ChromeChecker(CompatibilityChecker):
         if codec in self.SUPPORTED_CODECS:
             issues.append(CompatibilityIssue(
                 level=CompatibilityLevel.COMPATIBLE,
-                message=f"{codec.upper()} is supported by Chrome",
+                message=f"{codec.UPPER()} is supported by Chrome",
             ))
         else:
             issues.append(CompatibilityIssue(
                 level=CompatibilityLevel.WARNING,
-                message=f"{codec.upper()} may not be supported by Chrome",
+                message=f"{codec.UPPER()} may not be supported by Chrome",
                 reason="Chrome supports H.264, VP8, VP9, and AV1",
                 suggestion="Convert to H.264 or VP9 for web compatibility"
             ))
@@ -397,7 +401,7 @@ class InstagramChecker(CompatibilityChecker):
         if codec != 'h264':
             issues.append(CompatibilityIssue(
                 level=CompatibilityLevel.WARNING,
-                message=f"Instagram will re-encode {codec.upper()} to H.264 (quality loss)",
+                message=f"Instagram will re-encode {codec.UPPER()} to H.264 (quality loss)",
                 reason="Instagram only accepts H.264 codec",
                 suggestion="Pre-encode to H.264 to maintain quality control"
             ))
@@ -448,7 +452,7 @@ class TwitterChecker(CompatibilityChecker):
         if codec != 'h264':
             issues.append(CompatibilityIssue(
                 level=CompatibilityLevel.WARNING,
-                message=f"Twitter recommends H.264 codec, not {codec.upper()}",
+                message=f"Twitter recommends H.264 codec, not {codec.UPPER()}",
                 suggestion="Convert to H.264 High Profile for best quality"
             ))
         else:
