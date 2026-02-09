@@ -36,8 +36,8 @@ VideoWise will analyze video files and provide human-readable explanations:
 **For Live Production:**
 - "CasparCG 2.3 can't play this - it requires ProRes, DNxHD, or H.264 in MP4 container"
 - "This file will cause dropped frames in vMix - bitrate is 180Mbps but your system can only handle 100Mbps smoothly"
-- "Linux Show Player may have audio sync issues - this uses VBR audio instead of CBR"
-- "This codec requires GPU decoding but your system only has CPU decode - expect playback issues"
+- "QLab performance will suffer with H.264 - convert to ProRes 422 Proxy for smooth scrubbing"
+- "ProPresenter works best with HAP codec for GPU-accelerated playback"
 - "Warning: Variable frame rate video will cause timing issues in live production - convert to constant frame rate"
 
 ## Current Status
@@ -47,9 +47,14 @@ VideoWise will analyze video files and provide human-readable explanations:
 - [x] Implementing basic file validation
 - [x] Integrating ffprobe for metadata extraction
 - [x] Building codec information parser
-- [x] Creating compatibility rules engine (CasparCG, vMix)
-- [ ] Expanding compatibility rules (more systems and platforms)
+- [x] Creating comprehensive compatibility rules engine
+- [ ] Building CLI interface
 - [ ] Writing human-readable explanation system
+
+**Supported Systems:**
+- **Live Production:** CasparCG, vMix, OBS Studio, QLab, ProPresenter
+- **Browsers:** Safari, Chrome
+- **Social Media:** Instagram, Twitter/X
 
 This is a **learning project** being built incrementally with testing at each step. Progress may be slow, but it will be solid.
 
@@ -123,13 +128,14 @@ We're building this test-first, so every feature should have tests before implem
 video-codec-checker/
 ├── videowise/          # Core package
 │   ├── analyzer.py     # Video analysis
-│   ├── compatibility.py # Rules engine
+│   ├── compatibility.py # Comprehensive rules engine
 │   └── explainer.py    # Human-readable output (coming soon)
 └── tests/              # Test suite
     ├── conftest.py    # Test fixtures (video generation)
     ├── test_analyzer.py
     ├── test_codec_parsing.py
-    └── test_compatibility.py
+    ├── test_compatibility.py
+    └── test_compatibility_extended.py
 ```
 
 ## Roadmap
@@ -139,56 +145,57 @@ video-codec-checker/
 - [x] Basic file validation
 - [x] FFprobe integration
 - [x] Parse codec, container, and profile information
-- [x] Compatibility rules engine foundation
-- [x] CasparCG compatibility checker
-- [x] vMix compatibility checker
+- [x] Compatibility rules engine
+- [x] Live production systems (CasparCG, vMix, OBS, QLab, ProPresenter)
+- [x] Browser compatibility (Safari, Chrome)
+- [x] Social media platforms (Instagram, Twitter)
 
-### Phase 2: Compatibility Rules (In Progress)
-- [ ] OBS Studio compatibility
+### Phase 2: User Interface (In Progress)
+- [ ] CLI tool for terminal use
+- [ ] Human-readable explanation formatter
+- [ ] Batch processing support (check entire playlists)
+
+### Phase 3: Additional Systems
 - [ ] Linux Show Player compatibility
-- [ ] Browser compatibility database (Chrome, Safari, Firefox, Edge)
-- [ ] Social media platform rules (Instagram, Twitter, TikTok, YouTube)
-- [ ] Streaming platform requirements (Twitch, Vimeo, Restream)
+- [ ] Wirecast compatibility
+- [ ] Firefox browser rules
+- [ ] TikTok, YouTube platform rules
+- [ ] Streaming platforms (Twitch, Vimeo, Restream)
 - [ ] Video editor compatibility (Premiere, DaVinci Resolve, Final Cut Pro)
 
-### Phase 3: Explanations & Fixes
-- [ ] Human-readable explanation generator
-- [ ] Suggest specific fixes ("transcode to H.264 baseline profile")
+### Phase 4: Advanced Features
 - [ ] Provide ffmpeg commands to fix issues
-- [ ] Warning severity levels (critical/warning/info)
-- [ ] Pre-show compatibility checker mode for live production
-
-### Phase 4: User Interface
-- [ ] CLI tool for terminal use
-- [ ] Drag-and-drop web interface
-- [ ] Batch processing support (check entire playlists)
-- [ ] Export reports (for production documentation)
+- [ ] Pre-show compatibility checker mode
 - [ ] Watch folder mode (auto-check files as they arrive)
+- [ ] Export reports (for production documentation)
+- [ ] Web interface
 
 ## Use Cases
 
 ### Pre-Show Verification
 ```bash
-videowise check-playlist /path/to/show/media/ --system casparcg-2.3
-# Returns: 5 files OK, 2 files need attention:
-#   - intro.mov: Wrong codec, will not play. Convert to ProRes.
-#   - sponsor.mp4: VFR detected, may cause timing issues. Convert to CFR.
+videowise check video.mov --system casparcg
+# Returns: ✓ Compatible with CasparCG 2.3
+#          ProRes codec in MOV container
+
+videowise check sponsor.mp4 --system qlab
+# Returns: ⚠ Warning: H.264 performs poorly when scrubbing
+#          Suggestion: Convert to ProRes 422 Proxy for better performance
 ```
 
 ### Upload Preparation
 ```bash
 videowise check video.mp4 --target instagram
-# Returns: File will be re-encoded by Instagram (quality loss)
+# Returns: ⚠ File will be re-encoded by Instagram (quality loss)
 #          Reason: H.264 High Profile detected, Instagram prefers Baseline
 #          Fix: ffmpeg -i video.mp4 -profile:v baseline -level 3.0 output.mp4
 ```
 
-### Quick Compatibility Check
+### Browser Compatibility Check
 ```bash
-videowise info video.mov
-# Returns: ProRes 422 HQ, 1920x1080, 23.976fps
-#          ✓ Compatible with: CasparCG, vMix, Premiere, DaVinci
-#          ✗ Not compatible with: Web browsers (use H.264 instead)
+videowise check video.webm --target safari
+# Returns: ✗ Incompatible: Safari does not support VP9 codec
+#          Suggestion: Convert to H.264 for maximum browser compatibility
 ```
 
 ## Contributing
