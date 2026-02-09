@@ -1,6 +1,8 @@
 # VideoWise
 
-> ⚠️ **This project is in very early stages of development.** We're building something useful, but it will take time to get to a fully workable solution. Expect changes, experiments, and iterations.
+> ⚠️ **This project is in very early stages of development.** trying to build something useful, but it will take time to get to a fully workable solution. Expect changes, experiments, and iterations.
+
+## This is a **learning project** being built incrementally with testing at each step. Progress may be slow, but it will be solid.
 
 A video codec compatibility checker that explains *why* your video won't work and how to fix it - for content creators, live production operators, and developers.
 
@@ -10,16 +12,16 @@ A video codec compatibility checker that explains *why* your video won't work an
 You've spent hours creating the perfect video, but:
 - It won't upload to Instagram
 - Safari refuses to play it
-- Your client says "the video doesn't work"
+- Your client says, "The video doesn't work."
 - The error message is useless: "Invalid format" or worse, nothing at all
 
 ### For Live Production Operators
 You're setting up for a show and:
 - Your playback software (CasparCG, vMix, Linux Show Player) refuses to load the video
-- The file plays fine on your computer but stutters during live playback
+- The file plays fine on your computer, but stutters during live playback
 - Graphics overlays work with some files but not others
 - You're 10 minutes from showtime and need to know if you should re-encode NOW
-- Client delivers last-minute content and you need to know instantly if it's compatible
+- Client delivers last-minute content, and you need to know instantly if it's compatible
 
 Most tools either show you raw technical data (codec, bitrate, profile) or just fail silently. **VideoWise bridges that gap** by explaining compatibility issues in plain English and suggesting actual fixes.
 
@@ -29,12 +31,12 @@ VideoWise will analyze video files and provide human-readable explanations:
 
 **For Upload/Playback:**
 - "This won't play in Safari because it uses VP9 codec - Safari only supports H.264 and HEVC"
-- "Instagram will re-encode this (losing quality) because it's H.264 High Profile instead of Baseline"
+- "Instagram will re-encode this (losing quality) because it's H.264 High Profile instead of Baseline."
 - "This file is 850MB but Twitter's limit is 512MB - you'll need to compress it"
-- "This MP4 container uses AV1 codec which isn't widely supported yet - consider H.264 for maximum compatibility"
+- "This MP4 container uses AV1 codec which isn't widely supported yet - consider H.264 for maximum compatibility."
 
 **For Live Production:**
-- "CasparCG 2.3 can't play this - it requires ProRes, DNxHD, or H.264 in MP4 container"
+- "CasparCG 2.3 can't play this - it requires ProRes, DNxHD, or H.264 in MP4 container."
 - "This file will cause dropped frames in vMix - bitrate is 180Mbps but your system can only handle 100Mbps smoothly"
 - "Linux Show Player may have audio sync issues - this uses VBR audio instead of CBR"
 - "This codec requires GPU decoding but your system only has CPU decode - expect playback issues"
