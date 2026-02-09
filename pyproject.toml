@@ -1,0 +1,87 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "videowise"
+version = "0.1.0"
+description = "Video codec compatibility checker for live production and content creation"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Beau Bremer", email = "beau@example.com"}
+]
+maintainers = [
+    {name = "Beau Bremer", email = "beau@example.com"}
+]
+keywords = ["video", "codec", "compatibility", "ffmpeg", "live-production"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Multimedia :: Video",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+
+dependencies = [
+    "ffmpeg-python>=0.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=22.0",
+    "flake8>=5.0",
+    "mypy>=0.990",
+]
+
+[project.urls]
+Homepage = "https://github.com/KnowOneActual/video-codec-checker"
+Documentation = "https://github.com/KnowOneActual/video-codec-checker/blob/main/README.md"
+"Bug Tracker" = "https://github.com/KnowOneActual/video-codec-checker/issues"
+Changelog = "https://github.com/KnowOneActual/video-codec-checker/blob/main/CHANGELOG.md"
+Roadmap = "https://github.com/KnowOneActual/video-codec-checker/blob/main/ROADMAP.md"
+
+[project.scripts]
+videowise = "videowise.cli:main"
+
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+]
+
+[tool.coverage.run]
+source = ["videowise"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
