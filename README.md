@@ -2,7 +2,7 @@
 
 > ⚠️ **This project is in early stages of development.** Core compatibility engine complete, now building user interface.
 
-A video codec compatibility checker that explains *why* your video won't work and how to fix it - for content creators, live production operators, and developers.
+A video codec compatibility checker that explains *why* your video won't work and how to fix it, for content creators, live production operators, and developers.
 
 ## The Problem Being Solved:
 
@@ -23,7 +23,7 @@ You're setting up for a show and:
 
 Most tools either show you raw technical data (codec, bitrate, profile) or just fail silently. **VideoWise bridges that gap** by explaining compatibility issues in plain English and suggesting actual fixes. Or that is the goal at least :)
 
-## What is benig built:
+## What is Benig Built:
 
 VideoWise analyzes video files and provides human-readable explanations:
 
