@@ -1,51 +1,40 @@
-## Description
+## **Description**
 
-Please include a summary of the changes and which issue is fixed. Include relevant motivation and context.
+Please provide a clear and concise description of the changes in this pull request. What is the purpose of this change?
 
-Fixes # (issue)
 
-## Type of change
+## **Related Issue**
 
-Please delete options that are not relevant.
+If this PR addresses a specific issue, please link to it here.
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
-- [ ] Test improvements
-- [ ] Code refactoring
 
-## Compatibility System (if applicable)
 
-- [ ] New compatibility checker added
-- System name: 
-- Systems affected: 
+* Closes # (if it completely resolves the issue)
+* Related to # (if it's only part of the solution)
 
-## How Has This Been Tested?
 
-Please describe the tests that you ran to verify your changes.
+## **Type of Change**
 
-- [ ] All existing tests pass (`pytest`)
-- [ ] New tests added for new functionality
-- [ ] Tested with real video files
-- [ ] Manual testing performed
+Please check the box that applies to your change.
 
-**Test Configuration**:
-* Python version:
-* OS:
-* FFmpeg version:
 
-## Checklist:
 
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published
+* [ ] Bug fix (non-breaking change which fixes an issue)
+* [ ] New feature (non-breaking change which adds functionality)
+* [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+* [ ] This change requires a documentation update
+* [ ] Code refactor or performance improvement
+* [ ] Other (please describe):
 
-## Additional Notes
 
-Add any other context about the pull request here.
+## **Checklist**
+
+Please make sure you've done the following before submitting your PR:
+
+
+
+* [ ] My code follows the style guidelines of this project.
+* [ ] I have performed a self-review of my own code.
+* [ ] I have commented my code, particularly in hard-to-understand areas.
+* [ ] I have made corresponding changes to the documentation.
+* [ ] My changes generate no new warnings.
