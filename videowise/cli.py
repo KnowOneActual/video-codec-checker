@@ -28,7 +28,10 @@ def cli():
     "--system",
     "-s",
     required=True,
-    help="Target playback system (casparcg, vmix, obs, qlab, propresenter, safari, chrome, instagram, twitter)",
+    help=(
+        "Target playback system (casparcg, vmix, obs, qlab, propresenter, "
+        "safari, chrome, instagram, twitter)"
+    ),
 )
 @click.option("--json", "output_json", is_flag=True, help="Output results as JSON")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed information")
