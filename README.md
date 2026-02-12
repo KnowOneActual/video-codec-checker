@@ -68,9 +68,11 @@ VideoWise analyzes video files and provides human-readable explanations:
 - [x] FFprobe integration for metadata extraction
 - [x] Comprehensive codec/container/profile parsing
 - [x] Complete compatibility rules engine (9 systems)
-- [x] 45+ passing tests covering all features
+- [x] 55+ passing tests covering all features
 - [x] ✨ **Basic CLI with colored output**
 - [x] JSON output for automation
+- [x] CI/CD with GitHub Actions
+- [x] Code quality tools (Black, isort, flake8, mypy)
 - [ ] Batch processing (check multiple files)
 - [ ] `--all` flag (check all systems at once)
 - [ ] Enhanced explanation formatter
@@ -193,6 +195,38 @@ for issue in issues:
 
 ## Development
 
+### For Contributors
+
+We use modern Python tooling for code quality:
+
+```bash
+# One-time setup
+make install-dev
+make setup-hooks
+
+# Format code
+make format
+
+# Run tests
+make test
+
+# Check everything (what CI runs)
+make check
+```
+
+**See [DEVELOPMENT.md](DEVELOPMENT.md) for the complete contributor guide.**
+
+### Quick Commands
+
+```bash
+make help          # Show all available commands
+make test          # Run tests
+make test-cov      # Run tests with coverage
+make format        # Auto-format code (Black + isort)
+make check         # Check code quality (no modifications)
+make clean         # Remove build artifacts
+```
+
 ### Running Tests
 
 ```bash
@@ -209,7 +243,7 @@ pytest tests/test_compatibility.py
 pytest --cov=videowise --cov-report=html
 ```
 
-Building this test-first. Every feature has comprehensive tests. **Currently: 45+ passing tests**
+Building this test-first. Every feature has comprehensive tests. **Currently: 55+ passing tests**
 
 **Note:** Tests generate temporary video files using ffmpeg. If ffmpeg is not available, those tests will be skipped.
 
@@ -230,8 +264,14 @@ video-codec-checker/
 │   ├── test_compatibility.py  # Core system tests
 │   ├── test_compatibility_extended.py  # Extended tests
 │   └── test_cli.py     # CLI tests
+├── examples/           # Example scripts
 ├── docs/               # Documentation
 │   └── CLI_USAGE.md   # Complete CLI guide
+├── .github/workflows/  # CI/CD
+│   └── ci.yml         # GitHub Actions
+├── .pre-commit-config.yaml  # Pre-commit hooks
+├── Makefile           # Development commands
+├── DEVELOPMENT.md     # Contributor guide
 ├── requirements.txt
 ├── pyproject.toml
 └── README.md
@@ -302,12 +342,14 @@ video-codec-checker/
 - [x] Live production systems (CasparCG, vMix, OBS, QLab, ProPresenter)
 - [x] Browser compatibility (Safari, Chrome)
 - [x] Social media platforms (Instagram, Twitter)
-- [x] Comprehensive test coverage (45+ tests)
+- [x] Comprehensive test coverage (55+ tests)
 
 ### Phase 2: User Interface 🚧 IN PROGRESS
 - [x] Basic CLI tool for terminal use
 - [x] Colored terminal output
 - [x] JSON output format
+- [x] CI/CD pipeline
+- [x] Code quality automation
 - [ ] `--all` flag (check all systems)
 - [ ] Batch processing support (check multiple files)
 - [ ] Enhanced explanation formatter
@@ -358,7 +400,7 @@ Contributions are welcome! Whether it's:
 - **Feature ideas** - what would make this useful?
 - **Compatibility data** - know the quirks of a platform or playback system?
 - **Real-world war stories** - "this codec broke my show" tales help us build better checks
-- **Code contributions** - see [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Code contributions** - see [DEVELOPMENT.md](DEVELOPMENT.md)
 - **Documentation improvements** - clearer explanations always welcome
 - **Test cases** - additional edge cases to cover
 
