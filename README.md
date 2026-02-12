@@ -1,6 +1,9 @@
 # VideoWise
 
-> ✅ **CLI is now available!** Core compatibility engine complete, basic CLI operational.
+> ⚠️ **ACTIVE DEVELOPMENT**: This project is under active development and is not yet feature-complete. The core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
+> 
+> ✅ **What Works Now**: Basic CLI, 9 system compatibility checkers, Python API  
+> 🚧 **In Progress**: Batch processing, enhanced output formatting, additional platforms
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -227,6 +230,7 @@ make check           # Run all quality checks (what CI runs)
 - All quality checks must pass
 - CLI smoke tests verify basic functionality
 
+**See [TESTING.md](TESTING.md) for a comprehensive testing guide.**  
 **See [DEVELOPMENT.md](DEVELOPMENT.md) for the complete contributor guide.**
 
 ### Quick Development Commands
@@ -260,6 +264,8 @@ pytest --cov=videowise --cov-report=html
 Building this test-first. Every feature has comprehensive tests. **Currently: 55+ passing tests**
 
 **Note:** Tests generate temporary video files using ffmpeg. If ffmpeg is not available, those tests will be skipped.
+
+**For detailed testing information, see [TESTING.md](TESTING.md)**
 
 ### Continuous Integration
 
@@ -295,6 +301,7 @@ video-codec-checker/
 │   └── ci.yml         # GitHub Actions
 ├── .pre-commit-config.yaml  # Pre-commit hooks
 ├── Makefile           # Development commands
+├── TESTING.md         # Testing guide
 ├── DEVELOPMENT.md     # Contributor guide
 ├── requirements.txt
 ├── pyproject.toml
