@@ -34,8 +34,10 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "black>=22.0",
+    "isort>=5.0",
     "flake8>=5.0",
     "mypy>=0.990",
+    "pre-commit>=3.0",
 ]
 
 [project.urls]
@@ -51,6 +53,22 @@ videowise = "videowise.cli:main"
 [tool.black]
 line-length = 100
 target-version = ["py38", "py39", "py310", "py311", "py312"]
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | \.eggs
+  | \.pytest_cache
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_gitignore = true
+known_first_party = ["videowise"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -85,3 +103,4 @@ python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
+ignore_missing_imports = true
