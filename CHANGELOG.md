@@ -17,6 +17,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Improved test infrastructure with proper fixtures and mocking
+- Simplified pre-commit hooks to focus on code quality (removed whitespace/newline fixers that conflicted with editors)
+
+
+## [Unreleased]
+
+### Added
+- Comprehensive test suite with 97% code coverage
+- 74 tests across 6 test files covering all major functionality
+- Tests for all 10 platform compatibility checkers
+- Error handling and edge case tests
+- CLI command and output format tests
+- Video metadata parsing and analyzer tests
+
+### Changed
+- Improved test infrastructure with proper fixtures and mocking
 
 ### Fixed
 - Fixed mypy type checking errors with `no-any-return` annotations

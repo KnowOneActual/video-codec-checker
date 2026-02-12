@@ -1,4 +1,4 @@
-"""Command-line interface for VideoWise."""
+"""Command-line interface for video codec checker."""
 
 import json
 import sys
@@ -7,75 +7,44 @@ from pathlib import Path
 import click
 
 from videowise.analyzer import VideoAnalyzer
-from videowise.compatibility import CompatibilityLevel, check_compatibility
-from videowise.utils import get_video_info
+from videowise.compatibility import check_compatibility
 
-# Color mapping for output
-COLOR_MAP = {
-    CompatibilityLevel.COMPATIBLE: "green",
-    CompatibilityLevel.WARNING: "yellow",
-    CompatibilityLevel.INCOMPATIBLE: "red",
-    CompatibilityLevel.UNKNOWN: "cyan",
-}
-
-SYMBOL_MAP = {
-    CompatibilityLevel.COMPATIBLE: "✓",
-    CompatibilityLevel.WARNING: "⚠",
-    CompatibilityLevel.INCOMPATIBLE: "✗",
-    CompatibilityLevel.UNKNOWN: "?",
-}
+__version__ = "0.1.0"
 
 
 @click.group()
-@click.version_option(version="0.1.0", prog_name="videowise")
+@click.version_option(version=__version__)
 def cli():
-    """VideoWise - Video codec compatibility checker."""
+    """Video Codec Compatibility Checker.
+
+    Check if your video files are compatible with various playback systems.
+    """
     pass
 
 
 @cli.command()
-@click.argument("file", type=click.Path(exists=True, path_type=Path))
+@click.argument("video_path", type=click.Path(exists=True))
 @click.option(
     "--system",
     "-s",
     required=True,
-    type=click.Choice(
-        [
-            "casparcg",
-            "vmix",
-            "obs",
-            "qlab",
-            "propresenter",
-            "safari",
-            "chrome",
-            "instagram",
-            "twitter",
-        ],
-        case_sensitive=False,
-    ),
-    help="Target system to check compatibility against",
+    help="Target playback system (casparcg, vmix, obs, qlab, propresenter, safari, chrome, instagram, twitter)",
 )
-@click.option("--verbose", "-v", is_flag=True, help="Show detailed information")
 @click.option("--json", "output_json", is_flag=True, help="Output results as JSON")
-def check(file: Path, system: str, verbose: bool, output_json: bool):
-    """Check video file compatibility with a specific system.
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed information")
+def check(video_path: str, system: str, output_json: bool, verbose: bool):
+    """Check video compatibility with a specific system.
+
+    VIDEO_PATH: Path to the video file to check
 
     Examples:
-
         videowise check video.mp4 --system casparcg
-
-        videowise check sponsor.mov --system instagram -v
-
-        videowise check playlist.mp4 --system qlab --json
+        videowise check video.mov --system qlab --json
     """
     try:
-        # Analyze the video file (only show message if not JSON mode)
-        if not output_json:
-            click.echo(f"Analyzing {file.name}...", err=True)
+        path = Path(video_path)
+        analyzer = VideoAnalyzer(str(path))
 
-        analyzer = VideoAnalyzer(str(file))
-
-        # Check if we can extract metadata
         metadata = analyzer.get_metadata()
         if not metadata:
             click.secho(
@@ -85,15 +54,35 @@ def check(file: Path, system: str, verbose: bool, output_json: bool):
             )
             sys.exit(2)
 
-        # Get video info and check compatibility
-        video_info = get_video_info(analyzer)
+        codec = analyzer.get_codec_name() or "unknown"
+        codec_profile = analyzer.get_codec_profile()
+        container = analyzer.get_container_format() or "unknown"
+        resolution = analyzer.get_resolution()
+        framerate = analyzer.get_frame_rate()
+        bitrate = analyzer.get_bitrate()
+        file_size = analyzer.get_file_size()
+
+        if codec_profile:
+            codec = f"{codec} ({codec_profile})"
+
+        video_info = {
+            "codec": codec.split()[0].lower(),
+            "profile": codec_profile,
+            "container": container,
+            "width": resolution[0] if resolution else None,
+            "height": resolution[1] if resolution else None,
+            "framerate": float(framerate) if framerate else None,
+            "bitrate": bitrate,
+            "file_size": file_size,
+        }
+
         issues = check_compatibility(video_info, system)
 
-        # Output results
         if output_json:
-            output = {
-                "file": str(file),
+            result = {
+                "file": str(path),
                 "system": system,
+                "video_info": video_info,
                 "issues": [
                     {
                         "level": issue.level.value,
@@ -104,36 +93,42 @@ def check(file: Path, system: str, verbose: bool, output_json: bool):
                     for issue in issues
                 ],
             }
-            click.echo(json.dumps(output, indent=2))
+            click.echo(json.dumps(result, indent=2))
         else:
-            # Human-readable output
-            click.echo()
-            click.secho(f"Compatibility Check: {system.upper()}", bold=True)
-            click.echo("─" * 50)
+            click.secho(f"\n📹 Video: {path.name}", bold=True)
+            click.secho(f"🎬 System: {system}", bold=True)
 
-            for issue in issues:
-                color = COLOR_MAP[issue.level]
-                symbol = SYMBOL_MAP[issue.level]
+            if verbose:
+                click.echo(f"\nCodec: {codec}")
+                click.echo(f"Container: {container}")
+                if resolution:
+                    click.echo(f"Resolution: {resolution[0]}x{resolution[1]}")
+                if framerate:
+                    click.echo(f"Framerate: {framerate} fps")
+                if bitrate:
+                    click.echo(f"Bitrate: {bitrate / 1_000_000:.2f} Mbps")
 
-                click.secho(f"{symbol} {issue.message}", fg=color, bold=True)
+            click.echo("\n" + "=" * 50)
 
-                if verbose or issue.level == CompatibilityLevel.INCOMPATIBLE:
+            if not issues:
+                click.secho("✅ No compatibility issues found!", fg="green")
+            else:
+                for issue in issues:
+                    if issue.level.value == "compatible":
+                        color = "green"
+                        icon = "✅"
+                    elif issue.level.value == "warning":
+                        color = "yellow"
+                        icon = "⚠️"
+                    else:
+                        color = "red"
+                        icon = "❌"
+
+                    click.secho(f"\n{icon} {issue.message}", fg=color, bold=True)
                     if issue.reason:
-                        click.echo(f"  Reason: {issue.reason}")
+                        click.echo(f"   Reason: {issue.reason}")
                     if issue.suggestion:
-                        click.echo(f"  Suggestion: {issue.suggestion}")
-                    click.echo()
-
-        # Determine exit code
-        has_incompatible = any(issue.level == CompatibilityLevel.INCOMPATIBLE for issue in issues)
-        has_warning = any(issue.level == CompatibilityLevel.WARNING for issue in issues)
-
-        if has_incompatible:
-            sys.exit(2)  # Incompatible
-        elif has_warning:
-            sys.exit(1)  # Warnings
-        else:
-            sys.exit(0)  # Compatible
+                        click.echo(f"   Suggestion: {issue.suggestion}")
 
     except FileNotFoundError as e:
         click.secho(f"Error: {e}", fg="red", err=True)
@@ -153,4 +148,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    cli()
