@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run Black (format check)
+        run: black --check --diff videowise tests
+      
+      - name: Run isort (import check)
+        run: isort --check-only --diff videowise tests
+      
+      - name: Run flake8 (linting)
+        run: |
+          flake8 videowise tests \
+            --max-line-length=100 \
+            --extend-ignore=E203,W503 \
+            --exclude=.git,__pycache__,.venv,.eggs,*.egg,build,dist
+      
+      - name: Run mypy (type checking)
+        run: mypy videowise --ignore-missing-imports --no-strict-optional
+        continue-on-error: true  # Don't fail on type errors yet
+
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+      
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ matrix.python-version }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      
+      - name: Run tests with coverage
+        run: pytest -v --cov=videowise --cov-report=xml --cov-report=term
+      
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  cli-smoke-test:
+    name: CLI Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+      
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install click
+          pip install -e .
+      
+      - name: Test CLI help
+        run: videowise --help
+      
+      - name: Test CLI version
+        run: videowise --version
+      
+      - name: Test check command help
+        run: videowise check --help
+      
+      - name: Generate test video
+        run: |
+          ffmpeg -f lavfi -i color=c=blue:s=320x240:d=1 \
+            -c:v libx264 -profile:v baseline -pix_fmt yuv420p \
+            test_video.mp4
+      
+      - name: Test check command (CasparCG)
+        run: videowise check test_video.mp4 --system casparcg
+      
+      - name: Test check command (JSON output)
+        run: videowise check test_video.mp4 --system safari --json
