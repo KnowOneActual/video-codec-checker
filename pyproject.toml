@@ -37,7 +37,7 @@ dev = [
     "isort>=5.0",
     "flake8>=5.0",
     "mypy>=0.990",
-    "pre-commit>=3.0",
+    "pre-commit>=2.21.0,<3.0",
 ]
 
 [project.urls]
