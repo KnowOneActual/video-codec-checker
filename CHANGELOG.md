@@ -2,7 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.1] - 2026-02-11
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Comprehensive test suite with 97% code coverage
+- 74 tests across 6 test files covering all major functionality
+- Tests for all 10 platform compatibility checkers
+- Error handling and edge case tests
+- CLI command and output format tests
+- Video metadata parsing and analyzer tests
+
+### Changed
+- Improved test infrastructure with proper fixtures and mocking
 
 ### Fixed
 - Fixed mypy type checking errors with `no-any-return` annotations
