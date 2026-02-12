@@ -1,6 +1,6 @@
 # VideoWise
 
-> ⚠️ **ACTIVE DEVELOPMENT**: This project is under active development and is not yet feature-complete. The core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
+> ⚠️ **UNDER DEVELOPMENT**: This project is under development and is not yet feature-complete. The core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
 >
 > ✅ **What Works Now**: Basic CLI, 9 system compatibility checkers, Python API
 > 🚧 **In Progress**: Batch processing, enhanced output formatting, additional platforms
