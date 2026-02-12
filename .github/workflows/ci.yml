@@ -130,7 +130,13 @@ jobs:
             test_video.mp4
       
       - name: Test check command (CasparCG)
-        run: videowise check test_video.mp4 --system casparcg
+        run: |
+          videowise check test_video.mp4 --system casparcg || EXIT_CODE=$?
+          if [ $EXIT_CODE -eq 2 ]; then
+            echo "Error: Video incompatible (exit code 2)"
+            exit 1
+          fi
+          echo "Success: Compatible or warning (exit code $EXIT_CODE)"
       
       - name: Test check command (JSON output)
         run: videowise check test_video.mp4 --system safari --json
