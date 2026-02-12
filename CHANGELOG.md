@@ -14,38 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Error handling and edge case tests
 - CLI command and output format tests
 - Video metadata parsing and analyzer tests
-
-### Changed
-- Improved test infrastructure with proper fixtures and mocking
-- Simplified pre-commit hooks to focus on code quality (removed whitespace/newline fixers that conflicted with editors)
-
-
-## [Unreleased]
-
-### Added
-- Comprehensive test suite with 97% code coverage
-- 74 tests across 6 test files covering all major functionality
-- Tests for all 10 platform compatibility checkers
-- Error handling and edge case tests
-- CLI command and output format tests
-- Video metadata parsing and analyzer tests
-
-### Changed
-- Improved test infrastructure with proper fixtures and mocking
-
-### Fixed
-- Fixed mypy type checking errors with `no-any-return` annotations
-- Fixed Python 3.8 compatibility by downgrading pre-commit to 2.x
-- Fixed CI workflow to accept warning exit codes (exit code 1) as success
-- All tests now passing across Python 3.8-3.12
-
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-### Added
 - Comprehensive development tooling and automation
   - Pre-commit hooks for code quality (Black, isort, flake8, mypy)
   - Makefile with common development commands
@@ -53,23 +21,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automated testing on Python 3.8-3.12
   - DEVELOPMENT.md contributor guide
 - Type annotations throughout codebase
-- Improved test coverage and organization
 
 ### Changed
+- Improved test infrastructure with proper fixtures and mocking
+- Simplified pre-commit hooks to focus on code quality (removed whitespace/newline fixers that conflicted with editors)
 - Enhanced README with development tools section
 - Updated contributor guidelines with modern workflow
 - Improved code quality standards
 
 ### Fixed
+- Fixed mypy type checking errors with `no-any-return` annotations
+- Fixed Python 3.8 compatibility by downgrading pre-commit to 2.x
+- Fixed CI workflow to accept warning exit codes (exit code 1) as success
+- All tests now passing across Python 3.8-3.12
 - Removed unused imports from test files
-- Fixed mypy type checking errors
 - Corrected formatting inconsistencies
-
-### Planned
-- `--all` flag (check all systems at once)
-- Batch processing support
-- Enhanced explanation formatter
-- Additional platform support (Firefox, YouTube, TikTok, etc.)
 
 ## [0.1.0] - 2026-02-09
 
