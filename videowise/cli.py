@@ -68,8 +68,10 @@ def check(file: Path, system: str, verbose: bool, output_json: bool):
         videowise check playlist.mp4 --system qlab --json
     """
     try:
-        # Analyze the video file
-        click.echo(f"Analyzing {file.name}...", err=True)
+        # Analyze the video file (only show message if not JSON mode)
+        if not output_json:
+            click.echo(f"Analyzing {file.name}...", err=True)
+        
         analyzer = VideoAnalyzer(str(file))
         
         # Check if we can extract metadata
