@@ -1,138 +1,167 @@
-"""Core video analysis functionality."""
+"""Video file analysis and metadata extraction using FFprobe."""
 
 import json
 import subprocess
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 
 class VideoAnalyzer:
-    """Analyzes video files to extract codec and format information."""
+    """Analyzes video files using ffprobe to extract metadata."""
 
     def __init__(self, file_path: str):
         """Initialize analyzer with a video file path.
-        
+
         Args:
             file_path: Path to the video file to analyze
+
+        Raises:
+            FileNotFoundError: If the video file does not exist
         """
         self.file_path = Path(file_path)
         if not self.file_path.exists():
             raise FileNotFoundError(f"Video file not found: {file_path}")
-        self._metadata = None
+
+        self._metadata: Optional[Dict[str, Any]] = None
 
     def get_metadata(self) -> Optional[Dict[str, Any]]:
         """Extract video metadata using ffprobe.
-        
+
         Returns:
-            Dictionary containing video metadata, or None if extraction fails
+            Dictionary containing video metadata, or None if extraction failed
         """
         if self._metadata is not None:
             return self._metadata
-            
+
         try:
             cmd = [
-                'ffprobe',
-                '-v', 'quiet',
-                '-print_format', 'json',
-                '-show_format',
-                '-show_streams',
-                str(self.file_path)
+                "ffprobe",
+                "-v",
+                "quiet",
+                "-print_format",
+                "json",
+                "-show_format",
+                "-show_streams",
+                str(self.file_path),
             ]
-            
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            
+
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+
             self._metadata = json.loads(result.stdout)
             return self._metadata
-        except (subprocess.CalledProcessError, json.JSONDecodeError, FileNotFoundError) as e:
+
+        except (subprocess.CalledProcessError, json.JSONDecodeError, FileNotFoundError):
             return None
 
     def get_video_stream(self) -> Optional[Dict[str, Any]]:
         """Get the first video stream from metadata.
-        
+
         Returns:
-            Dictionary containing video stream info, or None if not found
+            Dictionary containing video stream data, or None if not found
         """
         metadata = self.get_metadata()
-        if not metadata or 'streams' not in metadata:
+        if not metadata:
             return None
-        
-        for stream in metadata['streams']:
-            if stream.get('codec_type') == 'video':
+
+        streams = metadata.get("streams", [])
+        for stream in streams:
+            if stream.get("codec_type") == "video":
                 return stream
-        
+
         return None
 
     def get_codec_name(self) -> Optional[str]:
-        """Get the video codec name.
-        
+        """Get the codec name from the video stream.
+
         Returns:
-            Codec name (e.g., 'h264', 'vp9', 'prores'), or None if not found
+            Codec name as string, or None if not found
         """
         stream = self.get_video_stream()
-        return stream.get('codec_name') if stream else None
+        if not stream:
+            return None
+        return stream.get("codec_name")
 
     def get_codec_profile(self) -> Optional[str]:
-        """Get the video codec profile.
-        
+        """Get the codec profile from the video stream.
+
         Returns:
-            Codec profile (e.g., 'Baseline', 'High', 'Main'), or None if not found
+            Codec profile as string, or None if not found
         """
         stream = self.get_video_stream()
-        return stream.get('profile') if stream else None
+        if not stream:
+            return None
+        return stream.get("profile")
 
     def get_container_format(self) -> Optional[str]:
-        """Get the container format.
-        
+        """Get the container format from metadata.
+
         Returns:
-            Container format name (e.g., 'mov,mp4,m4a,3gp,3g2,mj2'), or None if not found
+            Container format as string, or None if not found
         """
         metadata = self.get_metadata()
-        if not metadata or 'format' not in metadata:
+        if not metadata:
             return None
-        
-        return metadata['format'].get('format_name')
+
+        format_info = metadata.get("format", {})
+        return format_info.get("format_name")
 
     def get_resolution(self) -> Optional[tuple[int, int]]:
-        """Get video resolution.
-        
+        """Get video resolution as (width, height).
+
         Returns:
             Tuple of (width, height), or None if not found
         """
         stream = self.get_video_stream()
         if not stream:
             return None
-        
-        width = stream.get('width')
-        height = stream.get('height')
-        
+
+        width = stream.get("width")
+        height = stream.get("height")
+
         if width and height:
-            return (width, height)
-        
+            return (int(width), int(height))
+
         return None
 
     def get_frame_rate(self) -> Optional[str]:
-        """Get video frame rate.
-        
-        Returns:
-            Frame rate as string (e.g., '30/1', '24000/1001'), or None if not found
-        """
-        stream = self.get_video_stream()
-        return stream.get('r_frame_rate') if stream else None
+        """Get the frame rate of the video.
 
-    def get_bitrate(self) -> Optional[int]:
-        """Get video bitrate in bits per second.
-        
         Returns:
-            Bitrate in bps, or None if not found
+            Frame rate as string (e.g., '30/1', '29.97'), or None if not found
         """
         stream = self.get_video_stream()
         if not stream:
             return None
-        
-        bitrate = stream.get('bit_rate')
-        return int(bitrate) if bitrate else None
+        return stream.get("r_frame_rate")
+
+    def get_bitrate(self) -> Optional[int]:
+        """Get the video bitrate in bits per second.
+
+        Returns:
+            Bitrate as integer, or None if not found
+        """
+        stream = self.get_video_stream()
+        if not stream:
+            return None
+
+        bitrate = stream.get("bit_rate")
+        if bitrate:
+            return int(bitrate)
+
+        # If stream bitrate is not available, try format bitrate
+        metadata = self.get_metadata()
+        if metadata:
+            format_info = metadata.get("format", {})
+            bitrate = format_info.get("bit_rate")
+            if bitrate:
+                return int(bitrate)
+
+        return None
+
+    def get_file_size(self) -> int:
+        """Get the file size in bytes.
+
+        Returns:
+            File size in bytes
+        """
+        return self.file_path.stat().st_size
