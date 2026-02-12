@@ -31,7 +31,7 @@ class VideoAnalyzer:
             Dictionary containing video metadata, or None if extraction failed
         """
         if self._metadata is not None:
-            return self._metadata
+            return self._metadata  # type: ignore[no-any-return]
 
         try:
             cmd = [
@@ -66,7 +66,7 @@ class VideoAnalyzer:
         streams = metadata.get("streams", [])
         for stream in streams:
             if stream.get("codec_type") == "video":
-                return stream  # type: ignore[return-value]
+                return stream  # type: ignore[no-any-return]
 
         return None
 

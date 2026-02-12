@@ -158,9 +158,7 @@ class VmixChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message=(
-                            f"High bitrate ({mbps}Mbps) - monitor for " f"performance issues"
-                        ),
+                        message=(f"High bitrate ({mbps}Mbps) - monitor for " f"performance issues"),
                         reason="High bitrate files require more resources",
                         suggestion="Test playback before going live",
                     )
@@ -501,8 +499,7 @@ class InstagramChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
                     message=(
-                        f"Instagram will re-encode {codec.upper()} to H.264 "
-                        f"(quality loss)"
+                        f"Instagram will re-encode {codec.upper()} to H.264 " f"(quality loss)"
                     ),
                     reason="Instagram only accepts H.264 codec",
                     suggestion="Pre-encode to H.264 to maintain quality control",
@@ -586,9 +583,7 @@ class TwitterChecker(CompatibilityChecker):
 
         # Check file size
         is_premium = self.account_type == "premium"
-        max_size = (
-            self.MAX_FILE_SIZE_PREMIUM if is_premium else self.MAX_FILE_SIZE_STANDARD
-        )
+        max_size = self.MAX_FILE_SIZE_PREMIUM if is_premium else self.MAX_FILE_SIZE_STANDARD
         if file_size > max_size:
             size_mb = file_size // (1024 * 1024)
             limit_mb = max_size // (1024 * 1024)
@@ -604,9 +599,7 @@ class TwitterChecker(CompatibilityChecker):
         return issues
 
 
-def check_compatibility(
-    video_info: Dict[str, Any], system: str
-) -> List[CompatibilityIssue]:
+def check_compatibility(video_info: Dict[str, Any], system: str) -> List[CompatibilityIssue]:
     """Check video compatibility for a specific system.
 
     Args:
@@ -639,4 +632,4 @@ def check_compatibility(
         ]
 
     checker = checkers[system_lower]()
-    return checker.check(video_info)
+    return checker.check(video_info)  # type: ignore[no-any-return]

@@ -125,9 +125,7 @@ def check(file: Path, system: str, verbose: bool, output_json: bool):
                     click.echo()
 
         # Determine exit code
-        has_incompatible = any(
-            issue.level == CompatibilityLevel.INCOMPATIBLE for issue in issues
-        )
+        has_incompatible = any(issue.level == CompatibilityLevel.INCOMPATIBLE for issue in issues)
         has_warning = any(issue.level == CompatibilityLevel.WARNING for issue in issues)
 
         if has_incompatible:
