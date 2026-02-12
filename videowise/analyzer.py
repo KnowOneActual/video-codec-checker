@@ -3,7 +3,7 @@
 import json
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 
 class VideoAnalyzer:
@@ -66,7 +66,7 @@ class VideoAnalyzer:
         streams = metadata.get("streams", [])
         for stream in streams:
             if stream.get("codec_type") == "video":
-                return stream
+                return stream  # type: ignore[return-value]
 
         return None
 
@@ -79,7 +79,8 @@ class VideoAnalyzer:
         stream = self.get_video_stream()
         if not stream:
             return None
-        return stream.get("codec_name")
+        result: Optional[str] = stream.get("codec_name")
+        return result
 
     def get_codec_profile(self) -> Optional[str]:
         """Get the codec profile from the video stream.
@@ -90,7 +91,8 @@ class VideoAnalyzer:
         stream = self.get_video_stream()
         if not stream:
             return None
-        return stream.get("profile")
+        result: Optional[str] = stream.get("profile")
+        return result
 
     def get_container_format(self) -> Optional[str]:
         """Get the container format from metadata.
@@ -103,9 +105,10 @@ class VideoAnalyzer:
             return None
 
         format_info = metadata.get("format", {})
-        return format_info.get("format_name")
+        result: Optional[str] = format_info.get("format_name")
+        return result
 
-    def get_resolution(self) -> Optional[tuple[int, int]]:
+    def get_resolution(self) -> Optional[Tuple[int, int]]:
         """Get video resolution as (width, height).
 
         Returns:
@@ -132,7 +135,8 @@ class VideoAnalyzer:
         stream = self.get_video_stream()
         if not stream:
             return None
-        return stream.get("r_frame_rate")
+        result: Optional[str] = stream.get("r_frame_rate")
+        return result
 
     def get_bitrate(self) -> Optional[int]:
         """Get the video bitrate in bits per second.

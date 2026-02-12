@@ -62,7 +62,7 @@ class CasparCGChecker(CompatibilityChecker):
         self.version = version
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        issues = []
+        issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
         frame_rate = video_info.get("frame_rate")
@@ -79,10 +79,7 @@ class CasparCGChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.INCOMPATIBLE,
-                    message=(
-                        f"CasparCG {self.version} does not support "
-                        f"{codec.upper()} codec"
-                    ),
+                    message=(f"CasparCG {self.version} does not support " f"{codec.upper()} codec"),
                     reason=f"CasparCG only supports: {supported}",
                     suggestion="Convert to ProRes, DNxHD, or H.264 in MP4 container",
                 )
@@ -98,13 +95,9 @@ class CasparCGChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message=(
-                            f"{codec.upper()} in {container} container "
-                            f"may have issues"
-                        ),
+                        message=(f"{codec.upper()} in {container} container " f"may have issues"),
                         reason=(
-                            f"CasparCG works best with {codec.upper()} "
-                            f"in {rec_str} container"
+                            f"CasparCG works best with {codec.upper()} " f"in {rec_str} container"
                         ),
                         suggestion=(
                             f"Remux to {recommended[0].upper()} container "
@@ -144,7 +137,7 @@ class VmixChecker(CompatibilityChecker):
     VERY_HIGH_BITRATE_THRESHOLD = 200_000_000  # 200 Mbps
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        issues = []
+        issues: List[CompatibilityIssue] = []
         bitrate = video_info.get("bitrate")
         codec = video_info.get("codec", "").lower()
         resolution = video_info.get("resolution")
@@ -155,10 +148,7 @@ class VmixChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message=(
-                            f"Very high bitrate ({mbps}Mbps) may cause "
-                            f"dropped frames"
-                        ),
+                        message=(f"Very high bitrate ({mbps}Mbps) may cause " f"dropped frames"),
                         reason="vMix may struggle with high bitrate on some systems",
                         suggestion="Consider transcoding to 100-150Mbps",
                     )
@@ -169,8 +159,7 @@ class VmixChecker(CompatibilityChecker):
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
                         message=(
-                            f"High bitrate ({mbps}Mbps) - monitor for "
-                            f"performance issues"
+                            f"High bitrate ({mbps}Mbps) - monitor for " f"performance issues"
                         ),
                         reason="High bitrate files require more resources",
                         suggestion="Test playback before going live",
@@ -232,7 +221,7 @@ class OBSChecker(CompatibilityChecker):
     RECOMMENDED_CODECS = ["h264", "hevc", "av1"]
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        issues = []
+        issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
 
@@ -291,7 +280,7 @@ class QLabChecker(CompatibilityChecker):
     ALPHA_CODECS = ["prores4444"]  # For transparency
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        issues = []
+        issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
 
@@ -364,7 +353,7 @@ class ProPresenterChecker(CompatibilityChecker):
     }
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        issues = []
+        issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
 
@@ -431,7 +420,7 @@ class SafariChecker(CompatibilityChecker):
     SUPPORTED_CODECS = ["h264", "hevc"]
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        issues = []
+        issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
 
@@ -471,7 +460,7 @@ class ChromeChecker(CompatibilityChecker):
     SUPPORTED_CODECS = ["h264", "vp8", "vp9", "av1"]
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        issues = []
+        issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
 
         if codec in self.SUPPORTED_CODECS:
@@ -501,7 +490,7 @@ class InstagramChecker(CompatibilityChecker):
     MAX_DURATION = 60  # 60 seconds for feed, 90 for reels
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        issues = []
+        issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         profile = video_info.get("profile", "").lower()
         resolution = video_info.get("resolution")
@@ -563,7 +552,7 @@ class TwitterChecker(CompatibilityChecker):
         self.account_type = account_type
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        issues = []
+        issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
         file_size = video_info.get("file_size", 0)
