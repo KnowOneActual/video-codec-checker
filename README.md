@@ -2,6 +2,11 @@
 
 > ✅ **CLI is now available!** Core compatibility engine complete, basic CLI operational.
 
+[![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A video codec compatibility checker that explains *why* your video won't work and how to fix it, for content creators, live production operators, and developers.
 
 ## Quick Start
@@ -73,6 +78,7 @@ VideoWise analyzes video files and provides human-readable explanations:
 - [x] JSON output for automation
 - [x] CI/CD with GitHub Actions
 - [x] Code quality tools (Black, isort, flake8, mypy)
+- [x] Pre-commit hooks for automated quality checks
 - [ ] Batch processing (check multiple files)
 - [ ] `--all` flag (check all systems at once)
 - [ ] Enhanced explanation formatter
@@ -197,33 +203,41 @@ for issue in issues:
 
 ### For Contributors
 
-We use modern Python tooling for code quality:
+We use modern Python tooling for code quality and automated testing:
 
 ```bash
 # One-time setup
-make install-dev
-make setup-hooks
+make install-dev      # Install dev dependencies
+make setup-hooks      # Install pre-commit hooks
 
-# Format code
-make format
-
-# Run tests
-make test
-
-# Check everything (what CI runs)
-make check
+# Daily workflow
+make format          # Auto-format code (Black + isort)
+make test            # Run tests
+make check           # Run all quality checks (what CI runs)
 ```
+
+**All code is automatically checked** on every commit with:
+- **Black** - Code formatting
+- **isort** - Import sorting
+- **flake8** - Linting
+- **mypy** - Type checking
+
+**All code is automatically tested** on every push via GitHub Actions:
+- Tests run on Python 3.8, 3.9, 3.10, 3.11, 3.12
+- All quality checks must pass
+- CLI smoke tests verify basic functionality
 
 **See [DEVELOPMENT.md](DEVELOPMENT.md) for the complete contributor guide.**
 
-### Quick Commands
+### Quick Development Commands
 
 ```bash
 make help          # Show all available commands
 make test          # Run tests
-make test-cov      # Run tests with coverage
+make test-cov      # Run tests with coverage report
 make format        # Auto-format code (Black + isort)
 make check         # Check code quality (no modifications)
+make lint          # Run linters (flake8, mypy)
 make clean         # Remove build artifacts
 ```
 
@@ -246,6 +260,16 @@ pytest --cov=videowise --cov-report=html
 Building this test-first. Every feature has comprehensive tests. **Currently: 55+ passing tests**
 
 **Note:** Tests generate temporary video files using ffmpeg. If ffmpeg is not available, those tests will be skipped.
+
+### Continuous Integration
+
+Every push triggers automated testing via GitHub Actions:
+
+- **Linting**: Black, isort, flake8, mypy
+- **Testing**: Python 3.8-3.12 on Ubuntu
+- **CLI Tests**: Verify basic functionality
+
+View status: [Actions tab](https://github.com/KnowOneActual/video-codec-checker/actions)
 
 ### Project Structure
 
@@ -350,6 +374,7 @@ video-codec-checker/
 - [x] JSON output format
 - [x] CI/CD pipeline
 - [x] Code quality automation
+- [x] Pre-commit hooks
 - [ ] `--all` flag (check all systems)
 - [ ] Batch processing support (check multiple files)
 - [ ] Enhanced explanation formatter

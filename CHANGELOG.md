@@ -7,11 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Comprehensive development tooling and automation
+  - Pre-commit hooks for code quality (Black, isort, flake8, mypy)
+  - Makefile with common development commands
+  - GitHub Actions CI/CD pipeline
+  - Automated testing on Python 3.8-3.12
+  - DEVELOPMENT.md contributor guide
+- Type annotations throughout codebase
+- Improved test coverage and organization
+
+### Changed
+- Enhanced README with development tools section
+- Updated contributor guidelines with modern workflow
+- Improved code quality standards
+
+### Fixed
+- Removed unused imports from test files
+- Fixed mypy type checking errors
+- Corrected formatting inconsistencies
+
 ### Planned
-- CLI interface with colored output
-- Human-readable explanation formatter
+- `--all` flag (check all systems at once)
 - Batch processing support
-- FFmpeg fix command generator
+- Enhanced explanation formatter
 - Additional platform support (Firefox, YouTube, TikTok, etc.)
 
 ## [0.1.0] - 2026-02-09
