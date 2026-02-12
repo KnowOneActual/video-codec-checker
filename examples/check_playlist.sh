@@ -12,7 +12,7 @@ for video in playlist/*.mp4 playlist/*.mov; do
     if [ -f "$video" ]; then
         echo ""
         echo "Checking: $(basename "$video")"
-        
+
         if videowise check "$video" --system casparcg --quiet; then
             ((success_count++))
             echo "✓ Compatible"

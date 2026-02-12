@@ -31,7 +31,7 @@ What do you know about this system's requirements?
 - [ ] VP8/VP9
 - [ ] AV1
 - [ ] HAP
-- [ ] Other: 
+- [ ] Other:
 
 **Container Formats:**
 - [ ] MP4
@@ -45,7 +45,7 @@ What do you know about this system's requirements?
 
 **Documentation Links**
 Provide links to official documentation about this system's video requirements:
-- 
+-
 
 **Real-World Experience**
 Have you encountered issues with specific codec combinations? Share your "war stories":

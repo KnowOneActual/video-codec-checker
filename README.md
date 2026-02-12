@@ -1,8 +1,8 @@
 # VideoWise
 
 > ⚠️ **ACTIVE DEVELOPMENT**: This project is under active development and is not yet feature-complete. The core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
-> 
-> ✅ **What Works Now**: Basic CLI, 9 system compatibility checkers, Python API  
+>
+> ✅ **What Works Now**: Basic CLI, 9 system compatibility checkers, Python API
 > 🚧 **In Progress**: Batch processing, enhanced output formatting, additional platforms
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
@@ -163,7 +163,7 @@ videowise check video.mp4 --system safari --json > results.json
 
 - `casparcg` - CasparCG Server
 - `vmix` - vMix
-- `obs` - OBS Studio  
+- `obs` - OBS Studio
 - `qlab` - QLab
 - `propresenter` - ProPresenter
 - `safari` - Safari browser
@@ -230,7 +230,7 @@ make check           # Run all quality checks (what CI runs)
 - All quality checks must pass
 - CLI smoke tests verify basic functionality
 
-**See [TESTING.md](TESTING.md) for a comprehensive testing guide.**  
+**See [TESTING.md](TESTING.md) for a comprehensive testing guide.**
 **See [DEVELOPMENT.md](DEVELOPMENT.md) for the complete contributor guide.**
 
 ### Quick Development Commands

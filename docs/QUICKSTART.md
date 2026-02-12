@@ -26,10 +26,10 @@ For now, see the Developer Quick Start below.
    ```bash
    # macOS
    brew install ffmpeg
-   
+
    # Ubuntu/Debian
    sudo apt-get install ffmpeg
-   
+
    # Windows
    # Download from https://ffmpeg.org/download.html
    ```

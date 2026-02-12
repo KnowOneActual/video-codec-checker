@@ -26,7 +26,7 @@ This roadmap outlines the development plan for VideoWise from initial concept th
 
 ## 🚧 Phase 2: User Interface (IN PROGRESS)
 
-**Target:** March 2026  
+**Target:** March 2026
 **Priority:** HIGH - Make the tool actually usable
 
 ### Milestones
@@ -68,7 +68,7 @@ This roadmap outlines the development plan for VideoWise from initial concept th
 
 ## 📦 Phase 3: Distribution & Additional Systems
 
-**Target:** April-May 2026  
+**Target:** April-May 2026
 **Priority:** MEDIUM
 
 ### Milestones
@@ -111,7 +111,7 @@ This roadmap outlines the development plan for VideoWise from initial concept th
 
 ## 🔧 Phase 4: Advanced Features
 
-**Target:** June-August 2026  
+**Target:** June-August 2026
 **Priority:** LOW (nice-to-have)
 
 ### Milestones
@@ -154,7 +154,7 @@ This roadmap outlines the development plan for VideoWise from initial concept th
 
 ## 🔮 Phase 5: Advanced Intelligence (Future)
 
-**Target:** TBD (2027+)  
+**Target:** TBD (2027+)
 **Priority:** RESEARCH
 
 ### Potential Features

@@ -225,7 +225,7 @@ tests/
 ```python
 def test_casparcg_h264_compatible():
     """Test that H.264 in MP4 is compatible with CasparCG."""
-    
+
     # 1. ARRANGE - Set up test data
     checker = CasparCGChecker()
     video_info = {
@@ -233,10 +233,10 @@ def test_casparcg_h264_compatible():
         "container": "mp4",
         "resolution": (1920, 1080),
     }
-    
+
     # 2. ACT - Run the code being tested
     issues = checker.check(video_info)
-    
+
     # 3. ASSERT - Check the results
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 ```
@@ -262,9 +262,9 @@ def test_vmix_8k_warning():
         "codec": "h264",
         "resolution": (7680, 4320),  # 8K
     }
-    
+
     issues = checker.check(video_info)
-    
+
     # Should have warning about resolution
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("8k" in issue.message.lower() for issue in issues)
@@ -284,10 +284,10 @@ def test_get_codec_name_h264(h264_video):
     """Test that we can extract H.264 codec name."""
     # h264_video is automatically created by the fixture
     # It's a Path object pointing to a real H.264 video file
-    
+
     analyzer = VideoAnalyzer(str(h264_video))
     codec = analyzer.get_codec_name()
-    
+
     assert codec == "h264"
 ```
 
@@ -307,10 +307,10 @@ from videowise.cli import cli
 def test_check_h264_casparcg_compatible(runner, h264_video):
     """Test check command with compatible H.264 file for CasparCG."""
     result = runner.invoke(cli, ["check", str(h264_video), "--system", "casparcg"])
-    
+
     # Check exit code
     assert result.exit_code in [0, 1]  # 0=compatible, 1=warning
-    
+
     # Check output contains expected text
     assert "CasparCG" in result.output or "casparcg" in result.output.lower()
 ```
@@ -495,7 +495,7 @@ GitHub Actions automatically runs:
 2. Click on your commit
 3. View results for each job
 
-**Green checkmark** ✅ = All tests passed!  
+**Green checkmark** ✅ = All tests passed!
 **Red X** ❌ = Something failed (click for details)
 
 ## Need Help?

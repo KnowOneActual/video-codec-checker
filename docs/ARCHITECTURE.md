@@ -158,13 +158,13 @@ This ensures tests use realistic data, not mocked objects.
 ```python
 class NewSystemChecker(CompatibilityChecker):
     """Compatibility checker for NewSystem."""
-    
+
     SUPPORTED_CODECS = {'h264', 'prores'}
-    
+
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
         issues = []
         codec = video_info.get('codec', '').lower()
-        
+
         if codec not in self.SUPPORTED_CODECS:
             issues.append(CompatibilityIssue(
                 level=CompatibilityLevel.INCOMPATIBLE,
@@ -177,7 +177,7 @@ class NewSystemChecker(CompatibilityChecker):
                 level=CompatibilityLevel.COMPATIBLE,
                 message="Compatible with NewSystem"
             ))
-        
+
         return issues
 ```
 
