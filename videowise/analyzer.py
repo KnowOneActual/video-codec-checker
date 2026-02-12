@@ -1,22 +1,23 @@
-"""Video file analysis and metadata extraction using FFprobe."""
+"""Video file analyzer using ffprobe."""
 
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 
 class VideoAnalyzer:
-    """Analyzes video files using ffprobe to extract metadata."""
+    """Analyzes video files and extracts codec/format information."""
 
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str) -> None:
         """Initialize analyzer with a video file path.
 
         Args:
             file_path: Path to the video file to analyze
 
         Raises:
-            FileNotFoundError: If the video file does not exist
+            FileNotFoundError: If the file doesn't exist
         """
         self.file_path = Path(file_path)
         if not self.file_path.exists():
@@ -28,27 +29,30 @@ class VideoAnalyzer:
         """Extract video metadata using ffprobe.
 
         Returns:
-            Dictionary containing video metadata, or None if extraction failed
+            Dictionary containing video metadata, or None if extraction fails
         """
         if self._metadata is not None:
-            return self._metadata  # type: ignore[no-any-return]
+            return self._metadata
 
         try:
-            cmd = [
-                "ffprobe",
-                "-v",
-                "quiet",
-                "-print_format",
-                "json",
-                "-show_format",
-                "-show_streams",
-                str(self.file_path),
-            ]
-
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                [
+                    "ffprobe",
+                    "-v",
+                    "quiet",
+                    "-print_format",
+                    "json",
+                    "-show_format",
+                    "-show_streams",
+                    str(self.file_path),
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
 
             self._metadata = json.loads(result.stdout)
-            return self._metadata
+            return self._metadata  # type: ignore[no-any-return]
 
         except (subprocess.CalledProcessError, json.JSONDecodeError, FileNotFoundError):
             return None
@@ -71,45 +75,50 @@ class VideoAnalyzer:
         return None
 
     def get_codec_name(self) -> Optional[str]:
-        """Get the codec name from the video stream.
+        """Extract the video codec name.
 
         Returns:
-            Codec name as string, or None if not found
+            Codec name (e.g., 'h264', 'prores'), or None if not found
         """
         stream = self.get_video_stream()
         if not stream:
             return None
-        result: Optional[str] = stream.get("codec_name")
-        return result
+
+        return stream.get("codec_name")
 
     def get_codec_profile(self) -> Optional[str]:
-        """Get the codec profile from the video stream.
+        """Extract the codec profile if available.
 
         Returns:
-            Codec profile as string, or None if not found
+            Profile name (e.g., 'High', 'Baseline'), or None if not found
         """
         stream = self.get_video_stream()
         if not stream:
             return None
-        result: Optional[str] = stream.get("profile")
-        return result
+
+        return stream.get("profile")  # type: ignore[no-any-return]
 
     def get_container_format(self) -> Optional[str]:
-        """Get the container format from metadata.
+        """Extract the container format.
 
         Returns:
-            Container format as string, or None if not found
+            Format name (e.g., 'mp4', 'mov'), or None if not found
         """
         metadata = self.get_metadata()
         if not metadata:
             return None
 
-        format_info = metadata.get("format", {})
-        result: Optional[str] = format_info.get("format_name")
-        return result
+        format_data = metadata.get("format", {})
+        format_name = format_data.get("format_name", "")
+
+        # Return first format if multiple are listed
+        if "," in format_name:
+            return format_name.split(",")[0]  # type: ignore[no-any-return]
+
+        return format_name if format_name else None
 
     def get_resolution(self) -> Optional[Tuple[int, int]]:
-        """Get video resolution as (width, height).
+        """Extract video resolution (width, height).
 
         Returns:
             Tuple of (width, height), or None if not found
@@ -121,25 +130,37 @@ class VideoAnalyzer:
         width = stream.get("width")
         height = stream.get("height")
 
-        if width and height:
+        if width is not None and height is not None:
             return (int(width), int(height))
 
         return None
 
-    def get_frame_rate(self) -> Optional[str]:
-        """Get the frame rate of the video.
+    def get_frame_rate(self) -> Optional[float]:
+        """Extract frame rate in fps.
 
         Returns:
-            Frame rate as string (e.g., '30/1', '29.97'), or None if not found
+            Frame rate as float, or None if not found
         """
         stream = self.get_video_stream()
         if not stream:
             return None
-        result: Optional[str] = stream.get("r_frame_rate")
-        return result
+
+        # Try avg_frame_rate first (more accurate)
+        fps_str = stream.get("avg_frame_rate") or stream.get("r_frame_rate")
+        if not fps_str:
+            return None
+
+        try:
+            # Handle fraction format (e.g., "25/1", "30000/1001")
+            if "/" in fps_str:
+                num, den = fps_str.split("/")
+                return float(num) / float(den)
+            return float(fps_str)
+        except (ValueError, ZeroDivisionError):
+            return None
 
     def get_bitrate(self) -> Optional[int]:
-        """Get the video bitrate in bits per second.
+        """Extract video bitrate in bits per second.
 
         Returns:
             Bitrate as integer, or None if not found
@@ -148,24 +169,32 @@ class VideoAnalyzer:
         if not stream:
             return None
 
-        bitrate = stream.get("bit_rate")
-        if bitrate:
-            return int(bitrate)
+        bitrate_str = stream.get("bit_rate")
+        if bitrate_str:
+            try:
+                return int(bitrate_str)
+            except ValueError:
+                return None
 
-        # If stream bitrate is not available, try format bitrate
+        # Fallback to format bitrate
         metadata = self.get_metadata()
-        if metadata:
-            format_info = metadata.get("format", {})
-            bitrate = format_info.get("bit_rate")
-            if bitrate:
-                return int(bitrate)
+        if not metadata:
+            return None
+
+        format_data = metadata.get("format", {})
+        bitrate_str = format_data.get("bit_rate")
+        if bitrate_str:
+            try:
+                return int(bitrate_str)
+            except ValueError:
+                return None
 
         return None
 
     def get_file_size(self) -> int:
-        """Get the file size in bytes.
+        """Get file size in bytes.
 
         Returns:
             File size in bytes
         """
-        return self.file_path.stat().st_size
+        return os.path.getsize(self.file_path)
