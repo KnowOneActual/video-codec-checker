@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2026-02-11
+
+### Fixed
+- Fixed mypy type checking errors with `no-any-return` annotations
+- Fixed Python 3.8 compatibility by downgrading pre-commit to 2.x
+- Fixed CI workflow to accept warning exit codes (exit code 1) as success
+- All tests now passing across Python 3.8-3.12
+
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
