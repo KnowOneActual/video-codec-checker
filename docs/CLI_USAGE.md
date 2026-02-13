@@ -24,11 +24,17 @@ Or check against **all systems at once**:
 videowise check video.mp4 --all
 ```
 
+Process **multiple files or directories**:
+
+```bash
+videowise batch videos/ --recursive --all
+```
+
 ## Commands
 
 ### `check`
 
-Check video file compatibility with one or all systems.
+Check a single video file's compatibility with one or all systems.
 
 **Basic Usage:**
 ```bash
@@ -48,7 +54,165 @@ videowise check <file> --all
 
 **Note:** You must specify either `--system` or `--all`, but not both.
 
+### `batch`
+
+Check multiple video files or entire directories for compatibility.
+
+**Basic Usage:**
+```bash
+# Check multiple files
+videowise batch <file1> <file2> ... --system <system>
+
+# Check directory (non-recursive)
+videowise batch <directory> --system <system>
+
+# Check directory recursively
+videowise batch <directory> --recursive --all
+```
+
+**Options:**
+- `--system, -s`: Target system to check (mutually exclusive with `--all`)
+- `--all`: Check against all available systems (mutually exclusive with `--system`)
+- `--recursive, -r`: Recursively scan directories for video files
+- `--extensions, -e`: Comma-separated list of file extensions to include (e.g., `.mp4,.mov`)
+  - Default: `.mp4,.mov,.avi,.mkv,.m4v,.webm,.flv,.wmv,.mpg,.mpeg,.m2v,.mxf`
+- `--json`: Output batch results as JSON
+- `--verbose, -v`: Show detailed processing information
+- `--continue-on-error`: Continue processing files even if some fail (default: True)
+
+**Note:** You must specify either `--system` or `--all`, but not both.
+
 ## Examples
+
+### Single File Check
+
+**Check CasparCG compatibility:**
+```bash
+videowise check sponsor_video.mov --system casparcg
+```
+
+**Check all systems:**
+```bash
+videowise check promo_video.mp4 --all
+```
+
+**Check with verbose output:**
+```bash
+videowise check video.mp4 --system vmix -v
+```
+
+### Batch Processing
+
+**Check multiple specific files:**
+```bash
+videowise batch video1.mp4 video2.mov video3.mp4 --system casparcg
+```
+
+Output:
+```
+📂 Found 3 video file(s) to check
+
+======================================================================
+📊 BATCH SUMMARY
+======================================================================
+
+Total files processed: 3
+Systems checked: casparcg
+
+✅ Fully compatible: 2
+⚠️  Warnings: 1
+```
+
+**Check all videos in a directory:**
+```bash
+videowise batch /path/to/videos/ --system casparcg
+```
+
+**Recursively scan directory and all subdirectories:**
+```bash
+videowise batch /media/show-content/ --recursive --all
+```
+
+Output with `--all` flag:
+```
+📂 Found 15 video file(s) to check
+
+======================================================================
+📊 BATCH SUMMARY
+======================================================================
+
+Total files processed: 15
+Systems checked: casparcg, vmix, obs, qlab, propresenter, safari, chrome, instagram, twitter
+
+✅ Fully compatible: 10
+⚠️  Warnings: 3
+❌ Incompatible: 2
+```
+
+**Filter by file extension:**
+```bash
+# Only check .mp4 and .mov files
+videowise batch /videos/ --recursive --extensions .mp4,.mov --all
+```
+
+**Verbose batch processing:**
+```bash
+videowise batch videos/ --all -v
+```
+
+With verbose mode, you'll see each file being processed:
+```
+📂 Found 5 video file(s) to check
+
+Processing: /videos/clip1.mp4
+Processing: /videos/clip2.mp4
+Processing: /videos/clip3.mov
+...
+```
+
+**Batch processing with JSON output:**
+```bash
+videowise batch videos/*.mp4 --all --json > batch_report.json
+```
+
+JSON structure:
+```json
+{
+  "total_files": 3,
+  "processed_files": 3,
+  "systems_checked": ["casparcg", "vmix", "obs", "qlab", "propresenter", "safari", "chrome", "instagram", "twitter"],
+  "results": [
+    {
+      "file": "/videos/video1.mp4",
+      "video_info": {
+        "codec": "h264",
+        "profile": "High",
+        "container": "mp4",
+        "width": 1920,
+        "height": 1080,
+        "framerate": 29.97,
+        "bitrate": 12500000
+      },
+      "systems_checked": ["casparcg", "vmix", ...],
+      "results": [
+        {
+          "system": "casparcg",
+          "issues": [{"level": "compatible", "message": "..."}]
+        }
+      ],
+      "exit_code": 0
+    },
+    {
+      "file": "/videos/video2.mp4",
+      "video_info": {...},
+      "systems_checked": [...],
+      "results": [...],
+      "exit_code": 1
+    }
+  ],
+  "errors": 0
+}
+```
 
 ### Check All Systems
 
@@ -93,166 +257,6 @@ Output:
    • qlab
 ```
 
-**Check all systems with verbose output:**
-```bash
-videowise check video.mp4 --all -v
-```
-
-This shows detailed codec information before compatibility checks:
-```
-📹 Video: video.mp4
-
-Codec: h264 (High)
-Container: mp4
-Resolution: 1920x1080
-Framerate: 29.97 fps
-Bitrate: 12.50 Mbps
-
-🔍 Checking against all 9 systems
-...
-```
-
-**Check all systems with JSON output:**
-```bash
-videowise check video.mp4 --all --json > full_report.json
-```
-
-JSON output structure for `--all`:
-```json
-{
-  "file": "video.mp4",
-  "video_info": {
-    "codec": "h264",
-    "profile": "High",
-    "container": "mp4",
-    "width": 1920,
-    "height": 1080,
-    "framerate": 29.97,
-    "bitrate": 12500000,
-    "file_size": 52428800
-  },
-  "systems_checked": [
-    "casparcg",
-    "vmix",
-    "obs",
-    "qlab",
-    "propresenter",
-    "safari",
-    "chrome",
-    "instagram",
-    "twitter"
-  ],
-  "results": [
-    {
-      "system": "casparcg",
-      "issues": [
-        {
-          "level": "compatible",
-          "message": "Video is compatible with CasparCG 2.3",
-          "reason": null,
-          "suggestion": null
-        }
-      ]
-    },
-    {
-      "system": "safari",
-      "issues": [
-        {
-          "level": "warning",
-          "message": "Safari may have performance issues",
-          "reason": "High Profile H.264 is supported but not optimal",
-          "suggestion": "Use Main or Baseline profile for best compatibility"
-        }
-      ]
-    }
-  ]
-}
-```
-
-### Live Production
-
-**Check CasparCG compatibility:**
-```bash
-videowise check sponsor_video.mov --system casparcg
-```
-
-**Check vMix with verbose output:**
-```bash
-videowise check high_bitrate_clip.mp4 --system vmix -v
-```
-
-**Pre-show verification for QLab:**
-```bash
-videowise check background_loop.mov --system qlab
-```
-
-**Verify video works everywhere before show:**
-```bash
-videowise check opening_video.mp4 --all
-```
-
-### Browser Compatibility
-
-**Check Safari compatibility:**
-```bash
-videowise check website_video.webm --system safari
-```
-
-**Check Chrome compatibility:**
-```bash
-videowise check hero_video.mp4 --system chrome
-```
-
-**Check all browsers at once:**
-```bash
-videowise check landing_page_video.mp4 --all | grep -A 5 "safari\|chrome"
-```
-
-### Social Media
-
-**Instagram upload check:**
-```bash
-videowise check promo_video.mp4 --system instagram -v
-```
-
-**Twitter/X upload check:**
-```bash
-videowise check announcement.mov --system twitter
-```
-
-**Check all social platforms:**
-```bash
-videowise check social_media_post.mp4 --all
-```
-
-### JSON Output (for scripting)
-
-**Single system:**
-```bash
-videowise check video.mp4 --system casparcg --json > results.json
-```
-
-JSON output structure (single system):
-```json
-{
-  "file": "video.mp4",
-  "system": "casparcg",
-  "video_info": {
-    "codec": "h264",
-    "profile": "High",
-    "container": "mp4"
-  },
-  "issues": [
-    {
-      "level": "compatible",
-      "message": "Video is compatible with CasparCG 2.3",
-      "reason": null,
-      "suggestion": null
-    }
-  ]
-}
-```
-
 ## Exit Codes
 
 The CLI uses standard exit codes for scripting:
@@ -263,35 +267,13 @@ The CLI uses standard exit codes for scripting:
 
 **For `--all` flag:** The exit code reflects the **worst case** across all systems:
 - If any system is incompatible → exit code `2`
-- Else if any system has warnings → exit code `1`
+- Else if any system has warnings → exit code `1`  
 - Else all compatible → exit code `0`
 
-**Example usage in scripts:**
-```bash
-#!/bin/bash
-if videowise check video.mp4 --system casparcg; then
-    echo "Video is ready for playback!"
-else
-    echo "Video needs fixing"
-    exit 1
-fi
-```
-
-**Check all systems and fail if any incompatibility:**
-```bash
-#!/bin/bash
-if videowise check video.mp4 --all --json > report.json; then
-    echo "✅ Video compatible with all systems"
-else
-    exit_code=$?
-    if [ $exit_code -eq 2 ]; then
-        echo "❌ Video incompatible with at least one system"
-    elif [ $exit_code -eq 1 ]; then
-        echo "⚠️  Video has warnings on some systems"
-    fi
-    exit $exit_code
-fi
-```
+**For `batch` command:** The exit code reflects the **worst case** across all processed files:
+- If any file is incompatible → exit code `2`
+- Else if any file has warnings → exit code `1`
+- Else all files compatible → exit code `0`
 
 ## Output Colors
 
@@ -304,7 +286,7 @@ Terminal output uses colors for quick visual scanning:
 
 ## Common Workflows
 
-### Pre-Show Checklist
+### Pre-Show Checklist (Single File)
 
 ```bash
 #!/bin/bash
@@ -332,54 +314,85 @@ else
 fi
 ```
 
-### Universal Compatibility Check
+### Pre-Show Checklist (Batch Mode)
 
 ```bash
 #!/bin/bash
-# Check if a video works everywhere
+# Check entire video library at once using batch mode
 
-video="$1"
+echo "🎬 Pre-Show Compatibility Check (Batch Mode)"
+echo "============================================="
 
-echo "🔍 Checking $video for universal compatibility..."
-
-if videowise check "$video" --all; then
-    echo "\n✅ This video will work on all systems!"
+if videowise batch playlist/ --recursive --all --json > full_report.json; then
+    echo "\n✅ All videos passed compatibility checks!"
     exit 0
 else
-    echo "\n⚠️  This video has compatibility issues."
-    echo "Run with -v flag for details: videowise check \"$video\" --all -v"
-    exit 1
+    exit_code=$?
+    echo "\n⚠️  Some videos have compatibility issues."
+    echo "See full_report.json for details"
+    exit $exit_code
 fi
 ```
 
-### Batch Upload Preparation
-
-```bash
-# Check multiple videos for social media
-for video in export/*.mp4; do
-    echo "Checking $(basename "$video")..."
-    videowise check "$video" --all --json | \
-        jq '{file: .file, instagram: .results[] | select(.system=="instagram"), twitter: .results[] | select(.system=="twitter")}'
-done
-```
-
-### Find Videos Compatible with Specific System
+### Validate Entire Media Library
 
 ```bash
 #!/bin/bash
-# Find all videos in a directory compatible with CasparCG
+# Scan entire media library and generate compatibility report
 
-for video in videos/*.{mp4,mov}; do
-    if videowise check "$video" --system casparcg --json 2>/dev/null | \
-       jq -e '.issues[] | select(.level == "incompatible")' > /dev/null; then
-        : # Has incompatibilities, skip
-    else
-        echo "✅ $video"
-    fi
-done
+echo "📚 Scanning media library..."
+
+videowise batch /media/library/ \
+    --recursive \
+    --all \
+    --json > library_report.json
+
+echo "\n📊 Generating summary..."
+
+# Extract summary using jq
+jq '{
+  total: .total_files,
+  compatible: [.results[] | select(.exit_code == 0)] | length,
+  warnings: [.results[] | select(.exit_code == 1)] | length,
+  incompatible: [.results[] | select(.exit_code == 2)] | length,
+  errors: .errors
+}' library_report.json
 ```
 
-### CI/CD Integration
+### Find Videos Compatible with Specific System (Batch)
+
+```bash
+#!/bin/bash
+# Find all CasparCG-compatible videos in a directory
+
+echo "🔍 Finding CasparCG-compatible videos..."
+
+videowise batch videos/ --recursive --system casparcg --json > results.json
+
+# Extract compatible videos
+jq -r '.results[] | select(.exit_code == 0) | .file' results.json > compatible_videos.txt
+
+echo "\n✅ Found $(wc -l < compatible_videos.txt) compatible videos"
+echo "List saved to: compatible_videos.txt"
+```
+
+### Social Media Batch Validation
+
+```bash
+#!/bin/bash
+# Check all export videos for social media compatibility
+
+echo "📱 Checking social media compatibility..."
+
+videowise batch exports/ --all --json | \
+    jq '.results[] | {
+        file: .file | split("/")[-1],
+        instagram: (.results[] | select(.system == "instagram") | .issues[0].level),
+        twitter: (.results[] | select(.system == "twitter") | .issues[0].level)
+    }'
+```
+
+### CI/CD Integration (Batch)
 
 ```yaml
 # .github/workflows/video-check.yml
@@ -399,18 +412,64 @@ jobs:
         run: sudo apt-get install -y ffmpeg
       - name: Install VideoWise
         run: pip install -e .
-      - name: Check all videos against all systems
+      - name: Check all videos using batch mode
         run: |
-          mkdir -p reports
-          for video in assets/videos/*.mp4; do
-            echo "Checking $video..."
-            videowise check "$video" --all --json > "reports/$(basename "$video" .mp4).json" || true
-          done
-      - name: Upload reports
+          videowise batch assets/videos/ --recursive --all --json > compatibility_report.json
+      - name: Upload report
         uses: actions/upload-artifact@v2
         with:
-          name: compatibility-reports
-          path: reports/
+          name: compatibility-report
+          path: compatibility_report.json
+      - name: Fail if incompatibilities found
+        run: |
+          if jq -e '.results[] | select(.exit_code == 2)' compatibility_report.json > /dev/null; then
+            echo "❌ Incompatible videos found!"
+            jq '.results[] | select(.exit_code == 2) | .file' compatibility_report.json
+            exit 1
+          fi
+```
+
+### Filter by Extension and Quality Check
+
+```bash
+#!/bin/bash
+# Check only high-quality formats (ProRes, DNxHD)
+
+echo "🎥 Checking professional formats..."
+
+videowise batch media/ \
+    --recursive \
+    --extensions .mov,.mxf \
+    --system casparcg \
+    --json > prores_check.json
+
+echo "Results saved to prores_check.json"
+```
+
+### Error Handling in Batch Processing
+
+```bash
+#!/bin/bash
+# Process with detailed error reporting
+
+videowise batch videos/ --recursive --all --json > report.json
+
+if [ $? -ne 0 ]; then
+    echo "\n⚠️  Batch processing completed with issues"
+    
+    # Check for processing errors
+    error_count=$(jq '.errors' report.json)
+    if [ "$error_count" -gt 0 ]; then
+        echo "\n❌ $error_count file(s) could not be processed:"
+        jq -r '.results[] | select(.error) | "  - \(.file): \(.error)"' report.json
+    fi
+    
+    # Check for incompatibilities
+    incompatible=$(jq '[.results[] | select(.exit_code == 2)] | length' report.json)
+    if [ "$incompatible" -gt 0 ]; then
+        echo "\n❌ $incompatible file(s) incompatible with at least one system"
+    fi
+fi
 ```
 
 ## Troubleshooting
@@ -432,11 +491,11 @@ jobs:
 ```bash
 # Wrong
 videowise check video.mp4
+videowise batch videos/
 
 # Correct
 videowise check video.mp4 --system casparcg
-# OR
-videowise check video.mp4 --all
+videowise batch videos/ --all
 ```
 
 ### "Cannot use both --system and --all flags"
@@ -446,13 +505,61 @@ videowise check video.mp4 --all
 **Solution:**
 ```bash
 # Wrong
-videowise check video.mp4 --system safari --all
+videowise batch videos/ --system safari --all
 
 # Correct - choose one
-videowise check video.mp4 --system safari
+videowise batch videos/ --system safari
 # OR
-videowise check video.mp4 --all
+videowise batch videos/ --all
 ```
+
+### "No video files found"
+
+**Problem:** The batch command couldn't find any video files in the specified path(s).
+
+**Solutions:**
+1. **Check the path exists:**
+   ```bash
+   ls -la /path/to/videos/
+   ```
+
+2. **Use recursive flag for subdirectories:**
+   ```bash
+   videowise batch /path/ --recursive --all
+   ```
+
+3. **Check file extensions:**
+   ```bash
+   # If your files have uncommon extensions
+   videowise batch /path/ --extensions .mp4,.avi --system casparcg
+   ```
+
+4. **Verify files are actually videos:**
+   ```bash
+   ffprobe video_file.mp4
+   ```
+
+### Batch processing is slow
+
+**Problem:** Processing many files with `--all` flag takes significant time.
+
+**Solutions:**
+1. **Target specific systems** if you don't need all:
+   ```bash
+   videowise batch videos/ --system casparcg
+   ```
+
+2. **Filter files before processing:**
+   ```bash
+   # Only check MP4 files
+   videowise batch videos/ --extensions .mp4 --all
+   ```
+
+3. **Process in parallel** (advanced):
+   ```bash
+   find videos/ -name "*.mp4" | \
+       parallel -j 4 "videowise check {} --all --json > {}.json"
+   ```
 
 ### Command not found
 
@@ -463,12 +570,6 @@ videowise check video.mp4 --all
 pip install -e .
 ```
 
-### `--all` check is too slow
-
-**Problem:** Checking all systems takes time because each system runs compatibility rules.
-
-**Solution:** For repeated checks, use `--system` to target specific systems. Use `--all` when you need comprehensive verification (e.g., pre-show checks, final deliverable validation).
-
 ## Getting Help
 
 ```bash
@@ -477,6 +578,7 @@ videowise --help
 
 # Command-specific help
 videowise check --help
+videowise batch --help
 
 # Version info
 videowise --version
