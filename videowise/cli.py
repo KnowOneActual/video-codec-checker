@@ -241,24 +241,24 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
                 incompatible_systems = []
 
                 for result_data in all_results:
-                    sys_name_str: str = result_data["system"]
-                    issues_list: List[Dict[str, Any]] = result_data["issues"]
+                    system_name: str = result_data["system"]
+                    system_issues: List[Dict[str, Any]] = result_data["issues"]
 
                     has_incompatible = any(
                         issue_dict.get("level", "").lower() == "incompatible"
-                        for issue_dict in issues_list
+                        for issue_dict in system_issues
                     )
                     has_warning = any(
                         issue_dict.get("level", "").lower() == "warning"
-                        for issue_dict in issues_list
+                        for issue_dict in system_issues
                     )
 
                     if has_incompatible:
-                        incompatible_systems.append(sys_name_str)
+                        incompatible_systems.append(system_name)
                     elif has_warning:
-                        warning_systems.append(sys_name_str)
+                        warning_systems.append(system_name)
                     else:
-                        compatible_systems.append(sys_name_str)
+                        compatible_systems.append(system_name)
 
                 if compatible_systems:
                     click.secho(
@@ -266,8 +266,8 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
                         fg="green",
                         bold=True,
                     )
-                    for sys_name_str in compatible_systems:
-                        click.echo(f"   • {sys_name_str}")
+                    for system_name in compatible_systems:
+                        click.echo(f"   • {system_name}")
 
                 if warning_systems:
                     click.secho(
@@ -275,8 +275,8 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
                         fg="yellow",
                         bold=True,
                     )
-                    for sys_name_str in warning_systems:
-                        click.echo(f"   • {sys_name_str}")
+                    for system_name in warning_systems:
+                        click.echo(f"   • {system_name}")
 
                 if incompatible_systems:
                     click.secho(
@@ -284,8 +284,8 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
                         fg="red",
                         bold=True,
                     )
-                    for sys_name_str in incompatible_systems:
-                        click.echo(f"   • {sys_name_str}")
+                    for system_name in incompatible_systems:
+                        click.echo(f"   • {system_name}")
 
                 click.echo()
 
