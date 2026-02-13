@@ -182,7 +182,9 @@ def test_check_all_summary_categories(runner, h264_video):
     assert "summary" in output_lower
 
     # Should have at least one category (compatible, warning, or incompatible)
-    has_category = "compatible" in output_lower or "warning" in output_lower or "incompatible" in output_lower
+    has_category = (
+        "compatible" in output_lower or "warning" in output_lower or "incompatible" in output_lower
+    )
     assert has_category
 
 
