@@ -2,8 +2,8 @@
 
 > ⚠️ **UNDER DEVELOPMENT**: This project is under development and is not yet feature-complete. The core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
 >
-> ✅ **What Works Now**: Basic CLI, 9 system compatibility checkers, Python API, `--all` flag
-> 🚧 **In Progress**: Batch processing, enhanced output formatting, additional platforms
+> ✅ **What Works Now**: Basic CLI, 9 system compatibility checkers, Python API, `--all` flag, **batch processing**
+> 🚧 **In Progress**: Enhanced output formatting, additional platforms
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -20,17 +20,24 @@ git clone https://github.com/KnowOneActual/video-codec-checker.git
 cd video-codec-checker
 pip install -e .
 
-# Check a video file against a specific system
+# Check a single video file
 videowise check video.mp4 --system casparcg
 
 # Check against ALL systems at once
 videowise check video.mp4 --all
+
+# Process multiple files or directories
+videowise batch videos/ --recursive --all
+
+# Check multiple specific files
+videowise batch video1.mp4 video2.mov --system casparcg
 
 # Get detailed output
 videowise check video.mp4 --system instagram -v
 
 # JSON output for scripting
 videowise check video.mp4 --system safari --json
+videowise batch videos/ --all --json > report.json
 ```
 
 **See [CLI Usage Guide](docs/CLI_USAGE.md) for complete documentation.**
@@ -51,6 +58,7 @@ You're setting up for a show and:
 - Graphics overlays work with some files but not others
 - You're 10 minutes from showtime and need to know if you should re-encode NOW
 - Client delivers last-minute content, and you need to know instantly if it's compatible
+- **You have 50 videos to check before the show starts**
 
 Most tools either show you raw technical data (codec, bitrate, profile) or just fail silently. **VideoWise bridges that gap** by explaining compatibility issues in plain English and suggesting actual fixes.
 
@@ -71,22 +79,28 @@ VideoWise analyzes video files and provides human-readable explanations:
 - "ProPresenter works best with HAP codec for GPU-accelerated playback."
 - "Warning: Variable frame rate video will cause timing issues in live production - convert to constant frame rate."
 
+**For Batch Processing:**
+- Check entire directories of videos at once
+- Get a summary report of all compatibility issues
+- Find which videos need re-encoding before the show
+- Validate entire media libraries against all systems
+
 ## Current Status
 
-✅ **Phase 1 Complete - Phase 2 In Progress**:
+✅ **Phase 1 Complete - Phase 2 Nearly Complete**:
 - [x] Project structure and test framework
 - [x] File validation and error handling
 - [x] FFprobe integration for metadata extraction
 - [x] Comprehensive codec/container/profile parsing
 - [x] Complete compatibility rules engine (9 systems)
-- [x] 86+ passing tests with 97% code coverage
+- [x] 107+ passing tests with 94% code coverage
 - [x] ✨ **Basic CLI with colored output**
 - [x] JSON output for automation
 - [x] CI/CD with GitHub Actions
 - [x] Code quality tools (Black, isort, flake8, mypy)
 - [x] Pre-commit hooks for automated quality checks
 - [x] ✨ **`--all` flag (check all systems at once)**
-- [ ] Batch processing (check multiple files)
+- [x] ✨ **Batch processing (check multiple files/directories)**
 - [ ] Enhanced explanation formatter
 
 **Supported Systems:**
@@ -194,10 +208,59 @@ Output shows results for all 9 systems with a summary:
    • qlab
 ```
 
-**JSON output for scripting:**
+### Batch Processing
+
+**Check all videos in a directory:**
 ```bash
-videowise check video.mp4 --system safari --json > results.json
+videowise batch /path/to/videos/ --system casparcg
+```
+
+**Recursively check entire media library:**
+```bash
+videowise batch /media/library/ --recursive --all
+```
+
+Output:
+```
+📂 Found 15 video file(s) to check
+
+======================================================================
+📊 BATCH SUMMARY
+======================================================================
+
+Total files processed: 15
+Systems checked: casparcg, vmix, obs, qlab, propresenter, safari, chrome, instagram, twitter
+
+✅ Fully compatible: 10
+⚠️  Warnings: 3
+❌ Incompatible: 2
+```
+
+**Check specific file types:**
+```bash
+videowise batch videos/ --recursive --extensions .mp4,.mov --all
+```
+
+**Generate batch report:**
+```bash
+videowise batch videos/ --recursive --all --json > compatibility_report.json
+```
+
+### JSON Output
+
+**Single file:**
+```bash
+videowise check video.mp4 --system casparcg --json > results.json
+```
+
+**All systems:**
+```bash
 videowise check video.mp4 --all --json > full_report.json
+```
+
+**Batch processing:**
+```bash
+videowise batch videos/ --recursive --all --json > batch_report.json
 ```
 
 ### Available Systems
@@ -219,6 +282,8 @@ videowise check video.mp4 --all --json > full_report.json
 - `2`: Incompatible (will not work)
 
 **For `--all` flag:** Exit code reflects the worst case across all systems.
+
+**For `batch` command:** Exit code reflects the worst case across all files.
 
 **For complete CLI documentation, see [CLI Usage Guide](docs/CLI_USAGE.md)**
 
@@ -304,7 +369,7 @@ pytest tests/test_compatibility.py
 pytest --cov=videowise --cov-report=html
 ```
 
-Building this test-first. Every feature has comprehensive tests. **Currently: 86+ passing tests with 97% code coverage**
+Building this test-first. Every feature has comprehensive tests. **Currently: 107+ passing tests with 94% code coverage**
 
 **Note:** Tests generate temporary video files using ffmpeg. If ffmpeg is not available, those tests will be skipped.
 
@@ -336,6 +401,7 @@ video-codec-checker/
 │   ├── test_codec_parsing.py  # Metadata extraction tests
 │   ├── test_compatibility.py  # Core system tests
 │   ├── test_compatibility_extended.py  # Extended tests
+│   ├── test_batch.py   # Batch processing tests
 │   └── test_cli.py     # CLI tests (including --all flag)
 ├── examples/           # Example scripts
 ├── docs/               # Documentation
@@ -416,9 +482,9 @@ video-codec-checker/
 - [x] Live production systems (CasparCG, vMix, OBS, QLab, ProPresenter)
 - [x] Browser compatibility (Safari, Chrome)
 - [x] Social media platforms (Instagram, Twitter)
-- [x] Comprehensive test coverage (86+ tests, 97% coverage)
+- [x] Comprehensive test coverage (107+ tests, 94% coverage)
 
-### Phase 2: User Interface 🚧 IN PROGRESS
+### Phase 2: User Interface ✅ NEARLY COMPLETE
 - [x] Basic CLI tool for terminal use
 - [x] Colored terminal output
 - [x] JSON output format
@@ -426,7 +492,7 @@ video-codec-checker/
 - [x] Code quality automation
 - [x] Pre-commit hooks
 - [x] ✨ **`--all` flag (check all systems)**
-- [ ] Batch processing support (check multiple files)
+- [x] ✨ **Batch processing support (check multiple files/directories)**
 - [ ] Enhanced explanation formatter
 - [ ] Summary reports
 
