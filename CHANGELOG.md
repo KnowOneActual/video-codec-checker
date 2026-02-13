@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Comprehensive test suite with 97% code coverage
 - 74 tests across 6 test files covering all major functionality
-- Tests for all 10 platform compatibility checkers
+- Tests for all 9 platform compatibility checkers
 - Error handling and edge case tests
 - CLI command and output format tests
 - Video metadata parsing and analyzer tests
@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced README with development tools section
 - Updated contributor guidelines with modern workflow
 - Improved code quality standards
+- Updated project status from 'ACTIVE DEVELOPMENT' to 'UNDER DEVELOPMENT' for accuracy
+- Improved frame rate parsing in analyzer.py for better accuracy
+- Enhanced CLI help text formatting for better readability
 
 ### Fixed
 - Fixed mypy type checking errors with `no-any-return` annotations
@@ -36,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All tests now passing across Python 3.8-3.12
 - Removed unused imports from test files
 - Corrected formatting inconsistencies
+- Fixed frame rate parsing to correctly handle fractional frame rates
+- Fixed test assertions to match updated analyzer behavior
 
 ## [0.1.0] - 2026-02-09
 
