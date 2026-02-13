@@ -1,7 +1,6 @@
 """Tests for batch processing functionality."""
 
 import json
-from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
@@ -269,6 +268,7 @@ def test_batch_summary_statistics(runner, h264_video, vp9_video):
 def test_batch_mixed_valid_invalid_files(runner, tmp_path, h264_video):
     """Test batch processing with mix of valid and invalid files."""
     import shutil
+    from pathlib import Path
 
     # Create a valid video
     shutil.copy(h264_video, tmp_path / "valid.mp4")
