@@ -76,7 +76,7 @@ VideoWise analyzes video files and provides human-readable explanations:
 - [x] FFprobe integration for metadata extraction
 - [x] Comprehensive codec/container/profile parsing
 - [x] Complete compatibility rules engine (9 systems)
-- [x] 55+ passing tests covering all features
+- [x] 74 passing tests with 97% code coverage
 - [x] ✨ **Basic CLI with colored output**
 - [x] JSON output for automation
 - [x] CI/CD with GitHub Actions
@@ -261,7 +261,7 @@ pytest tests/test_compatibility.py
 pytest --cov=videowise --cov-report=html
 ```
 
-Building this test-first. Every feature has comprehensive tests. **Currently: 55+ passing tests**
+Building this test-first. Every feature has comprehensive tests. **Currently: 74 passing tests with 97% code coverage**
 
 **Note:** Tests generate temporary video files using ffmpeg. If ffmpeg is not available, those tests will be skipped.
 
@@ -373,7 +373,7 @@ video-codec-checker/
 - [x] Live production systems (CasparCG, vMix, OBS, QLab, ProPresenter)
 - [x] Browser compatibility (Safari, Chrome)
 - [x] Social media platforms (Instagram, Twitter)
-- [x] Comprehensive test coverage (55+ tests)
+- [x] Comprehensive test coverage (74 tests, 97% coverage)
 
 ### Phase 2: User Interface 🚧 IN PROGRESS
 - [x] Basic CLI tool for terminal use
