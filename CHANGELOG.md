@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CLI Enhancement: `--all` flag** for checking video compatibility against all supported systems at once
+  - Batch compatibility checking across 9 systems (CasparCG, vMix, OBS, QLab, ProPresenter, Safari, Chrome, Instagram, Twitter)
+  - Summary view categorizing systems as Compatible, Warnings, or Incompatible
+  - JSON output support with multi-system results structure
+  - Verbose mode compatibility for detailed multi-system analysis
+  - Exit code based on worst-case scenario across all systems
+  - Individual system results with clear separation and headers
+  - 12 comprehensive tests covering all `--all` flag functionality
+  - Complete documentation in CLI_USAGE.md with examples
+  - Validation to prevent simultaneous `--system` and `--all` usage
 - Comprehensive test suite with 97% code coverage
 - 74 tests across 6 test files covering all major functionality
 - Tests for all 9 platform compatibility checkers
@@ -31,13 +41,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated project status from 'ACTIVE DEVELOPMENT' to 'UNDER DEVELOPMENT' for accuracy
 - Improved frame rate parsing in analyzer.py for better accuracy
 - Enhanced CLI help text formatting for better readability
+- Updated CLI help text to mention `--all` flag option
 
 ### Fixed
 - Fixed mypy type checking errors with `no-any-return` annotations
+- Fixed mypy type checking errors with explicit type annotations in CLI loops
 - Fixed Python 3.8 compatibility by downgrading pre-commit to 2.x
 - Fixed CI workflow to accept warning exit codes (exit code 1) as success
 - Fixed CI smoke test test video filename from `test_video.mp4` to `testvideo.mp4` for consistency
 - Fixed CI smoke test JSON output step to properly handle warning exit codes
+- Fixed Black formatter issues in test files (trailing whitespace, line formatting)
 - All CI jobs now passing: lint, test (Python 3.8-3.12), and cli-smoke-test
 - All tests now passing across Python 3.8-3.12
 - Removed unused imports from test files
