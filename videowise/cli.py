@@ -136,7 +136,7 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
         systems_to_check = get_available_systems() if check_all else [system]
 
         # Check all systems
-        all_results = []
+        all_results: List[Dict[str, Any]] = []
         for sys_name in systems_to_check:
             issues = check_compatibility(video_info, sys_name)
             all_results.append(
@@ -194,8 +194,8 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
 
             # Display results for each system
             for result_data in all_results:
-                sys_name_str = result_data["system"]
-                issues_list = result_data["issues"]
+                sys_name_str: str = result_data["system"]
+                issues_list: List[Dict[str, Any]] = result_data["issues"]
 
                 # System header
                 click.echo("\n" + "=" * 60)
@@ -241,8 +241,8 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
                 incompatible_systems = []
 
                 for result_data in all_results:
-                    sys_name_str = result_data["system"]
-                    issues_list = result_data["issues"]
+                    sys_name_str: str = result_data["system"]
+                    issues_list: List[Dict[str, Any]] = result_data["issues"]
 
                     has_incompatible = any(
                         issue_dict.get("level", "").lower() == "incompatible"
