@@ -82,8 +82,8 @@ def test_check_verbose_output(runner, h264_video):
 def test_check_vp9_safari_incompatible(runner, vp9_video):
     """Test check command with incompatible VP9 file for Safari."""
     result = runner.invoke(cli, ["check", str(vp9_video), "--system", "safari"])
-    # VP9 should be incompatible with Safari
-    assert result.exit_code == 0
+    # VP9 should be incompatible with Safari - exit code 2
+    assert result.exit_code == 2
     assert "does not support" in result.output.lower() or "incompatible" in result.output.lower()
 
 
