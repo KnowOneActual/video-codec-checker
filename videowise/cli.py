@@ -194,8 +194,8 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
 
             # Display results for each system
             for result_data in all_results:
-                sys_name_str: str = result_data["system"]
-                issues_list: List[Dict[str, Any]] = result_data["issues"]
+                sys_name_str = result_data["system"]
+                issues_list = result_data["issues"]
 
                 # System header
                 click.echo("\n" + "=" * 60)
@@ -262,21 +262,27 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
 
                 if compatible_systems:
                     click.secho(
-                        f"\n✅ Compatible ({len(compatible_systems)}):", fg="green", bold=True
+                        f"\n✅ Compatible ({len(compatible_systems)}):",
+                        fg="green",
+                        bold=True,
                     )
                     for sys_name_str in compatible_systems:
                         click.echo(f"   • {sys_name_str}")
 
                 if warning_systems:
                     click.secho(
-                        f"\n⚠️  Warnings ({len(warning_systems)}):", fg="yellow", bold=True
+                        f"\n⚠️  Warnings ({len(warning_systems)}):",
+                        fg="yellow",
+                        bold=True,
                     )
                     for sys_name_str in warning_systems:
                         click.echo(f"   • {sys_name_str}")
 
                 if incompatible_systems:
                     click.secho(
-                        f"\n❌ Incompatible ({len(incompatible_systems)}):", fg="red", bold=True
+                        f"\n❌ Incompatible ({len(incompatible_systems)}):",
+                        fg="red",
+                        bold=True,
                     )
                     for sys_name_str in incompatible_systems:
                         click.echo(f"   • {sys_name_str}")
