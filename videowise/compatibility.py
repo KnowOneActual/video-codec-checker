@@ -605,17 +605,19 @@ def get_available_systems() -> List[str]:
     Returns:
         Sorted list of system names that can be checked
     """
-    return sorted([
-        "casparcg",
-        "vmix",
-        "obs",
-        "qlab",
-        "propresenter",
-        "safari",
-        "chrome",
-        "instagram",
-        "twitter",
-    ])
+    return sorted(
+        [
+            "casparcg",
+            "vmix",
+            "obs",
+            "qlab",
+            "propresenter",
+            "safari",
+            "chrome",
+            "instagram",
+            "twitter",
+        ]
+    )
 
 
 def check_compatibility(video_info: Dict[str, Any], system: str) -> List[CompatibilityIssue]:
