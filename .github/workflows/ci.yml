@@ -127,12 +127,12 @@ jobs:
         run: |
           ffmpeg -f lavfi -i color=c=blue:s=320x240:d=1 \
             -c:v libx264 -profile:v baseline -pix_fmt yuv420p \
-            test_video.mp4
+            testvideo.mp4
 
       - name: Test check command (CasparCG)
         run: |
           set +e
-          videowise check test_video.mp4 --system casparcg
+          videowise check testvideo.mp4 --system casparcg
           EXIT_CODE=$?
           set -e
           if [ $EXIT_CODE -eq 2 ]; then
@@ -142,4 +142,4 @@ jobs:
           echo "Success: Compatible or warning (exit code $EXIT_CODE)"
 
       - name: Test check command (JSON output)
-        run: videowise check test_video.mp4 --system safari --json
+        run: videowise check testvideo.mp4 --system safari --json
