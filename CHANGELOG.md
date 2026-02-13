@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Batch Processing Feature** - Check multiple files and directories at once
+  - New `batch` command for processing multiple files or directories
+  - Recursive directory scanning with `--recursive` flag
+  - File extension filtering with `--extensions` option (default: .mp4,.mov,.avi,.mkv,.m4v,.webm,.flv,.wmv,.mpg,.mpeg,.m2v,.mxf)
+  - Batch summary statistics showing total files, compatible, warnings, and incompatible counts
+  - JSON output format for batch results with file-by-file details
+  - `find_video_files()` helper function for video file discovery
+  - Support for checking multiple specific files: `videowise batch file1.mp4 file2.mov`
+  - Support for directory scanning: `videowise batch /path/to/videos/`
+  - Support for recursive scanning: `videowise batch /media/ --recursive`
+  - Exit code reflects worst-case across all processed files
+  - Continue-on-error support (default behavior) for robust batch processing
+  - Verbose mode (`-v`) for detailed processing information
+  - Compatible with both `--system` and `--all` flags
+  - 27 comprehensive tests for batch functionality
+  - Complete batch processing documentation in CLI_USAGE.md
+  - Examples for pre-show checklists, media library validation, CI/CD integration
 - **CLI Enhancement: `--all` flag** for checking video compatibility against all supported systems at once
   - Batch compatibility checking across 9 systems (CasparCG, vMix, OBS, QLab, ProPresenter, Safari, Chrome, Instagram, Twitter)
   - Summary view categorizing systems as Compatible, Warnings, or Incompatible
@@ -18,9 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 12 comprehensive tests covering all `--all` flag functionality
   - Complete documentation in CLI_USAGE.md with examples
   - Validation to prevent simultaneous `--system` and `--all` usage
-- Comprehensive test suite with 97% code coverage
-- 74 tests across 6 test files covering all major functionality
+- Comprehensive test suite with 94% code coverage
+- 107 tests across 7 test files covering all major functionality
 - Tests for all 9 platform compatibility checkers
+- Batch processing tests (27 tests in test_batch.py)
 - Error handling and edge case tests
 - CLI command and output format tests
 - Video metadata parsing and analyzer tests
@@ -30,18 +48,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - GitHub Actions CI/CD pipeline
   - Automated testing on Python 3.8-3.12
   - DEVELOPMENT.md contributor guide
+  - TESTING.md comprehensive testing guide
 - Type annotations throughout codebase
 
 ### Changed
 - Improved test infrastructure with proper fixtures and mocking
+- Enhanced test fixtures with directory creation helpers for batch tests
 - Simplified pre-commit hooks to focus on code quality (removed whitespace/newline fixers that conflicted with editors)
-- Enhanced README with development tools section
+- Enhanced README with batch processing examples and use cases
 - Updated contributor guidelines with modern workflow
 - Improved code quality standards
 - Updated project status from 'ACTIVE DEVELOPMENT' to 'UNDER DEVELOPMENT' for accuracy
 - Improved frame rate parsing in analyzer.py for better accuracy
 - Enhanced CLI help text formatting for better readability
-- Updated CLI help text to mention `--all` flag option
+- Updated CLI help text to mention both `--all` flag and `batch` command options
+- Updated ROADMAP.md to mark Phase 2.3 Batch Operations as COMPLETE
+- Updated TESTING.md with batch processing test documentation
 
 ### Fixed
 - Fixed mypy type checking errors with `no-any-return` annotations
