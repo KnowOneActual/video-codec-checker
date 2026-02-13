@@ -8,11 +8,7 @@ from typing import Any, Dict, List
 import click
 
 from videowise.analyzer import VideoAnalyzer
-from videowise.compatibility import (
-    CompatibilityLevel,
-    check_compatibility,
-    get_available_systems,
-)
+from videowise.compatibility import check_compatibility, get_available_systems
 
 __version__ = "0.1.0"
 
@@ -68,7 +64,7 @@ def determine_worst_level(all_results: List[Dict[str, Any]]) -> int:
 @click.option("--json", "output_json", is_flag=True, help="Output results as JSON")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed information")
 def check(video_path: str, system: str, check_all: bool, output_json: bool, verbose: bool):
-    """Check video compatibility with specific system(s).
+    r"""Check video compatibility with a specific system.
 
     VIDEO_PATH: Path to the video file to check
 
@@ -160,12 +156,22 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
 
         # Output results
         if output_json:
-            result = {
-                "file": str(path),
-                "video_info": video_info,
-                "systems_checked": systems_to_check,
-                "results": all_results,
-            }
+            # For backward compatibility: if single system, use old format
+            if len(systems_to_check) == 1:
+                result = {
+                    "file": str(path),
+                    "system": systems_to_check[0],
+                    "video_info": video_info,
+                    "issues": all_results[0]["issues"],
+                }
+            else:
+                # Multiple systems: use new format
+                result = {
+                    "file": str(path),
+                    "video_info": video_info,
+                    "systems_checked": systems_to_check,
+                    "results": all_results,
+                }
             click.echo(json.dumps(result, indent=2))
         else:
             # Regular output
@@ -188,22 +194,22 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
 
             # Display results for each system
             for result_data in all_results:
-                sys_name = result_data["system"]
-                issues = result_data["issues"]
+                sys_name_str: str = result_data["system"]
+                issues_list: List[Dict[str, Any]] = result_data["issues"]
 
                 # System header
                 click.echo("\n" + "=" * 60)
-                click.secho(f"🎬 {sys_name.upper()}", bold=True, fg="cyan")
+                click.secho(f"🎬 {sys_name_str.upper()}", bold=True, fg="cyan")
                 click.echo("=" * 60)
 
-                if not issues:
+                if not issues_list:
                     click.secho("✅ No compatibility issues found!", fg="green")
                 else:
-                    for issue in issues:
-                        level = issue.get("level", "").lower()
-                        message = issue.get("message", "")
-                        reason = issue.get("reason")
-                        suggestion = issue.get("suggestion")
+                    for issue_dict in issues_list:
+                        level = issue_dict.get("level", "").lower()
+                        message = issue_dict.get("message", "")
+                        reason = issue_dict.get("reason")
+                        suggestion = issue_dict.get("suggestion")
 
                         if level == "compatible":
                             color = "green"
@@ -235,43 +241,45 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
                 incompatible_systems = []
 
                 for result_data in all_results:
-                    sys_name = result_data["system"]
-                    issues = result_data["issues"]
+                    sys_name_str = result_data["system"]
+                    issues_list = result_data["issues"]
 
                     has_incompatible = any(
-                        issue.get("level", "").lower() == "incompatible" for issue in issues
+                        issue_dict.get("level", "").lower() == "incompatible"
+                        for issue_dict in issues_list
                     )
                     has_warning = any(
-                        issue.get("level", "").lower() == "warning" for issue in issues
+                        issue_dict.get("level", "").lower() == "warning"
+                        for issue_dict in issues_list
                     )
 
                     if has_incompatible:
-                        incompatible_systems.append(sys_name)
+                        incompatible_systems.append(sys_name_str)
                     elif has_warning:
-                        warning_systems.append(sys_name)
+                        warning_systems.append(sys_name_str)
                     else:
-                        compatible_systems.append(sys_name)
+                        compatible_systems.append(sys_name_str)
 
                 if compatible_systems:
                     click.secho(
                         f"\n✅ Compatible ({len(compatible_systems)}):", fg="green", bold=True
                     )
-                    for sys_name in compatible_systems:
-                        click.echo(f"   • {sys_name}")
+                    for sys_name_str in compatible_systems:
+                        click.echo(f"   • {sys_name_str}")
 
                 if warning_systems:
                     click.secho(
                         f"\n⚠️  Warnings ({len(warning_systems)}):", fg="yellow", bold=True
                     )
-                    for sys_name in warning_systems:
-                        click.echo(f"   • {sys_name}")
+                    for sys_name_str in warning_systems:
+                        click.echo(f"   • {sys_name_str}")
 
                 if incompatible_systems:
                     click.secho(
                         f"\n❌ Incompatible ({len(incompatible_systems)}):", fg="red", bold=True
                     )
-                    for sys_name in incompatible_systems:
-                        click.echo(f"   • {sys_name}")
+                    for sys_name_str in incompatible_systems:
+                        click.echo(f"   • {sys_name_str}")
 
                 click.echo()
 
