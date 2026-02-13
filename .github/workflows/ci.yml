@@ -142,4 +142,13 @@ jobs:
           echo "Success: Compatible or warning (exit code $EXIT_CODE)"
 
       - name: Test check command (JSON output)
-        run: videowise check testvideo.mp4 --system safari --json
+        run: |
+          set +e
+          videowise check testvideo.mp4 --system safari --json
+          EXIT_CODE=$?
+          set -e
+          if [ $EXIT_CODE -eq 2 ]; then
+            echo "Error: Video incompatible (exit code 2)"
+            exit 1
+          fi
+          echo "Success: JSON output test passed (exit code $EXIT_CODE)"
