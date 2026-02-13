@@ -10,10 +10,10 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Beau Bremer", email = "beau@example.com"}
+    {name = "Beau Bremer", email = "beau.bremer@gmail.com"}
 ]
 maintainers = [
-    {name = "Beau Bremer", email = "beau@example.com"}
+    {name = "Beau Bremer", email = "beau.bremer@gmail.com"}
 ]
 keywords = ["video", "codec", "compatibility", "ffmpeg", "live-production"]
 classifiers = [
