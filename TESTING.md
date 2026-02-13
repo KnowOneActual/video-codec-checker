@@ -35,7 +35,7 @@ That's it! If all tests pass, you're good to go. ✅
 
 ### What Gets Tested
 
-VideoWise has **55+ tests** covering:
+VideoWise has **107+ tests** covering:
 
 1. **File Validation** (`test_analyzer.py`)
    - Does the file exist?
@@ -56,10 +56,24 @@ VideoWise has **55+ tests** covering:
    - All 9 systems (CasparCG, vMix, OBS, QLab, ProPresenter, Safari, Chrome, Instagram, Twitter)
    - Edge cases and special scenarios
 
-5. **CLI Functionality** (`test_cli.py`)
+5. **Batch Processing** (`test_batch.py`)
+   - Multiple file processing
+   - Directory scanning (recursive/non-recursive)
+   - File extension filtering
+   - Batch summary statistics
+   - JSON output for batch results
+
+6. **CLI Functionality** (`test_cli.py`)
    - Does the command-line tool work?
    - Does it produce correct output?
    - Do exit codes work properly?
+   - Does `--all` flag work?
+
+7. **Error Handling** (`test_error_cases.py`)
+   - Edge cases and error conditions
+   - Missing dependencies
+   - Corrupted files
+   - Unexpected input
 
 ### Test Fixtures
 
@@ -102,24 +116,29 @@ Output:
 ```
 tests/test_analyzer.py::test_analyzer_rejects_nonexistent_file PASSED
 tests/test_analyzer.py::test_analyzer_accepts_existing_file PASSED
+tests/test_batch.py::test_find_video_files_single_file PASSED
+tests/test_batch.py::test_batch_command_help PASSED
 tests/test_compatibility.py::test_casparcg_h264_compatible PASSED
-... (55 tests)
+... (107 tests)
 ```
 
 **Run a specific test file:**
 ```bash
 pytest tests/test_compatibility.py
+pytest tests/test_batch.py
 ```
 
 **Run a specific test:**
 ```bash
 pytest tests/test_compatibility.py::test_casparcg_h264_compatible
+pytest tests/test_batch.py::test_batch_directory_recursive
 ```
 
 **Run tests matching a pattern:**
 ```bash
 pytest -k "casparcg"  # Only CasparCG tests
 pytest -k "h264"      # Only H.264 tests
+pytest -k "batch"     # Only batch processing tests
 ```
 
 ### Coverage Reports
@@ -145,11 +164,13 @@ Output:
 ```
 Name                          Stmts   Miss  Cover
 -------------------------------------------------
-videowise/__init__.py            2      0   100%
-videowise/analyzer.py           47      2    96%
-videowise/compatibility.py     312      8    97%
+videowise/__init__.py            1      0   100%
+videowise/analyzer.py           94     14    85%
+videowise/cli.py               277     12    96%
+videowise/compatibility.py     198      3    98%
+videowise/utils.py               4      4     0%
 -------------------------------------------------
-TOTAL                          361     10    97%
+TOTAL                          574     33    94%
 ```
 
 ### Fast Testing During Development
@@ -213,11 +234,27 @@ tests/
 │   ├── test_instagram_h264_baseline_optimal
 │   └── ... (all 9 systems)
 │
-└── test_cli.py                      # 10 tests - CLI functionality
-    ├── test_cli_version
-    ├── test_check_command_help
-    ├── test_check_h264_casparcg_compatible
-    └── ... (more CLI tests)
+├── test_batch.py                    # 27 tests - Batch processing
+│   ├── test_find_video_files_single_file
+│   ├── test_find_video_files_directory_recursive
+│   ├── test_batch_command_help
+│   ├── test_batch_single_file
+│   ├── test_batch_directory_recursive
+│   ├── test_batch_json_output
+│   └── ... (comprehensive batch tests)
+│
+├── test_cli.py                      # 19 tests - CLI functionality
+│   ├── test_cli_version
+│   ├── test_check_command_help
+│   ├── test_check_h264_casparcg_compatible
+│   ├── test_check_all_flag_basic
+│   └── ... (more CLI tests)
+│
+└── test_error_cases.py              # 16 tests - Error handling
+    ├── test_missing_ffprobe
+    ├── test_corrupted_video_file
+    ├── test_no_video_stream
+    └── ... (edge cases)
 ```
 
 ### Anatomy of a Test
@@ -275,6 +312,28 @@ def test_vmix_8k_warning():
 pytest tests/test_compatibility.py::test_vmix_8k_warning -v
 ```
 
+### Testing Batch Processing
+
+**Example: Test batch processing with extension filter**
+
+```python
+# In tests/test_batch.py
+
+def test_batch_extension_filter(runner, tmp_path, h264_video):
+    """Test batch command with extension filtering."""
+    import shutil
+    
+    # Create files with different extensions
+    shutil.copy(h264_video, tmp_path / "video.mp4")
+    shutil.copy(h264_video, tmp_path / "video.mov")
+    
+    result = runner.invoke(
+        cli, ["batch", str(tmp_path), "--extensions", ".mp4", "--system", "casparcg"]
+    )
+    assert result.exit_code in [0, 1, 2]
+    assert "Found 1 video file" in result.output
+```
+
 ### Using Test Fixtures
 
 Fixtures provide reusable test data:
@@ -296,7 +355,10 @@ def test_get_codec_name_h264(h264_video):
 - `h264_high_profile_video` - H.264 High Profile
 - `vp9_video` - VP9 in WebM
 - `test_videos_dir` - Temporary directory for videos
+- `temp_video_dir` - Directory with multiple test videos
+- `nested_video_dir` - Nested directory structure
 - `ffmpeg_available` - Boolean, True if ffmpeg installed
+- `runner` - Click CLI test runner
 
 ### Testing CLI Commands
 
@@ -404,6 +466,7 @@ pip install -e .
 3. **Run only what you're working on:**
    ```bash
    pytest tests/test_compatibility.py::test_casparcg_h264_compatible
+   pytest tests/test_batch.py
    ```
 
 ## Best Practices
@@ -462,6 +525,7 @@ Now every `git commit` automatically runs checks!
 - Edge cases (empty input, very large files, unusual codecs)
 - Error handling
 - Different input combinations
+- Batch operations with various scenarios
 
 ❌ **DON'T test:**
 - Third-party libraries (they have their own tests)
@@ -481,13 +545,15 @@ GitHub Actions automatically runs:
    - mypy (type checking)
 
 2. **Testing**
-   - All 55+ tests
+   - All 107+ tests
    - On Python 3.8, 3.9, 3.10, 3.11, 3.12
    - On Ubuntu Linux
 
 3. **CLI Smoke Tests**
    - Verify `videowise --version` works
    - Verify `videowise --help` works
+   - Verify `videowise check` works
+   - Verify `videowise batch` works
 
 ### Viewing CI Results
 
@@ -509,16 +575,19 @@ GitHub Actions automatically runs:
 **Quick reference:**
 
 ```bash
-# Run all tests
+# Run all tests (107 tests)
 pytest
 
 # Run with details
 pytest -v
 
+# Run specific test file
+pytest tests/test_batch.py
+
 # Run specific test
 pytest tests/test_compatibility.py::test_casparcg_h264_compatible
 
-# Run with coverage
+# Run with coverage (94% coverage)
 pytest --cov=videowise --cov-report=html
 
 # Run what CI runs
