@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed mypy type checking errors with `no-any-return` annotations
 - Fixed Python 3.8 compatibility by downgrading pre-commit to 2.x
 - Fixed CI workflow to accept warning exit codes (exit code 1) as success
+- Fixed CI smoke test test video filename from `test_video.mp4` to `testvideo.mp4` for consistency
+- Fixed CI smoke test JSON output step to properly handle warning exit codes
+- All CI jobs now passing: lint, test (Python 3.8-3.12), and cli-smoke-test
 - All tests now passing across Python 3.8-3.12
 - Removed unused imports from test files
 - Corrected formatting inconsistencies
