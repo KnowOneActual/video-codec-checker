@@ -3,7 +3,7 @@
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import click
 
@@ -14,8 +14,18 @@ __version__ = "0.1.0"
 
 # Common video file extensions
 DEFAULT_VIDEO_EXTENSIONS = [
-    ".mp4", ".mov", ".avi", ".mkv", ".m4v", ".webm",
-    ".flv", ".wmv", ".mpg", ".mpeg", ".m2v", ".mxf"
+    ".mp4",
+    ".mov",
+    ".avi",
+    ".mkv",
+    ".m4v",
+    ".webm",
+    ".flv",
+    ".wmv",
+    ".mpg",
+    ".mpeg",
+    ".m2v",
+    ".mxf",
 ]
 
 
@@ -57,7 +67,9 @@ def determine_worst_level(all_results: List[Dict[str, Any]]) -> int:
 
 
 def find_video_files(
-    paths: List[str], recursive: bool = False, extensions: List[str] = None
+    paths: List[str],
+    recursive: bool = False,
+    extensions: Optional[List[str]] = None,
 ) -> List[Path]:
     """Find all video files in the given paths.
 
@@ -467,7 +479,16 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
     default=True,
     help="Continue processing files even if some fail (default: True)",
 )
-def batch(paths: Tuple[str], system: str, check_all: bool, recursive: bool, extensions: str, output_json: bool, verbose: bool, continue_on_error: bool):
+def batch(
+    paths: Tuple[str, ...],
+    system: str,
+    check_all: bool,
+    recursive: bool,
+    extensions: str,
+    output_json: bool,
+    verbose: bool,
+    continue_on_error: bool,
+):
     r"""Check multiple video files or directories for compatibility.
 
     PATHS: One or more video files or directories to check
@@ -496,10 +517,12 @@ def batch(paths: Tuple[str], system: str, check_all: bool, recursive: bool, exte
         sys.exit(2)
 
     # Parse extensions
-    ext_list = None
+    ext_list: Optional[List[str]] = None
     if extensions:
-        ext_list = [ext.strip() if ext.startswith(".") else f".{ext.strip()}"
-                    for ext in extensions.split(",")]
+        ext_list = [
+            ext.strip() if ext.startswith(".") else f".{ext.strip()}"
+            for ext in extensions.split(",")
+        ]
 
     # Find all video files
     video_files = find_video_files(list(paths), recursive, ext_list)
@@ -555,7 +578,9 @@ def batch(paths: Tuple[str], system: str, check_all: bool, recursive: bool, exte
         if errors:
             click.secho(f"\n⚠️  Errors encountered: {len(errors)}", fg="yellow")
             for error_result in errors:
-                click.echo(f"   • {error_result['file']}: {error_result.get('error', 'Unknown error')}")
+                click.echo(
+                    f"   • {error_result['file']}: {error_result.get('error', 'Unknown error')}"
+                )
 
         # Count files by status
         compatible_files = []
