@@ -214,9 +214,7 @@ def test_batch_json_all_systems(runner, h264_video):
 
 def test_batch_verbose_mode(runner, temp_video_dir):
     """Test batch command with verbose output."""
-    result = runner.invoke(
-        cli, ["batch", str(temp_video_dir), "--system", "casparcg", "-v"]
-    )
+    result = runner.invoke(cli, ["batch", str(temp_video_dir), "--system", "casparcg", "-v"])
     assert result.exit_code in [0, 1, 2]
     # Verbose should show individual file processing
     assert "Processing:" in result.output or "test1.mp4" in result.output
@@ -268,7 +266,6 @@ def test_batch_summary_statistics(runner, h264_video, vp9_video):
 def test_batch_mixed_valid_invalid_files(runner, tmp_path, h264_video):
     """Test batch processing with mix of valid and invalid files."""
     import shutil
-    from pathlib import Path
 
     # Create a valid video
     shutil.copy(h264_video, tmp_path / "valid.mp4")
