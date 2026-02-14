@@ -8,6 +8,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Enhanced Explanation System** - Educational codec knowledge for beginners and experts
+  - New `--explain` flag provides extended explanations for compatibility issues
+  - Codec-specific knowledge base covering H.264 profiles, VP9, ProRes variants, HAP, VFR, and bitrate considerations
+  - Severity level guide explaining Compatible, Warning, and Incompatible statuses
+  - Context-aware explanations that adapt to the system being checked
+  - Educational content about H.264 profiles (Baseline, Main, High)
+  - VP9 compatibility explanations for browsers and live production
+  - ProRes variant details (Proxy/LT for performance, 4444 for alpha channels)
+  - HAP codec GPU acceleration information
+  - Bitrate performance impact explanations
+  - Variable Frame Rate (VFR) vs Constant Frame Rate (CFR) guidance
+  - Instagram-specific encoding recommendations
+  - 12 comprehensive tests for explanation functionality in test_cli_explain.py
+  - Complete ExplanationFormatter class with extensible knowledge system
+- **Plain Text Output Mode** - CI/CD and logging-friendly output
+  - New `--no-color` flag disables ANSI color codes for plain text output
+  - Compatible with CI/CD pipelines, log files, and text processing tools
+  - Works with both `check` and `batch` commands
+  - Works with `--explain` flag for educational output without colors
+  - Automatically detected and tested in test suite
+- Enhanced formatter infrastructure
+  - ExplanationFormatter class with color support and explain mode
+  - Severity information system with icons, colors, and descriptions
+  - System-specific summary formatting
+  - Codec knowledge database for context-aware explanations
+  - get_severity_info() helper function for accessing severity metadata
 - **Batch Processing Feature** - Check multiple files and directories at once
   - New `batch` command for processing multiple files or directories
   - Recursive directory scanning with `--recursive` flag
@@ -22,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Continue-on-error support (default behavior) for robust batch processing
   - Verbose mode (`-v`) for detailed processing information
   - Compatible with both `--system` and `--all` flags
+  - Now supports `--explain` and `--no-color` flags for batch operations
   - 27 comprehensive tests for batch functionality
   - Complete batch processing documentation in CLI_USAGE.md
   - Examples for pre-show checklists, media library validation, CI/CD integration
@@ -32,16 +59,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Verbose mode compatibility for detailed multi-system analysis
   - Exit code based on worst-case scenario across all systems
   - Individual system results with clear separation and headers
+  - Now supports `--explain` flag for educational multi-system analysis
+  - Now supports `--no-color` flag for plain text multi-system output
   - 12 comprehensive tests covering all `--all` flag functionality
   - Complete documentation in CLI_USAGE.md with examples
   - Validation to prevent simultaneous `--system` and `--all` usage
 - Comprehensive test suite with 94% code coverage
-- 107 tests across 7 test files covering all major functionality
-- Tests for all 9 platform compatibility checkers
-- Batch processing tests (27 tests in test_batch.py)
-- Error handling and edge case tests
-- CLI command and output format tests
-- Video metadata parsing and analyzer tests
+  - 140 total tests across 8 test files covering all major functionality
+  - Tests for all 9 platform compatibility checkers
+  - Batch processing tests (27 tests in test_batch.py)
+  - Explanation system tests (12 tests in test_cli_explain.py)
+  - Formatter tests (18 tests in test_formatter.py)
+  - Error handling and edge case tests
+  - CLI command and output format tests
+  - Video metadata parsing and analyzer tests
 - Comprehensive development tooling and automation
   - Pre-commit hooks for code quality (Black, isort, flake8, mypy)
   - Makefile with common development commands
@@ -56,14 +87,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced test fixtures with directory creation helpers for batch tests
 - Simplified pre-commit hooks to focus on code quality (removed whitespace/newline fixers that conflicted with editors)
 - Enhanced README with batch processing examples and use cases
+- Updated README with `--explain` and `--no-color` flag examples
+- Updated CLI_USAGE.md with comprehensive explanation flag documentation
 - Updated contributor guidelines with modern workflow
 - Improved code quality standards
 - Updated project status from 'ACTIVE DEVELOPMENT' to 'UNDER DEVELOPMENT' for accuracy
 - Improved frame rate parsing in analyzer.py for better accuracy
 - Enhanced CLI help text formatting for better readability
 - Updated CLI help text to mention both `--all` flag and `batch` command options
+- Updated CLI help text for `--explain` and `--no-color` flags
 - Updated ROADMAP.md to mark Phase 2.3 Batch Operations as COMPLETE
-- Updated TESTING.md with batch processing test documentation
+- Updated ROADMAP.md to mark Phase 2.4 Enhanced Explanations as COMPLETE
+- Updated TESTING.md with batch processing and explanation test documentation
+- Enhanced formatter output with better structure and clarity
 
 ### Fixed
 - Fixed mypy type checking errors with `no-any-return` annotations
@@ -73,6 +109,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed CI smoke test test video filename from `test_video.mp4` to `testvideo.mp4` for consistency
 - Fixed CI smoke test JSON output step to properly handle warning exit codes
 - Fixed Black formatter issues in test files (trailing whitespace, line formatting)
+- Fixed flake8 line length violations in formatter.py
+- Fixed unused import in test_formatter.py
 - All CI jobs now passing: lint, test (Python 3.8-3.12), and cli-smoke-test
 - All tests now passing across Python 3.8-3.12
 - Removed unused imports from test files
