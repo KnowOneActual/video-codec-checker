@@ -169,7 +169,3 @@ Contributions are welcome! We're especially looking for:
 ## License
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
-
----
-
-**Why "VideoWise"?** Because understanding *why* your video won't work makes you wiser about video codecs, and wise decisions save you hours of frustration.
