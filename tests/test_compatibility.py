@@ -276,7 +276,10 @@ def test_playbackpro_prores422_optimal():
     issues = checker.check(video_info)
 
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
-    assert any("recommended" in issue.message.lower() or "optimal" in issue.message.lower() for issue in issues)
+    assert any(
+        "recommended" in issue.message.lower() or "optimal" in issue.message.lower()
+        for issue in issues
+    )
 
 
 def test_playbackpro_h264_hd_bitrate_good():
@@ -292,7 +295,10 @@ def test_playbackpro_h264_hd_bitrate_good():
     issues = checker.check(video_info)
 
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
-    assert any("suitable" in issue.message.lower() or "within recommended" in issue.message.lower() for issue in issues)
+    assert any(
+        "suitable" in issue.message.lower() or "within recommended" in issue.message.lower()
+        for issue in issues
+    )
 
 
 def test_playbackpro_h264_hd_bitrate_low():
