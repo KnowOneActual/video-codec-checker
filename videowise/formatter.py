@@ -98,7 +98,7 @@ class ExplanationFormatter:
         # Add codec-specific knowledge if available
         knowledge = self._get_codec_knowledge(issue, system)
         if knowledge:
-            output += f"   💡 Additional Context:\n"
+            output += "   💡 Additional Context:\n"
             output += f"      {knowledge}\n\n"
 
         return output
@@ -208,9 +208,9 @@ class ExplanationFormatter:
         Returns:
             Formatted system summary
         """
-        output = f"\n{'='*60}\n"
+        output = "\n" + "=" * 60 + "\n"
         output += f"🎬 {system.upper()}\n"
-        output += f"{'='*60}\n"
+        output += "=" * 60 + "\n"
 
         if not issues:
             output += "✅ No compatibility issues found.\n"
