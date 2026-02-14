@@ -1205,7 +1205,7 @@ class VimeoChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.UP PER()} container is compatible with Vimeo",
+                    message=f"{container.UPPER()} container is compatible with Vimeo",
                 )
             )
 
