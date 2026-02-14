@@ -195,9 +195,7 @@ class ExplanationFormatter:
 
         return output
 
-    def format_system_summary(
-        self, system: str, issues: list, explain: bool = False
-    ) -> str:
+    def format_system_summary(self, system: str, issues: list, explain: bool = False) -> str:
         """Format a summary for a specific system.
 
         Args:

@@ -197,7 +197,10 @@ class TestExplainFlag:
         result = runner.invoke(cli, ["check", "--help"])
 
         assert "--explain" in result.output
-        assert "extended explanations" in result.output.lower() or "codec knowledge" in result.output.lower()
+        assert (
+            "extended explanations" in result.output.lower()
+            or "codec knowledge" in result.output.lower()
+        )
 
     def test_no_color_help_text(self, runner):
         """Test that --no-color appears in help text."""

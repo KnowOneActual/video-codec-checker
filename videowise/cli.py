@@ -307,7 +307,7 @@ def check(
         # Check all systems
         all_results: List[Dict[str, Any]] = []
         all_issues_objects: List[Tuple[str, List[CompatibilityIssue]]] = []
-        
+
         for sys_name in systems_to_check:
             issues = check_compatibility(video_info, sys_name)
             all_issues_objects.append((sys_name, issues))
