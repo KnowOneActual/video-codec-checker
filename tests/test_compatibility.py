@@ -4,7 +4,11 @@ from videowise.compatibility import (
     CasparCGChecker,
     CompatibilityLevel,
     EasyWorshipChecker,
+    MilluminChecker,
+    MittiChecker,
     PlaybackProChecker,
+    ResolumeChecker,
+    VLCChecker,
     VmixChecker,
     WirecastChecker,
     check_compatibility,
@@ -446,7 +450,358 @@ def test_easyworship_m4v_native():
     assert any("native support" in issue.message.lower() for issue in issues)
 
 
-# Integration tests for new systems
+# VLC Tests
+
+
+def test_vlc_universal_codec_support():
+    """Test that VLC supports virtually all codecs."""
+    checker = VLCChecker()
+    video_info = {
+        "codec": "vp9",
+        "container": "webm",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
+    assert any("supported by vlc" in issue.message.lower() for issue in issues)
+    assert any("ffmpeg" in issue.reason.lower() for issue in issues if issue.reason)
+
+
+def test_vlc_hardware_decoding_recommendation():
+    """Test that VLC recommends hardware decoding for modern codecs."""
+    checker = VLCChecker()
+    video_info = {
+        "codec": "hevc",
+        "container": "mp4",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any("hardware acceleration" in issue.message.lower() for issue in issues)
+
+
+def test_vlc_extreme_bitrate_warning():
+    """Test that VLC warns about extreme bitrate."""
+    checker = VLCChecker()
+    video_info = {
+        "codec": "h264",
+        "container": "mp4",
+        "bitrate": 350_000_000,  # 350 Mbps
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
+    assert any("very high bitrate" in issue.message.lower() for issue in issues)
+
+
+def test_vlc_8k_resolution_warning():
+    """Test that VLC warns about 8K resolution requirements."""
+    checker = VLCChecker()
+    video_info = {
+        "codec": "hevc",
+        "container": "mp4",
+        "resolution": (7680, 4320),  # 8K
+    }
+
+    issues = checker.check(video_info)
+
+    assert any("8k" in issue.message.lower() for issue in issues)
+    assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
+
+
+# Resolume Tests
+
+
+def test_resolume_dxv_optimal():
+    """Test that DXV is optimal for Resolume."""
+    checker = ResolumeChecker()
+    video_info = {
+        "codec": "dxv",
+        "container": "mov",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
+    assert any("optimal" in issue.message.lower() for issue in issues)
+    assert any("gpu" in issue.reason.lower() for issue in issues if issue.reason)
+
+
+def test_resolume_hap_compatible():
+    """Test that HAP is optimal for Resolume."""
+    checker = ResolumeChecker()
+    video_info = {
+        "codec": "hap",
+        "container": "mov",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
+    assert any("optimal" in issue.message.lower() for issue in issues)
+
+
+def test_resolume_hap_alpha_compatible():
+    """Test that HAP Alpha is optimal for Resolume."""
+    checker = ResolumeChecker()
+    video_info = {
+        "codec": "hap_alpha",
+        "container": "mov",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
+    assert any("alpha" in issue.message.lower() for issue in issues)
+
+
+def test_resolume_h264_cpu_warning():
+    """Test that H.264 shows CPU-based warning."""
+    checker = ResolumeChecker()
+    video_info = {
+        "codec": "h264",
+        "container": "mp4",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
+    assert any("cpu" in issue.message.lower() for issue in issues)
+    assert any("dxv or hap" in issue.suggestion.lower() for issue in issues if issue.suggestion)
+
+
+def test_resolume_prores_mac_warning():
+    """Test that ProRes shows platform-specific warning on Mac."""
+    checker = ResolumeChecker(platform="mac")
+    video_info = {
+        "codec": "prores",
+        "container": "mov",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
+    assert any("cpu-based" in issue.message.lower() for issue in issues)
+
+
+def test_resolume_4k_layer_warning():
+    """Test that 4K video shows layer count warning."""
+    checker = ResolumeChecker()
+    video_info = {
+        "codec": "hap",
+        "container": "mov",
+        "resolution": (3840, 2160),  # 4K
+    }
+
+    issues = checker.check(video_info)
+
+    assert any("layer" in issue.message.lower() for issue in issues)
+
+
+def test_resolume_hevc_conversion_advice():
+    """Test that HEVC shows conversion advice."""
+    checker = ResolumeChecker()
+    video_info = {
+        "codec": "hevc",
+        "container": "mp4",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
+    assert any("convert" in issue.suggestion.lower() for issue in issues if issue.suggestion)
+
+
+# Mitti Tests
+
+
+def test_mitti_prores_optimal():
+    """Test that ProRes is optimal for Mitti."""
+    checker = MittiChecker()
+    video_info = {
+        "codec": "prores",
+        "container": "mov",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
+    assert any("optimal" in issue.message.lower() for issue in issues)
+    assert any("apple silicon" in issue.reason.lower() for issue in issues if issue.reason)
+
+
+def test_mitti_hap_optimal():
+    """Test that HAP is optimal for Mitti."""
+    checker = MittiChecker()
+    video_info = {
+        "codec": "hap",
+        "container": "mov",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
+    assert any("optimal" in issue.message.lower() for issue in issues)
+
+
+def test_mitti_other_codec_transcode_advice():
+    """Test that other codecs show transcoding advice."""
+    checker = MittiChecker()
+    video_info = {
+        "codec": "h264",
+        "container": "mp4",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
+    assert any("transcode" in issue.message.lower() for issue in issues)
+
+
+def test_mitti_4k_codec_guidance():
+    """Test that 4K shows codec guidance."""
+    checker = MittiChecker()
+    video_info = {
+        "codec": "prores",
+        "container": "mov",
+        "resolution": (3840, 2160),  # 4K
+    }
+
+    issues = checker.check(video_info)
+
+    assert any("4k" in issue.message.lower() for issue in issues)
+    assert any("hap" in issue.message.lower() or "prores" in issue.message.lower() for issue in issues)
+
+
+def test_mitti_high_bitrate_warning():
+    """Test that high bitrate shows performance warning."""
+    checker = MittiChecker()
+    video_info = {
+        "codec": "prores",
+        "container": "mov",
+        "bitrate": 300_000_000,  # 300 Mbps
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
+    assert any("bitrate" in issue.message.lower() for issue in issues)
+
+
+# Millumin Tests
+
+
+def test_millumin_quicktime_support():
+    """Test that Millumin supports QuickTime formats."""
+    checker = MilluminChecker()
+    video_info = {
+        "codec": "prores",
+        "container": "mov",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
+    assert any("quicktime" in issue.reason.lower() or "avfoundation" in issue.reason.lower() for issue in issues if issue.reason)
+
+
+def test_millumin_hap_projection_optimal():
+    """Test that HAP is optimal for projection mapping."""
+    checker = MilluminChecker()
+    video_info = {
+        "codec": "hap",
+        "container": "mov",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any("projection" in issue.message.lower() for issue in issues)
+    assert any("gpu" in issue.reason.lower() for issue in issues if issue.reason)
+
+
+def test_millumin_h264_performance_warning():
+    """Test that H.264 shows performance warning."""
+    checker = MilluminChecker()
+    video_info = {
+        "codec": "h264",
+        "container": "mp4",
+    }
+
+    issues = checker.check(video_info)
+
+    assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
+    assert any("prores/hap recommended" in issue.message.lower() for issue in issues)
+
+
+def test_millumin_4k_projection_warning():
+    """Test that 4K shows projection performance warning."""
+    checker = MilluminChecker()
+    video_info = {
+        "codec": "prores",
+        "container": "mov",
+        "resolution": (3840, 2160),  # 4K
+    }
+
+    issues = checker.check(video_info)
+
+    assert any("4k" in issue.message.lower() for issue in issues)
+    assert any("projection" in issue.message.lower() for issue in issues)
+
+
+# Integration tests for new media player systems
+
+
+def test_check_compatibility_vlc():
+    """Test check_compatibility function with VLC."""
+    video_info = {
+        "codec": "av1",
+        "container": "mp4",
+    }
+
+    issues = check_compatibility(video_info, "vlc")
+    assert len(issues) > 0
+    assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
+
+
+def test_check_compatibility_resolume():
+    """Test check_compatibility function with Resolume."""
+    video_info = {
+        "codec": "dxv",
+        "container": "mov",
+    }
+
+    issues = check_compatibility(video_info, "resolume")
+    assert len(issues) > 0
+    assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
+
+
+def test_check_compatibility_mitti():
+    """Test check_compatibility function with Mitti."""
+    video_info = {
+        "codec": "prores",
+        "container": "mov",
+    }
+
+    issues = check_compatibility(video_info, "mitti")
+    assert len(issues) > 0
+    assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
+
+
+def test_check_compatibility_millumin():
+    """Test check_compatibility function with Millumin."""
+    video_info = {
+        "codec": "hap",
+        "container": "mov",
+    }
+
+    issues = check_compatibility(video_info, "millumin")
+    assert len(issues) > 0
+    assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
+
+
+# Integration tests for previous systems
 
 
 def test_check_compatibility_wirecast():
