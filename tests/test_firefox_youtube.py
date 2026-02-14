@@ -1,12 +1,6 @@
 """Tests for Firefox and YouTube compatibility checkers."""
 
-import pytest
-
-from videowise.compatibility import (
-    CompatibilityLevel,
-    FirefoxChecker,
-    YouTubeChecker,
-)
+from videowise.compatibility import CompatibilityLevel, FirefoxChecker, YouTubeChecker
 
 
 class TestFirefoxChecker:

@@ -408,7 +408,9 @@ class PlaybackProChecker:
                         "level": "WARNING",
                         "message": "4K playback requires SSD storage",
                         "reason": "HDDs may not provide sufficient read speed for 4K",
-                        "suggestion": "Use internal SSD or Thunderbolt SSD for reliable 4K playback",
+                        "suggestion": (
+                            "Use internal SSD or Thunderbolt SSD for reliable 4K playback"
+                        ),
                     }
                 )
 
@@ -498,7 +500,9 @@ class ProVideoPlayerChecker:
                     "level": "WARNING",
                     "message": f"PVP may have limited support for {codec.upper()}",
                     "reason": "PVP works best with DXV, HAP, ProRes, or H.264",
-                    "suggestion": "Convert to DXV for optimal timecode and multi-screen performance",
+                    "suggestion": (
+                        "Convert to DXV for optimal timecode and multi-screen performance"
+                    ),
                 }
             )
 
