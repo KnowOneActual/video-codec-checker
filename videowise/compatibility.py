@@ -980,6 +980,427 @@ class EasyWorshipChecker(CompatibilityChecker):
         return issues
 
 
+# Media Players and VJ Software
+
+
+class VLCChecker(CompatibilityChecker):
+    """Compatibility checker for VLC media player.
+
+    VLC is a universal free media player (Windows/Mac/Linux) that plays
+    virtually everything through FFmpeg libraries. The standard for testing.
+    """
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # VLC plays virtually everything
+        issues.append(
+            CompatibilityIssue(
+                level=CompatibilityLevel.COMPATIBLE,
+                message=f"{codec.upper()} is supported by VLC media player",
+                reason="VLC uses FFmpeg libraries for universal codec support",
+            )
+        )
+
+        # Check for hardware decoding opportunities
+        if codec in ["h264", "hevc", "vp9", "av1"]:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} may benefit from hardware acceleration",
+                    reason="Enable hardware decoding in VLC preferences for better performance",
+                )
+            )
+
+        # Check for very high bitrate or resolution
+        if bitrate and bitrate > 300_000_000:  # 300 Mbps
+            mbps = bitrate // 1_000_000
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"Very high bitrate ({mbps}Mbps) may cause stuttering",
+                    reason="Extreme bitrates can exceed disk I/O capabilities",
+                    suggestion="Ensure fast storage (NVMe SSD) for smooth playback",
+                )
+            )
+
+        if resolution:
+            width, height = resolution
+            if width >= 7680 or height >= 4320:  # 8K
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="8K video requires powerful hardware",
+                        reason="8K playback needs modern CPU/GPU and fast storage",
+                        suggestion="Enable hardware decoding and use VLC 3.0+",
+                    )
+                )
+
+        # Container compatibility (VLC plays everything)
+        if container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is fully supported",
+                    reason="VLC supports all major container formats",
+                )
+            )
+
+        return issues
+
+
+class ResolumeChecker(CompatibilityChecker):
+    """Compatibility checker for Resolume Arena/Avenue VJ software.
+
+    Resolume is the industry standard for VJs, concerts, festivals, and clubs.
+    DXV codec is proprietary and optimal. HAP codec also fully supported.
+    """
+
+    OPTIMAL_CODECS = ["dxv", "dxv2", "dxv3"]  # Resolume's proprietary GPU codec
+    ALSO_OPTIMAL = ["hap", "hap_alpha", "hap_q", "hap_q_alpha"]  # HAP variants
+    SUPPORTED_CODECS = ["h264", "hevc", "prores", "mjpeg"]  # Fallbacks
+
+    def __init__(self, platform: str = "windows"):
+        """Initialize Resolume checker.
+
+        Args:
+            platform: 'windows' or 'mac' for platform-specific advice
+        """
+        self.platform = platform
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # Check for DXV codec (optimal)
+        if "dxv" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="DXV is the optimal codec for Resolume",
+                    reason="GPU-accelerated, proprietary to Resolume for best performance",
+                )
+            )
+        # Check for HAP codec (also optimal)
+        elif "hap" in codec:
+            if "alpha" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} provides GPU-accelerated playback with alpha",
+                        reason="HAP Alpha perfect for overlays and VJ graphics",
+                    )
+                )
+            elif "hap_q" in codec or "hapq" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP Q provides high-quality GPU-accelerated playback",
+                        reason="Best quality HAP variant, performance equal to DXV",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP codec is optimal for Resolume",
+                        reason="GPU-accelerated, works across all VJ software",
+                    )
+                )
+
+            # HAP requires MOV container
+            if "mov" not in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="HAP codec requires MOV container",
+                        suggestion="Remux to MOV: ffmpeg -i input -c copy output.mov",
+                    )
+                )
+        # Check for H.264 (CPU-based fallback)
+        elif codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="H.264 will use CPU decoding, not GPU",
+                    reason="H.264 performs poorly with multiple layers in Resolume",
+                    suggestion="Convert to DXV or HAP for GPU acceleration",
+                )
+            )
+        # Check for ProRes (Mac only, CPU-based)
+        elif "prores" in codec:
+            if self.platform == "mac":
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="ProRes works but is CPU-based on Mac",
+                        reason="ProRes not GPU-accelerated, can limit layer count",
+                        suggestion="Convert to DXV or HAP for better performance",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="ProRes on Windows is CPU-based and slow",
+                        reason="ProRes not optimized for Windows, limits layers",
+                        suggestion="Convert to DXV or HAP for GPU acceleration",
+                    )
+                )
+        # Check for HEVC
+        elif codec == "hevc":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="HEVC should be converted to DXV or HAP",
+                    reason="HEVC is CPU-intensive and not optimized for VJ work",
+                    suggestion="Convert to DXV for best Resolume performance",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} is not optimal for Resolume",
+                    reason="Resolume works best with GPU-accelerated codecs",
+                    suggestion="Convert to DXV (Resolume only) or HAP (universal VJ)",
+                )
+            )
+
+        # Check resolution for layer count
+        if resolution:
+            width, height = resolution
+            if width >= 3840 and height >= 2160:  # 4K
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="4K video limits the number of simultaneous layers",
+                        reason="4K requires 4x bandwidth of 1080p",
+                        suggestion="Use 1080p for more layers, or DXV/HAP for best 4K performance",
+                    )
+                )
+
+        # Check bitrate
+        if bitrate and bitrate > 200_000_000:  # 200 Mbps
+            mbps = bitrate // 1_000_000
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"Very high bitrate ({mbps}Mbps) may limit layer count",
+                    reason="High bitrate stresses disk I/O even with GPU codecs",
+                    suggestion="Use DXV or HAP with moderate bitrate for more layers",
+                )
+            )
+
+        return issues
+
+
+class MittiChecker(CompatibilityChecker):
+    """Compatibility checker for Mitti video playback software.
+
+    Mitti is professional playback software for Mac, used extensively in
+    corporate events, theatre, and exhibitions. Known for extreme reliability.
+    """
+
+    RECOMMENDED_CODECS = ["prores", "hap"]  # Transcodes everything to these
+    APPLE_SILICON_OPTIMAL = ["prores"]  # Hardware accelerated on M1/M2/M3
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # Check for recommended codecs
+        if "prores" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is optimal for Mitti",
+                    reason="Hardware accelerated on Apple Silicon Macs (M1/M2/M3)",
+                )
+            )
+        elif "hap" in codec:
+            if "alpha" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP Alpha is optimal for Mitti with transparency",
+                        reason="GPU-accelerated playback with alpha channel",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP is optimal for Mitti",
+                        reason="GPU-accelerated, especially for 4K and multi-output",
+                    )
+                )
+
+            # HAP requires MOV
+            if "mov" not in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="HAP codec requires MOV container",
+                        suggestion="Remux to MOV container",
+                    )
+                )
+        # Other codecs: Mitti can transcode
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} should be transcoded for Mitti",
+                    reason="Mitti recommends ProRes or HAP for reliable playback",
+                    suggestion=(
+                        "Use Mitti's built-in transcoding to ProRes (Apple Silicon) "
+                        "or HAP (multi-output)"
+                    ),
+                )
+            )
+
+        # Check container (MOV preferred)
+        if "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="MOV container is preferred by Mitti",
+                    reason="QuickTime MOV is Mac's native format",
+                )
+            )
+        elif "mp4" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="MP4 works but MOV is preferred for Mitti",
+                    suggestion="Use MOV container for best compatibility",
+                )
+            )
+
+        # Check resolution for performance
+        if resolution:
+            width, height = resolution
+            if width >= 3840 and height >= 2160:  # 4K
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="4K video: use HAP for multi-output, ProRes for single output",
+                        reason=(
+                            "4K ProRes great on Apple Silicon; 4K HAP better for "
+                            "HDMI/DisplayPort multi-output"
+                        ),
+                        suggestion="HAP for GPU path (external displays), ProRes for SDI",
+                    )
+                )
+
+        # Check bitrate
+        if bitrate and bitrate > 250_000_000:  # 250 Mbps
+            mbps = bitrate // 1_000_000
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"High bitrate ({mbps}Mbps) may stress playback",
+                    reason="Very high bitrate can cause dropped frames",
+                    suggestion="Use ProRes 422 or HAP with moderate bitrate",
+                )
+            )
+
+        return issues
+
+
+class MilluminChecker(CompatibilityChecker):
+    """Compatibility checker for Millumin video mapping software.
+
+    Millumin is professional software for Mac used in video mapping,
+    projection, theatre, dance, museums, and interactive installations.
+    """
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+
+        # Millumin supports all QuickTime formats
+        issues.append(
+            CompatibilityIssue(
+                level=CompatibilityLevel.COMPATIBLE,
+                message=f"{codec.upper()} is supported by Millumin",
+                reason="Millumin uses QuickTime and AVFoundation for codec support",
+            )
+        )
+
+        # Check for recommended codecs
+        if "prores" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="ProRes is excellent for Millumin",
+                    reason="Native Mac codec with hardware acceleration on Apple Silicon",
+                )
+            )
+        elif "hap" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="HAP is optimal for Millumin projection mapping",
+                    reason="GPU-accelerated, ideal for multi-projector setups",
+                )
+            )
+        elif codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="H.264 works but ProRes/HAP recommended for projection",
+                    reason="H.264 is CPU-based, can limit real-time performance",
+                    suggestion="Use ProRes or HAP for better projection mapping performance",
+                )
+            )
+
+        # Check container (MOV preferred)
+        if "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="MOV is the preferred container for Millumin",
+                    reason="QuickTime MOV native to macOS",
+                )
+            )
+        elif "mp4" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="MP4 is supported by Millumin",
+                    reason="MP4 works well for standard playback",
+                )
+            )
+
+        # Check resolution for projection
+        if resolution:
+            width, height = resolution
+            if width >= 3840 and height >= 2160:  # 4K
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="4K video requires powerful Mac for smooth projection",
+                        reason="4K projection mapping is GPU-intensive",
+                        suggestion="Use HAP codec for best 4K projection performance",
+                    )
+                )
+
+        return issues
+
+
 # Browser Compatibility
 
 
@@ -1693,6 +2114,10 @@ def get_available_systems() -> List[str]:
             "wirecast",
             "playbackpro",
             "easyworship",
+            "vlc",
+            "resolume",
+            "mitti",
+            "millumin",
             "safari",
             "chrome",
             "firefox",
@@ -1726,6 +2151,10 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
         "wirecast": WirecastChecker,
         "playbackpro": PlaybackProChecker,
         "easyworship": EasyWorshipChecker,
+        "vlc": VLCChecker,
+        "resolume": ResolumeChecker,
+        "mitti": MittiChecker,
+        "millumin": MilluminChecker,
         "safari": SafariChecker,
         "chrome": ChromeChecker,
         "firefox": FirefoxChecker,
