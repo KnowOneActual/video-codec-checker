@@ -24,13 +24,9 @@ You've spent hours creating the perfect video, but:
 
 ### For Live Production Operators
 You're setting up for a show and:
-- Your playback software (CasparCG, vMix, Linux Show Player) refuses to load the video
-- The file plays fine on your computer, but stutters during live playback
-- Graphics overlays work with some files but not others
-- You're 10 minutes from showtime and need to know if you should re-encode NOW
-- Client delivers last-minute content, and you need to know instantly if it's compatible
-- **You have 50 videos to check before the show starts**
-- **You need to train your team on what codecs work and why**
+- Your playback software (CasparCG, vMix, Linux Show Player) refuses to load the video or stutters during live playback
+- You're 10 minutes from showtime with last-minute content and need instant compatibility verification
+- **You have 50 videos to check before the show starts and need to train your team on what codecs work and why**
 
 Most tools either show you raw technical data (codec, bitrate, profile) or just fail silently. **VideoWise bridges that gap** by explaining compatibility issues in plain English and suggesting actual fixes.
 
@@ -59,25 +55,16 @@ videowise batch videos/ --recursive --all
 
 ## What VideoWise Does
 
-VideoWise analyzes video files and provides human-readable explanations:
+VideoWise analyzes video files and provides:
 
-**For Upload/Playback:**
-- "This won't play in Safari because it uses VP9 codec - Safari only supports H.264 and HEVC."
-- "Instagram will re-encode this (losing quality) because it's H.264 High Profile instead of Baseline."
-- "This file is 850MB, but Twitter's limit is 512MB - you'll need to compress it."
+- **Human-readable explanations**: "This won't play in Safari because it uses VP9 codec - Safari only supports H.264 and HEVC."
+- **Actionable suggestions**: "Instagram will re-encode this (losing quality) because it's H.264 High Profile instead of Baseline."
+- **Live production warnings**: "This file will cause dropped frames in vMix - bitrate is 180Mbps, but your system can only handle 100Mbps smoothly."
+- **Educational mode**: Use `--explain` flag to learn about H.264 profiles, ProRes variants, HAP codec performance, and VFR issues
+- **Batch processing**: Check entire directories at once to find which videos need re-encoding before the show
+- **Multi-system validation**: Use `--all` flag to check against all 9 systems simultaneously
 
-**For Live Production:**
-- "CasparCG 2.3 can't play this - it requires ProRes, DNxHD, or H.264 in MP4 container."
-- "This file will cause dropped frames in vMix - bitrate is 180Mbps, but your system can only handle 100Mbps smoothly."
-- "Warning: Variable frame rate video will cause timing issues in live production - convert to constant frame rate."
-
-**With Extended Explanations (`--explain` flag):**
-- Learn about H.264 profiles and why Baseline vs High matters
-- Understand ProRes variants and when to use each
-- Learn why HAP is fast for real-time playback
-- Understand VFR issues in live production
-
-**See [Compatibility Matrix](docs/COMPATIBILITY_MATRIX.md) for detailed feature list**
+**[See detailed examples and real-world scenarios →](docs/EXAMPLES.md)**
 
 ## Installation
 
@@ -114,7 +101,7 @@ videowise --version
 | **Browsers** | Safari, Chrome | ✅ Complete |
 | **Social Media** | Instagram, Twitter/X | ✅ Complete |
 
-**See [Compatibility Matrix](docs/COMPATIBILITY_MATRIX.md) for detailed capabilities per system**
+**[View detailed compatibility matrix →](docs/COMPATIBILITY_MATRIX.md)**
 
 ## Documentation
 
