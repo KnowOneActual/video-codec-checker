@@ -33,8 +33,7 @@ class ExplanationFormatter:
             "name": "Incompatible",
             "description": "This video will NOT work.",
             "impact": (
-                "The video will fail to play, upload, or process. "
-                "Conversion is required."
+                "The video will fail to play, upload, or process. " "Conversion is required."
             ),
         },
     }
@@ -83,9 +82,7 @@ class ExplanationFormatter:
 
         return output
 
-    def _format_extended_explanation(
-        self, issue: CompatibilityIssue, system: str
-    ) -> str:
+    def _format_extended_explanation(self, issue: CompatibilityIssue, system: str) -> str:
         """Format extended explanation for explain mode.
 
         Args:
@@ -111,9 +108,7 @@ class ExplanationFormatter:
 
         return output
 
-    def _get_codec_knowledge(
-        self, issue: CompatibilityIssue, system: str
-    ) -> Optional[str]:
+    def _get_codec_knowledge(self, issue: CompatibilityIssue, system: str) -> Optional[str]:
         """Get additional codec/system-specific knowledge.
 
         Args:
@@ -211,9 +206,7 @@ class ExplanationFormatter:
 
         return output
 
-    def format_system_summary(
-        self, system: str, issues: list, explain: bool = False
-    ) -> str:
+    def format_system_summary(self, system: str, issues: list, explain: bool = False) -> str:
         """Format a summary for a specific system.
 
         Args:
@@ -235,9 +228,7 @@ class ExplanationFormatter:
         # Group issues by severity
         compatible = [i for i in issues if i.level == CompatibilityLevel.COMPATIBLE]
         warnings = [i for i in issues if i.level == CompatibilityLevel.WARNING]
-        incompatible = [
-            i for i in issues if i.level == CompatibilityLevel.INCOMPATIBLE
-        ]
+        incompatible = [i for i in issues if i.level == CompatibilityLevel.INCOMPATIBLE]
 
         # Show issues by severity (worst first)
         for issue_list in [incompatible, warnings, compatible]:
