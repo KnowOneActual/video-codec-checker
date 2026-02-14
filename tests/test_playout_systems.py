@@ -1,12 +1,6 @@
 """Tests for CasparCG and PlayoutBee playout system checkers."""
 
-import pytest
-
-from videowise.compatibility import (
-    CompatibilityLevel,
-    CasparCGChecker,
-    PlayoutBeeChecker,
-)
+from videowise.compatibility import CasparCGChecker, CompatibilityLevel, PlayoutBeeChecker
 
 
 class TestCasparCGChecker:
@@ -41,7 +35,9 @@ class TestCasparCGChecker:
         issues = self.checker.check(video_info)
 
         compatible_issues = [i for i in issues if i.level == CompatibilityLevel.COMPATIBLE]
-        assert any("high-quality" in i.message.lower() or "HAP Q" in i.message for i in compatible_issues)
+        assert any(
+            "high-quality" in i.message.lower() or "HAP Q" in i.message for i in compatible_issues
+        )
 
     def test_hap_requires_mov_container(self):
         """HAP codec in non-MOV container should show warning."""
@@ -162,7 +158,10 @@ class TestPlayoutBeeChecker:
         issues = self.desktop_checker.check(video_info)
 
         compatible_issues = [i for i in issues if i.level == CompatibilityLevel.COMPATIBLE]
-        assert any("transparency" in i.message.lower() or "alpha" in i.message.lower() for i in compatible_issues)
+        assert any(
+            "transparency" in i.message.lower() or "alpha" in i.message.lower()
+            for i in compatible_issues
+        )
 
     def test_hap_q_desktop_optimal(self):
         """HAP Q should be optimal for desktop systems."""
@@ -170,7 +169,9 @@ class TestPlayoutBeeChecker:
         issues = self.desktop_checker.check(video_info)
 
         compatible_issues = [i for i in issues if i.level == CompatibilityLevel.COMPATIBLE]
-        assert any("high-quality" in i.message.lower() or "HAP Q" in i.message for i in compatible_issues)
+        assert any(
+            "high-quality" in i.message.lower() or "HAP Q" in i.message for i in compatible_issues
+        )
 
     def test_hap_q_raspberry_pi_warning(self):
         """HAP Q should show warning on Raspberry Pi."""
@@ -224,7 +225,9 @@ class TestPlayoutBeeChecker:
         pi_warnings = [
             i
             for i in issues
-            if i.level == CompatibilityLevel.WARNING and "Raspberry Pi" in i.message and "bitrate" in i.message.lower()
+            if i.level == CompatibilityLevel.WARNING
+            and "Raspberry Pi" in i.message
+            and "bitrate" in i.message.lower()
         ]
         assert len(pi_warnings) == 0
 
@@ -299,7 +302,5 @@ class TestPlayoutBeeChecker:
         issues = self.pi_checker.check(video_info)
 
         warning_issues = [i for i in issues if i.level == CompatibilityLevel.WARNING]
-        assert any(
-            "too high" in i.message and "Raspberry Pi" in i.message for i in warning_issues
-        )
+        assert any("too high" in i.message and "Raspberry Pi" in i.message for i in warning_issues)
         assert any("1080p" in i.suggestion for i in warning_issues)

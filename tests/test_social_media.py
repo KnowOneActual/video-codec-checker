@@ -1,13 +1,6 @@
 """Tests for TikTok, Vimeo, and Facebook compatibility checkers."""
 
-import pytest
-
-from videowise.compatibility import (
-    CompatibilityLevel,
-    TikTokChecker,
-    VimeoChecker,
-    FacebookChecker,
-)
+from videowise.compatibility import CompatibilityLevel, FacebookChecker, TikTokChecker, VimeoChecker
 
 
 class TestTikTokChecker:
@@ -190,7 +183,9 @@ class TestTikTokChecker:
 
         incompatible_issues = [i for i in issues if i.level == CompatibilityLevel.INCOMPATIBLE]
         assert len(incompatible_issues) == 1
-        assert "287MB" in incompatible_issues[0].reason or "mobile" in incompatible_issues[0].message
+        assert (
+            "287MB" in incompatible_issues[0].reason or "mobile" in incompatible_issues[0].message
+        )
 
     # File Size Tests - Desktop
     def test_desktop_file_size_under_limit(self):
@@ -218,7 +213,9 @@ class TestTikTokChecker:
 
         incompatible_issues = [i for i in issues if i.level == CompatibilityLevel.INCOMPATIBLE]
         assert len(incompatible_issues) == 1
-        assert "10GB" in incompatible_issues[0].reason or "desktop" in incompatible_issues[0].message
+        assert (
+            "10GB" in incompatible_issues[0].reason or "desktop" in incompatible_issues[0].message
+        )
 
     def test_optimal_tiktok_video(self):
         """Test perfectly optimized TikTok video."""
@@ -535,9 +532,7 @@ class TestFacebookChecker:
         issues = self.checker.check(video_info)
 
         compatible_issues = [i for i in issues if i.level == CompatibilityLevel.COMPATIBLE]
-        assert any(
-            "1280x720" in i.message and "suitable" in i.message for i in compatible_issues
-        )
+        assert any("1280x720" in i.message and "suitable" in i.message for i in compatible_issues)
 
     def test_1080p_resolution_suitable(self):
         """1080p should be marked as suitable."""
@@ -550,6 +545,4 @@ class TestFacebookChecker:
         issues = self.checker.check(video_info)
 
         compatible_issues = [i for i in issues if i.level == CompatibilityLevel.COMPATIBLE]
-        assert any(
-            "1920x1080" in i.message and "suitable" in i.message for i in compatible_issues
-        )
+        assert any("1920x1080" in i.message and "suitable" in i.message for i in compatible_issues)
