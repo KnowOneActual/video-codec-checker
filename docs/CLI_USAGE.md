@@ -24,10 +24,22 @@ Or check against **all systems at once**:
 videowise check video.mp4 --all
 ```
 
+Get **extended explanations** for learning:
+
+```bash
+videowise check video.mp4 --system safari --explain
+```
+
 Process **multiple files or directories**:
 
 ```bash
 videowise batch videos/ --recursive --all
+```
+
+Generate **plain text output** for CI/CD:
+
+```bash
+videowise check video.mp4 --system casparcg --no-color
 ```
 
 ## Commands
@@ -43,12 +55,17 @@ videowise check <file> --system <system>
 
 # Check all systems
 videowise check <file> --all
+
+# Check with extended explanations
+videowise check <file> --system <system> --explain
 ```
 
 **Options:**
 - `--system, -s`: Target system to check (mutually exclusive with `--all`)
   - Available systems: `casparcg`, `vmix`, `obs`, `qlab`, `propresenter`, `safari`, `chrome`, `instagram`, `twitter`
 - `--all`: Check against all available systems (mutually exclusive with `--system`)
+- `--explain`: Show extended explanations and codec knowledge (educational mode)
+- `--no-color`: Disable color output for plain text (perfect for CI/CD, log files)
 - `--verbose, -v`: Show detailed information (codec, bitrate, resolution, etc.)
 - `--json`: Output results as JSON for scripting/automation
 
@@ -68,11 +85,16 @@ videowise batch <directory> --system <system>
 
 # Check directory recursively
 videowise batch <directory> --recursive --all
+
+# Batch with explanations
+videowise batch <directory> --all --explain
 ```
 
 **Options:**
 - `--system, -s`: Target system to check (mutually exclusive with `--all`)
 - `--all`: Check against all available systems (mutually exclusive with `--system`)
+- `--explain`: Show extended explanations for all files (educational mode)
+- `--no-color`: Disable color output for plain text
 - `--recursive, -r`: Recursively scan directories for video files
 - `--extensions, -e`: Comma-separated list of file extensions to include (e.g., `.mp4,.mov`)
   - Default: `.mp4,.mov,.avi,.mkv,.m4v,.webm,.flv,.wmv,.mpg,.mpeg,.m2v,.mxf`
@@ -96,10 +118,98 @@ videowise check sponsor_video.mov --system casparcg
 videowise check promo_video.mp4 --all
 ```
 
+**Check with extended explanations (educational mode):**
+```bash
+videowise check video.mp4 --system safari --explain
+```
+
+Output includes codec knowledge:
+```
+Analyzing video.mp4...
+
+Compatibility Check: SAFARI
+──────────────────────────────────────────────────
+❌ VP9 codec not supported
+   Reason: Safari only supports H.264 and HEVC
+   Suggestion: Convert to H.264 for Safari compatibility
+
+   📖 About Incompatible:
+      This video will NOT work.
+      The video will fail to play, upload, or process. Conversion is required.
+
+   💡 Additional Context:
+      VP9 is a modern, efficient codec by Google, but not universally 
+      supported. H.264 or HEVC are safer choices for broad compatibility.
+
+📊 SEVERITY LEVELS EXPLAINED
+============================================================
+
+✅ COMPATIBLE
+   This video will work without issues.
+   Impact: No problems expected. The video should play smoothly.
+
+⚠️  WARNING
+   This video may have issues or suboptimal performance.
+   Impact: The video might work but could have quality loss, 
+           performance issues, or compatibility problems.
+
+❌ INCOMPATIBLE
+   This video will NOT work.
+   Impact: The video will fail to play, upload, or process. 
+           Conversion is required.
+```
+
+**Plain text output for CI/CD:**
+```bash
+videowise check video.mp4 --system casparcg --no-color
+```
+
+This removes all ANSI color codes, making output perfect for:
+- Log files
+- CI/CD pipelines
+- Text processing with grep/awk/sed
+- Email reports
+- Documentation generation
+
 **Check with verbose output:**
 ```bash
 videowise check video.mp4 --system vmix -v
 ```
+
+### Educational Workflows
+
+**Learn about H.264 profiles:**
+```bash
+videowise check high_profile_video.mp4 --system instagram --explain
+```
+
+Output explains:
+- What H.264 profiles are (Baseline, Main, High)
+- Why Instagram prefers Baseline
+- When to use each profile
+- How profiles affect compatibility
+
+**Understand ProRes variants:**
+```bash
+videowise check prores_video.mov --system qlab --explain
+```
+
+Output explains:
+- ProRes Proxy vs LT vs 422 vs 4444
+- Performance implications
+- When to use ProRes for editing vs playback
+- Alpha channel support in ProRes 4444
+
+**Learn about VFR issues:**
+```bash
+videowise check screen_recording.mp4 --system casparcg --explain
+```
+
+Output explains:
+- What Variable Frame Rate (VFR) is
+- Why VFR causes timing issues in live production
+- Difference between VFR and Constant Frame Rate (CFR)
+- How to convert VFR to CFR
 
 ### Batch Processing
 
@@ -148,6 +258,18 @@ Systems checked: casparcg, vmix, obs, qlab, propresenter, safari, chrome, instag
 ⚠️  Warnings: 3
 ❌ Incompatible: 2
 ```
+
+**Generate educational report for team training:**
+```bash
+videowise batch training-videos/ --all --explain --no-color > team_training_guide.txt
+```
+
+This creates a comprehensive text document explaining:
+- All compatibility issues found
+- Extended codec knowledge
+- Why each issue matters
+- How to fix each issue
+- Perfect for training new team members
 
 **Filter by file extension:**
 ```bash
@@ -257,6 +379,13 @@ Output:
    • qlab
 ```
 
+**All systems with explanations:**
+```bash
+videowise check video.mp4 --all --explain
+```
+
+This provides educational context for issues across all 9 systems.
+
 ## Exit Codes
 
 The CLI uses standard exit codes for scripting:
@@ -275,7 +404,9 @@ The CLI uses standard exit codes for scripting:
 - Else if any file has warnings → exit code `1`
 - Else all files compatible → exit code `0`
 
-## Output Colors
+## Output Modes
+
+### Colored Output (Default)
 
 Terminal output uses colors for quick visual scanning:
 
@@ -284,7 +415,109 @@ Terminal output uses colors for quick visual scanning:
 - ❌ **Red**: Incompatible - will not work, must fix
 - ℹ️ **Cyan**: Information
 
+### Plain Text Output (`--no-color`)
+
+Disables ANSI color codes for:
+
+**CI/CD Pipelines:**
+```bash
+videowise check video.mp4 --system casparcg --no-color
+```
+
+**Log Files:**
+```bash
+videowise batch videos/ --all --no-color >> daily_checks.log
+```
+
+**Text Processing:**
+```bash
+videowise check video.mp4 --all --no-color | grep -i "warning"
+```
+
+**Documentation Generation:**
+```bash
+videowise batch samples/ --all --explain --no-color > codec_guide.txt
+```
+
+### Educational Mode (`--explain`)
+
+Enhances output with:
+- Codec knowledge and context
+- Severity level explanations
+- Why issues matter
+- Best practices
+- When to use specific formats
+
+**Combine modes:**
+```bash
+# Educational report without colors (perfect for documentation)
+videowise check video.mp4 --all --explain --no-color > report.txt
+
+# Batch educational report
+videowise batch videos/ --all --explain --no-color > training_guide.txt
+```
+
 ## Common Workflows
+
+### Team Training and Documentation
+
+```bash
+#!/bin/bash
+# Generate comprehensive training guide
+
+echo "📚 Generating Codec Training Guide"
+echo "==================================="
+
+# Create training materials from sample videos
+videowise batch training-samples/ \
+    --all \
+    --explain \
+    --no-color > "Codec_Training_Guide_$(date +%Y%m%d).txt"
+
+echo "✅ Training guide generated!"
+echo "Share with team members to learn about codec compatibility."
+```
+
+### CI/CD Integration with Plain Text
+
+```yaml
+# .github/workflows/video-check.yml
+name: Check Video Compatibility
+
+on:
+  push:
+    paths:
+      - 'assets/videos/**'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install ffmpeg
+        run: sudo apt-get install -y ffmpeg
+      - name: Install VideoWise
+        run: pip install -e .
+      - name: Check videos (plain text for logs)
+        run: |
+          videowise batch assets/videos/ \
+            --recursive \
+            --all \
+            --no-color \
+            --json > compatibility_report.json
+      - name: Upload report
+        uses: actions/upload-artifact@v2
+        with:
+          name: compatibility-report
+          path: compatibility_report.json
+      - name: Fail if incompatibilities found
+        run: |
+          if jq -e '.results[] | select(.exit_code == 2)' compatibility_report.json > /dev/null; then
+            echo "❌ Incompatible videos found!"
+            jq '.results[] | select(.exit_code == 2) | .file' compatibility_report.json
+            exit 1
+          fi
+```
 
 ### Pre-Show Checklist (Single File)
 
@@ -332,6 +565,25 @@ else
     echo "See full_report.json for details"
     exit $exit_code
 fi
+```
+
+### Educational Pre-Show Report
+
+```bash
+#!/bin/bash
+# Generate educational report for operators
+
+echo "🎓 Generating Educational Pre-Show Report"
+echo "========================================="
+
+videowise batch show-content/ \
+    --recursive \
+    --all \
+    --explain \
+    --no-color > "PreShow_Report_$(date +%Y%m%d_%H%M).txt"
+
+echo "\n📄 Report saved with full explanations"
+echo "Review to understand any compatibility issues before the show."
 ```
 
 ### Validate Entire Media Library
@@ -390,43 +642,6 @@ videowise batch exports/ --all --json | \
         instagram: (.results[] | select(.system == "instagram") | .issues[0].level),
         twitter: (.results[] | select(.system == "twitter") | .issues[0].level)
     }'
-```
-
-### CI/CD Integration (Batch)
-
-```yaml
-# .github/workflows/video-check.yml
-name: Check Video Compatibility
-
-on:
-  push:
-    paths:
-      - 'assets/videos/**'
-
-jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install ffmpeg
-        run: sudo apt-get install -y ffmpeg
-      - name: Install VideoWise
-        run: pip install -e .
-      - name: Check all videos using batch mode
-        run: |
-          videowise batch assets/videos/ --recursive --all --json > compatibility_report.json
-      - name: Upload report
-        uses: actions/upload-artifact@v2
-        with:
-          name: compatibility-report
-          path: compatibility_report.json
-      - name: Fail if incompatibilities found
-        run: |
-          if jq -e '.results[] | select(.exit_code == 2)' compatibility_report.json > /dev/null; then
-            echo "❌ Incompatible videos found!"
-            jq '.results[] | select(.exit_code == 2) | .file' compatibility_report.json
-            exit 1
-          fi
 ```
 
 ### Filter by Extension and Quality Check
@@ -561,6 +776,21 @@ videowise batch videos/ --all
        parallel -j 4 "videowise check {} --all --json > {}.json"
    ```
 
+### Colors not showing in terminal
+
+**Problem:** ANSI colors not displaying correctly.
+
+**Solutions:**
+1. **Check terminal support:**
+   Most modern terminals support colors by default.
+
+2. **Use `--no-color` if colors are problematic:**
+   ```bash
+   videowise check video.mp4 --system casparcg --no-color
+   ```
+
+3. **For CI/CD:** Always use `--no-color` flag for log compatibility.
+
 ### Command not found
 
 **Problem:** VideoWise is not installed correctly.
@@ -589,3 +819,4 @@ videowise --version
 - See [ROADMAP.md](../ROADMAP.md) for upcoming features
 - Report issues on [GitHub](https://github.com/KnowOneActual/video-codec-checker/issues)
 - Contribute improvements via pull requests
+- Share your codec training guides created with `--explain` flag
