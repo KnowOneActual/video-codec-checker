@@ -39,6 +39,9 @@ class CompatibilityChecker:
         raise NotImplementedError
 
 
+# Live Production Systems
+
+
 class CasparCGChecker(CompatibilityChecker):
     """Compatibility checker for CasparCG Server."""
 
@@ -412,6 +415,9 @@ class ProPresenterChecker(CompatibilityChecker):
         return issues
 
 
+# Browser Compatibility
+
+
 class SafariChecker(CompatibilityChecker):
     """Compatibility checker for Safari browser."""
 
@@ -479,6 +485,75 @@ class ChromeChecker(CompatibilityChecker):
             )
 
         return issues
+
+
+class FirefoxChecker(CompatibilityChecker):
+    """Compatibility checker for Firefox browser."""
+
+    SUPPORTED_CODECS = ["h264", "vp8", "vp9", "av1"]
+    PARTIALLY_SUPPORTED = ["hevc"]  # Limited to Windows 10+ with extensions
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+
+        if codec in self.SUPPORTED_CODECS:
+            # Check for optimal container pairing
+            if codec in ["vp8", "vp9"] and "webm" in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} in WebM is natively supported by Firefox",
+                        reason="WebM is Firefox's preferred format for VP8/VP9",
+                    )
+                )
+            elif codec == "h264" and "mp4" in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 in MP4 is fully supported by Firefox",
+                        reason="Universal browser compatibility",
+                    )
+                )
+            elif codec == "av1":
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="AV1 is supported by Firefox",
+                        reason="Modern codec with good efficiency",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} is supported by Firefox",
+                    )
+                )
+        elif codec in self.PARTIALLY_SUPPORTED:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} has limited support in Firefox",
+                    reason="HEVC requires Windows 10+ with HEVC Video Extensions",
+                    suggestion="Convert to H.264 or VP9 for broader compatibility",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message=f"Firefox does not support {codec.upper()} codec",
+                    reason="Firefox supports H.264, VP8, VP9, and AV1",
+                    suggestion="Convert to H.264 (MP4) or VP9 (WebM) for Firefox",
+                )
+            )
+
+        return issues
+
+
+# Social Media Platforms
 
 
 class InstagramChecker(CompatibilityChecker):
@@ -599,6 +674,103 @@ class TwitterChecker(CompatibilityChecker):
         return issues
 
 
+class YouTubeChecker(CompatibilityChecker):
+    """Compatibility checker for YouTube uploads."""
+
+    RECOMMENDED_CODEC = "h264"
+    RECOMMENDED_PROFILE = "high"  # High Profile with CABAC
+    RECOMMENDED_CONTAINER = "mp4"
+    MAX_FILE_SIZE = 256 * 1024 * 1024 * 1024  # 256GB (256 * 1024^3)
+    MAX_DURATION = 12 * 3600  # 12 hours in seconds
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        profile = video_info.get("profile", "").lower()
+        container = video_info.get("container", "").lower()
+        file_size = video_info.get("file_size", 0)
+
+        # Check codec (H.264 recommended for uploads)
+        if codec != self.RECOMMENDED_CODEC:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"YouTube recommends H.264, not {codec.upper()} for uploads",
+                    reason="YouTube re-encodes all uploads to multiple formats",
+                    suggestion="Upload as H.264 for best quality control and processing speed",
+                )
+            )
+        else:
+            # Check H.264 profile
+            if profile and "high" in profile:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 High Profile is optimal for YouTube",
+                        reason="Best quality for YouTube's re-encoding process",
+                    )
+                )
+            elif profile:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"H.264 {profile.title()} Profile detected",
+                        reason="YouTube recommends High Profile for best quality",
+                        suggestion="Use High Profile with CABAC for optimal results",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 codec is supported by YouTube",
+                    )
+                )
+
+        # Check container (MP4 preferred)
+        if "mp4" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="MP4 is YouTube's preferred container format",
+                    reason="Fastest processing and best compatibility",
+                )
+            )
+        elif "mov" in container or "avi" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{container.upper()} is accepted but MP4 is preferred",
+                    suggestion="Use MP4 for faster upload processing",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="YouTube works best with MP4 container",
+                    suggestion="Remux to MP4 for optimal compatibility",
+                )
+            )
+
+        # Check file size
+        if file_size > self.MAX_FILE_SIZE:
+            size_gb = file_size // (1024 * 1024 * 1024)
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message=f"File size {size_gb}GB exceeds YouTube's 256GB limit",
+                    reason="YouTube has a maximum file size of 256GB",
+                    suggestion="Compress video or split into multiple parts",
+                )
+            )
+
+        return issues
+
+
+# System Registry
+
+
 def get_available_systems() -> List[str]:
     """Return list of all available system names.
 
@@ -614,8 +786,10 @@ def get_available_systems() -> List[str]:
             "propresenter",
             "safari",
             "chrome",
+            "firefox",
             "instagram",
             "twitter",
+            "youtube",
         ]
     )
 
@@ -638,8 +812,10 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
         "propresenter": ProPresenterChecker,
         "safari": SafariChecker,
         "chrome": ChromeChecker,
+        "firefox": FirefoxChecker,
         "instagram": InstagramChecker,
         "twitter": TwitterChecker,
+        "youtube": YouTubeChecker,
     }
 
     system_lower = system.lower()
