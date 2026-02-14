@@ -43,7 +43,10 @@ class CompatibilityChecker:
 
 
 class CasparCGChecker(CompatibilityChecker):
-    """Compatibility checker for CasparCG Server."""
+    """Compatibility checker for CasparCG Server.
+    
+    Enhanced with HAP codec support and alpha channel detection.
+    """
 
     SUPPORTED_CODECS = {
         "h264",
@@ -52,6 +55,14 @@ class CasparCGChecker(CompatibilityChecker):
         "dnxhr",
         "mpeg2video",
         "mjpeg",
+        "hap",  # GPU-accelerated codec
+        "notchlc",  # NotchLC for high-quality playback
+    }
+
+    ALPHA_CHANNEL_CODECS = {
+        "prores4444",
+        "hap_alpha",
+        "hap_q_alpha",
     }
 
     RECOMMENDED_CONTAINERS = {
@@ -59,6 +70,8 @@ class CasparCGChecker(CompatibilityChecker):
         "prores": ["mov"],
         "dnxhd": ["mov", "mxf"],
         "dnxhr": ["mov", "mxf"],
+        "hap": ["mov"],  # HAP requires MOV container
+        "notchlc": ["mov"],
     }
 
     def __init__(self, version: str = "2.3"):
@@ -69,12 +82,60 @@ class CasparCGChecker(CompatibilityChecker):
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
         frame_rate = video_info.get("frame_rate")
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
 
         if not codec:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.UNKNOWN,
                     message="Unable to determine video codec",
+                )
+            )
+            return issues
+
+        # Check for HAP codec (GPU-accelerated)
+        if "hap" in codec:
+            if "alpha" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} provides GPU-accelerated playback with alpha",
+                        reason="HAP Alpha ideal for overlays and graphics with transparency",
+                    )
+                )
+            elif "hap_q" in codec or "hapq" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP Q provides high-quality GPU-accelerated playback",
+                        reason="Best quality HAP variant for broadcast",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP codec provides GPU-accelerated playback",
+                        reason="Optimal for real-time playback in CasparCG",
+                    )
+                )
+        # Check for ProRes with alpha channel
+        elif "prores" in codec and "4444" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="ProRes 4444 supports alpha channel for transparency",
+                    reason="Professional quality with alpha support",
+                )
+            )
+        # Check for NotchLC
+        elif "notchlc" in codec or "notch" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="NotchLC provides high-quality real-time playback",
+                    reason="Popular in broadcast for quality and performance balance",
                 )
             )
         elif codec not in self.SUPPORTED_CODECS:
@@ -84,11 +145,19 @@ class CasparCGChecker(CompatibilityChecker):
                     level=CompatibilityLevel.INCOMPATIBLE,
                     message=(f"CasparCG {self.version} does not support " f"{codec.upper()} codec"),
                     reason=f"CasparCG only supports: {supported}",
-                    suggestion="Convert to ProRes, DNxHD, or H.264 in MP4 container",
+                    suggestion="Convert to HAP (GPU-accelerated), ProRes, DNxHD, or H.264",
                 )
             )
             return issues
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is supported by CasparCG {self.version}",
+                )
+            )
 
+        # Check container compatibility
         if codec in self.RECOMMENDED_CONTAINERS:
             recommended = self.RECOMMENDED_CONTAINERS[codec]
             container_ok = any(rec in container for rec in recommended)
@@ -109,6 +178,7 @@ class CasparCGChecker(CompatibilityChecker):
                     )
                 )
 
+        # Check for constant frame rate (critical for live production)
         if frame_rate and "/" in str(frame_rate):
             issues.append(
                 CompatibilityIssue(
@@ -122,13 +192,192 @@ class CasparCGChecker(CompatibilityChecker):
                 )
             )
 
-        if not issues:
+        # Check for 4K content bandwidth
+        if resolution and bitrate:
+            width, height = resolution
+            if width >= 3840 and height >= 2160:
+                mbps = bitrate // 1_000_000
+                if bitrate > 200_000_000:  # 200 Mbps
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message=f"4K at {mbps}Mbps may stress system bandwidth",
+                            reason="Very high bitrate 4K requires powerful hardware",
+                            suggestion="Consider HAP codec for GPU-accelerated 4K playback",
+                        )
+                    )
+
+        return issues
+
+
+class PlayoutBeeChecker(CompatibilityChecker):
+    """Compatibility checker for PlayoutBee playout software.
+    
+    PlayoutBee is a broadcast-grade playout solution for Windows, macOS,
+    and Raspberry Pi with integration for ATEM, OBS, vMix, and NDI workflows.
+    """
+
+    SUPPORTED_CODECS = {
+        "h264",
+        "prores",
+        "hap",  # Optimal for GPU acceleration
+    }
+
+    HAP_VARIANTS = {
+        "hap",  # Standard HAP
+        "hap_alpha",  # HAP with alpha channel
+        "hap_q",  # HAP high quality
+        "hap_q_alpha",  # HAP high quality with alpha
+    }
+
+    ALPHA_CODECS = {
+        "prores4444",
+        "hap_alpha",
+        "hap_q_alpha",
+    }
+
+    def __init__(self, platform: str = "desktop"):
+        """Initialize PlayoutBee checker.
+        
+        Args:
+            platform: 'desktop' (Windows/Mac) or 'raspberrypi' for Pi deployments
+        """
+        self.platform = platform
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # Check for HAP codec (optimal for PlayoutBee)
+        if "hap" in codec:
+            if "alpha" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} is optimal for PlayoutBee with transparency",
+                        reason="GPU-accelerated playback with alpha channel support",
+                    )
+                )
+            elif "hap_q" in codec or "hapq" in codec:
+                if self.platform == "raspberrypi":
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message="HAP Q may be demanding on Raspberry Pi",
+                            reason="HAP Q has higher data rates than standard HAP",
+                            suggestion="Use standard HAP for Raspberry Pi deployments",
+                        )
+                    )
+                else:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.COMPATIBLE,
+                            message="HAP Q provides high-quality GPU-accelerated playback",
+                            reason="Best quality for desktop playout systems",
+                        )
+                    )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP codec is optimal for PlayoutBee",
+                        reason="GPU-accelerated real-time playback with low CPU usage",
+                    )
+                )
+
+            # HAP requires MOV container
+            if "mov" not in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="HAP codec requires MOV container",
+                        suggestion="Remux to MOV container for HAP codec",
+                    )
+                )
+        # Check for H.264
+        elif codec == "h264":
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"Video is compatible with CasparCG {self.version}",
+                    message="H.264 is compatible with PlayoutBee",
+                    reason="Hardware acceleration available, good compatibility",
                 )
             )
+            
+            # Warn about high bitrate H.264 on Raspberry Pi
+            if self.platform == "raspberrypi" and bitrate and bitrate > 50_000_000:
+                mbps = bitrate // 1_000_000
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"H.264 at {mbps}Mbps may be demanding on Raspberry Pi",
+                        reason="Raspberry Pi has limited decode bandwidth",
+                        suggestion="Keep H.264 bitrate under 50 Mbps for Pi, or use HAP codec",
+                    )
+                )
+        # Check for ProRes
+        elif "prores" in codec:
+            if "4444" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="ProRes 4444 supports alpha channel workflows",
+                        reason="Professional quality with transparency support",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} is supported by PlayoutBee",
+                        reason="Professional codec with good quality",
+                    )
+                )
+            
+            # ProRes on Raspberry Pi warning
+            if self.platform == "raspberrypi":
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="ProRes is very demanding on Raspberry Pi",
+                        reason="High data rates exceed Pi's capabilities",
+                        suggestion="Convert to HAP codec for Raspberry Pi deployments",
+                    )
+                )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} may not be optimal for PlayoutBee",
+                    reason="PlayoutBee works best with HAP, H.264, or ProRes",
+                    suggestion="Convert to HAP for GPU acceleration or H.264 for compatibility",
+                )
+            )
+
+        # Check container format
+        if "mov" in container or "mp4" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is supported by PlayoutBee",
+                )
+            )
+
+        # Check resolution for Raspberry Pi
+        if self.platform == "raspberrypi" and resolution:
+            width, height = resolution
+            if width > 1920 or height > 1080:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"Resolution {width}x{height} may be too high for Raspberry Pi",
+                        reason="Pi works best with 1080p or lower",
+                        suggestion="Use 1080p for reliable playback on Raspberry Pi",
+                    )
+                )
 
         return issues
 
@@ -956,7 +1205,7 @@ class VimeoChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is compatible with Vimeo",
+                    message=f"{container.UP PER()} container is compatible with Vimeo",
                 )
             )
 
@@ -1048,7 +1297,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is supported for Facebook Reels",
+                    message=f"{codec.UPPER()} is supported for Facebook Reels",
                     reason="Newer codecs accepted but H.264 recommended for Feed",
                 )
             )
@@ -1056,7 +1305,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"Facebook recommends H.264, not {codec.upper()}",
+                    message=f"Facebook recommends H.264, not {codec.UPPER()}",
                     reason="Facebook will re-encode non-standard codecs",
                     suggestion="Convert to H.264 for best compatibility",
                 )
@@ -1067,7 +1316,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} is preferred by Facebook",
+                    message=f"{container.UPPER()} is preferred by Facebook",
                     reason="MP4 and MOV offer best compatibility",
                 )
             )
@@ -1075,7 +1324,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{container.upper()} is supported but not recommended",
+                    message=f"{container.UPPER()} is supported but not recommended",
                     suggestion="Use MP4 or MOV for better compatibility",
                 )
             )
@@ -1119,6 +1368,7 @@ def get_available_systems() -> List[str]:
     return sorted(
         [
             "casparcg",
+            "playoutbee",
             "vmix",
             "obs",
             "qlab",
@@ -1148,6 +1398,7 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
     """
     checkers = {
         "casparcg": CasparCGChecker,
+        "playoutbee": PlayoutBeeChecker,
         "vmix": VmixChecker,
         "obs": OBSChecker,
         "qlab": QLabChecker,
