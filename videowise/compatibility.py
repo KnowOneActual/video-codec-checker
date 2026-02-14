@@ -666,7 +666,7 @@ class ProPresenterChecker(CompatibilityChecker):
 
 class WirecastChecker(CompatibilityChecker):
     """Compatibility checker for Wirecast live streaming software.
-    
+
     Wirecast is professional live streaming software for Mac and Windows.
     Used extensively for multi-camera sports, event, and conference streaming.
     """
@@ -776,17 +776,17 @@ class WirecastChecker(CompatibilityChecker):
 
 class PlaybackProChecker(CompatibilityChecker):
     """Compatibility checker for Playback Pro.
-    
+
     Playback Pro is professional media playback software for theatre,
     concerts, and live events. Mac only, designed for reliability.
     """
 
     RECOMMENDED_CODECS = ["prores", "h264"]
-    
+
     # Bitrate recommendations by resolution
     HD_BITRATE_MIN = 15_000_000  # 15 Mbps
     HD_BITRATE_MAX = 30_000_000  # 30 Mbps
-    UHD_BITRATE_MIN = 30_000_000  # 30 Mbps  
+    UHD_BITRATE_MIN = 30_000_000  # 30 Mbps
     UHD_BITRATE_MAX = 40_000_000  # 40 Mbps
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
@@ -819,7 +819,7 @@ class PlaybackProChecker(CompatibilityChecker):
             if bitrate and resolution:
                 width, height = resolution
                 mbps = bitrate // 1_000_000
-                
+
                 if width >= 3840 or height >= 2160:  # 4K/UHD
                     if bitrate < self.UHD_BITRATE_MIN or bitrate > self.UHD_BITRATE_MAX:
                         issues.append(
@@ -897,14 +897,14 @@ class PlaybackProChecker(CompatibilityChecker):
 
 class EasyWorshipChecker(CompatibilityChecker):
     """Compatibility checker for EasyWorship church presentation software.
-    
+
     EasyWorship is popular church presentation software (Windows only).
     EasyWorship 7+ has improved codec support over earlier versions.
     """
 
     # EasyWorship 7+ built-in support (no codec packs needed)
     NATIVE_CODECS = ["h264"]
-    
+
     # Also works with Windows Media codecs
     WINDOWS_CODECS = ["wmv", "mpeg2video"]
 
