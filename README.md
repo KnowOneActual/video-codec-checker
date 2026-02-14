@@ -2,7 +2,7 @@
 
 > ⚠️ **UNDER DEVELOPMENT**: Core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
 >
-> ✅ **What Works**: Basic CLI, 9 system checkers, Python API, `--all` flag, batch processing, enhanced explanations  
+> ✅ **What Works**: Full CLI, **22 system checkers**, Python API, `--all` flag, batch processing, enhanced explanations  
 > 🚧 **In Progress**: Additional platforms, advanced features
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
@@ -24,7 +24,7 @@ You've spent hours creating the perfect video, but:
 
 ### For Live Production Operators
 You're setting up for a show and:
-- Your playback software (CasparCG, vMix, Linux Show Player) refuses to load the video or stutters during live playback
+- Your playback software (CasparCG, vMix, Resolume) refuses to load the video or stutters during live playback
 - You're 10 minutes from showtime with last-minute content and need instant compatibility verification
 - **You have 50 videos to check before the show starts and need to train your team on what codecs work and why**
 
@@ -41,11 +41,11 @@ pip install -e .
 # Check a single video
 videowise check video.mp4 --system casparcg
 
-# Check against ALL systems
+# Check against ALL 22 systems
 videowise check video.mp4 --all
 
 # Get extended explanations (great for learning!)
-videowise check video.mp4 --system safari --explain
+videowise check video.mp4 --system resolume --explain
 
 # Process multiple files or directories
 videowise batch videos/ --recursive --all
@@ -60,9 +60,10 @@ VideoWise analyzes video files and provides:
 - **Human-readable explanations**: "This won't play in Safari because it uses VP9 codec - Safari only supports H.264 and HEVC."
 - **Actionable suggestions**: "Instagram will re-encode this (losing quality) because it's H.264 High Profile instead of Baseline."
 - **Live production warnings**: "This file will cause dropped frames in vMix - bitrate is 180Mbps, but your system can only handle 100Mbps smoothly."
+- **VJ/Performance advice**: "Convert to DXV or HAP for Resolume - H.264 is CPU-based and limits your layer count."
 - **Educational mode**: Use `--explain` flag to learn about H.264 profiles, ProRes variants, HAP codec performance, and VFR issues
 - **Batch processing**: Check entire directories at once to find which videos need re-encoding before the show
-- **Multi-system validation**: Use `--all` flag to check against all 9 systems simultaneously
+- **Multi-system validation**: Use `--all` flag to check against all 22 systems simultaneously
 
 **[See detailed examples and real-world scenarios →](docs/EXAMPLES.md)**
 
@@ -93,13 +94,15 @@ pip install -e .
 videowise --version
 ```
 
-## Supported Systems
+## Supported Systems (22 Total)
 
 | Category | Systems | Status |
 |----------|---------|--------|
-| **Live Production** | CasparCG, vMix, OBS Studio, QLab, ProPresenter | ✅ Complete |
-| **Browsers** | Safari, Chrome | ✅ Complete |
-| **Social Media** | Instagram, Twitter/X | ✅ Complete |
+| **Live Production** | CasparCG, PlayoutBee, vMix, OBS Studio, QLab, ProPresenter | ✅ Complete |
+| **Church/Theatre Presentation** | Wirecast, Playback Pro, EasyWorship | ✅ Complete |
+| **Media Players & VJ Software** | VLC, Resolume, Mitti, Millumin | ✅ Complete |
+| **Browsers** | Safari, Chrome, Firefox | ✅ Complete |
+| **Social Media** | Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook | ✅ Complete |
 
 **[View detailed compatibility matrix →](docs/COMPATIBILITY_MATRIX.md)**
 
@@ -127,17 +130,22 @@ make check         # Run all quality checks
 
 ## Roadmap
 
-### Current Status (Phase 2 Complete)
-- ✅ 9 system compatibility checkers with 140 passing tests (94% coverage)
+### Current Status (Phase 2 Complete! 🎉)
+- ✅ **22 system compatibility checkers** with 160+ passing tests (94% coverage)
 - ✅ CLI with colored output, `--all` flag, batch processing
 - ✅ Educational mode with `--explain` flag
 - ✅ JSON output for automation
 - ✅ CI/CD with automated testing
+- ✅ Full browser support (Safari, Chrome, Firefox)
+- ✅ Complete social media coverage (Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook)
+- ✅ VJ/media player support (VLC, Resolume, Mitti, Millumin)
+- ✅ Church/theatre presentation (Wirecast, Playback Pro, EasyWorship)
 
 ### Coming Next (Phase 3)
-- [ ] Firefox, TikTok, YouTube, Vimeo support
-- [ ] Linux Show Player, Wirecast, Playback Pro
-- [ ] Streaming platforms (Twitch, Restream)
+- [ ] Streaming platforms (Twitch, Restream, Zoom)
+- [ ] Additional live production (Blackmagic ATEM, Roland V-Series)
+- [ ] Video editing software (DaVinci Resolve, Adobe Premiere)
+- [ ] Media servers (Catalyst, Disguise, Watchout)
 
 ### Future (Phase 4)
 - [ ] Auto-generate ffmpeg fix commands
@@ -156,7 +164,7 @@ Contributions are welcome! We're especially looking for:
 - **Real-world war stories** - "This codec broke my show" tales help us build better checks
 - **Documentation improvements** - Clearer explanations always welcome
 
-**Special call for live production operators:** Your domain knowledge is invaluable.
+**Special call for live production operators and VJs:** Your domain knowledge is invaluable.
 
 **[Read the full contributing guide →](CONTRIBUTING.md)**
 
