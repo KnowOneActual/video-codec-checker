@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 
 class WirecastChecker:
     """Compatibility checker for Wirecast live streaming software.
-    
+
     Wirecast is a professional live video streaming production tool for Windows
     and macOS with hardware encoding support.
     """
@@ -61,13 +61,13 @@ class WirecastChecker:
         else:
             issues.append({
                 "level": "COMPATIBLE",
-                "message": f"{codec.UP PER()} is supported by Wirecast",
+                "message": f"{codec.upper()} is supported by Wirecast",
             })
 
         # Check resolution and provide hardware guidance
         if resolution:
             width, height = resolution
-            
+
             if width >= 3840 and height >= 2160:  # 4K
                 issues.append({
                     "level": "WARNING",
@@ -87,7 +87,7 @@ class WirecastChecker:
         if bitrate and resolution:
             width, height = resolution
             mbps = bitrate // 1_000_000
-            
+
             if width >= 1920 and height >= 1080 and bitrate < 4_500_000:  # 1080p < 4.5 Mbps
                 issues.append({
                     "level": "WARNING",
@@ -100,7 +100,7 @@ class WirecastChecker:
         if "mp4" in container or "mov" in container:
             issues.append({
                 "level": "COMPATIBLE",
-                "message": f"{container.UPPER()} container is supported by Wirecast",
+                "message": f"{container.upper()} container is supported by Wirecast",
             })
 
         if not issues:
@@ -114,7 +114,7 @@ class WirecastChecker:
 
 class ResolumeChecker:
     """Compatibility checker for Resolume VJ/media server software.
-    
+
     Resolume is a professional tool for live video performances and media servers,
     optimized for real-time playback with multiple layers.
     """
@@ -196,7 +196,7 @@ class ResolumeChecker:
         else:
             issues.append({
                 "level": "WARNING",
-                "message": f"{codec.UPPER()} may not be optimal for Resolume",
+                "message": f"{codec.upper()} may not be optimal for Resolume",
                 "reason": "Resolume works best with DXV, HAP, or PhotoJPEG",
                 "suggestion": "Convert to DXV for best performance",
             })
@@ -205,7 +205,7 @@ class ResolumeChecker:
         if "mov" in container or "avi" in container or "mp4" in container:
             issues.append({
                 "level": "COMPATIBLE",
-                "message": f"{container.UPPER()} container is supported by Resolume",
+                "message": f"{container.upper()} container is supported by Resolume",
             })
         elif "gif" in container:
             issues.append({
@@ -219,7 +219,7 @@ class ResolumeChecker:
 
 class PlaybackProChecker:
     """Compatibility checker for PlaybackPro professional playback software.
-    
+
     PlaybackPro is a macOS-only professional non-linear media playback application
     designed for reliable HD and 4K playback in live events.
     """
@@ -229,7 +229,7 @@ class PlaybackProChecker:
 
     def __init__(self, version: str = "plus", resolution_target: str = "hd"):
         """Initialize PlaybackPro checker.
-        
+
         Args:
             version: 'standard' or 'plus' (Plus supports H.265/HEVC)
             resolution_target: 'hd' (1080p) or '4k' for bitrate recommendations
@@ -286,7 +286,7 @@ class PlaybackProChecker:
         else:
             issues.append({
                 "level": "WARNING",
-                "message": f"PlaybackPro recommends ProRes or H.264, not {codec.UPPER()}",
+                "message": f"PlaybackPro recommends ProRes or H.264, not {codec.upper()}",
                 "suggestion": "Convert to ProRes 422 for best reliability",
             })
 
@@ -294,7 +294,7 @@ class PlaybackProChecker:
         if bitrate and resolution:
             width, height = resolution
             mbps = bitrate // 1_000_000
-            
+
             if width >= 3840 and height >= 2160:  # 4K
                 if bitrate < 30_000_000:  # Less than 30 Mbps
                     issues.append({
@@ -326,7 +326,7 @@ class PlaybackProChecker:
         if "mov" in container or "mp4" in container:
             issues.append({
                 "level": "COMPATIBLE",
-                "message": f"{container.UPPER()} container is recommended for PlaybackPro",
+                "message": f"{container.upper()} container is recommended for PlaybackPro",
             })
         else:
             issues.append({
@@ -351,7 +351,7 @@ class PlaybackProChecker:
 
 class ProVideoPlayerChecker:
     """Compatibility checker for ProVideoPlayer (PVP) by Renewed Vision.
-    
+
     PVP is a professional multi-screen media server application designed for
     live events, churches, and concerts with timecode sync capabilities.
     """
@@ -410,14 +410,14 @@ class ProVideoPlayerChecker:
         elif codec == "h264" or codec == "hevc":
             issues.append({
                 "level": "COMPATIBLE",
-                "message": f"{codec.UPPER()} is supported by PVP",
+                "message": f"{codec.upper()} is supported by PVP",
                 "reason": "Hardware acceleration available",
                 "suggestion": "Consider DXV or HAP for better multi-layer performance",
             })
         else:
             issues.append({
                 "level": "WARNING",
-                "message": f"PVP may have limited support for {codec.UPPER()}",
+                "message": f"PVP may have limited support for {codec.upper()}",
                 "reason": "PVP works best with DXV, HAP, ProRes, or H.264",
                 "suggestion": "Convert to DXV for optimal timecode and multi-screen performance",
             })
@@ -426,7 +426,7 @@ class ProVideoPlayerChecker:
         if "mov" in container or "mp4" in container:
             issues.append({
                 "level": "COMPATIBLE",
-                "message": f"{container.UPPER()} container is supported by PVP",
+                "message": f"{container.upper()} container is supported by PVP",
             })
 
         # Note about timecode support

@@ -44,7 +44,7 @@ class CompatibilityChecker:
 
 class CasparCGChecker(CompatibilityChecker):
     """Compatibility checker for CasparCG Server.
-    
+
     Enhanced with HAP codec support and alpha channel detection.
     """
 
@@ -212,7 +212,7 @@ class CasparCGChecker(CompatibilityChecker):
 
 class PlayoutBeeChecker(CompatibilityChecker):
     """Compatibility checker for PlayoutBee playout software.
-    
+
     PlayoutBee is a broadcast-grade playout solution for Windows, macOS,
     and Raspberry Pi with integration for ATEM, OBS, vMix, and NDI workflows.
     """
@@ -238,7 +238,7 @@ class PlayoutBeeChecker(CompatibilityChecker):
 
     def __init__(self, platform: str = "desktop"):
         """Initialize PlayoutBee checker.
-        
+
         Args:
             platform: 'desktop' (Windows/Mac) or 'raspberrypi' for Pi deployments
         """
@@ -306,7 +306,7 @@ class PlayoutBeeChecker(CompatibilityChecker):
                     reason="Hardware acceleration available, good compatibility",
                 )
             )
-            
+
             # Warn about high bitrate H.264 on Raspberry Pi
             if self.platform == "raspberrypi" and bitrate and bitrate > 50_000_000:
                 mbps = bitrate // 1_000_000
@@ -336,7 +336,7 @@ class PlayoutBeeChecker(CompatibilityChecker):
                         reason="Professional codec with good quality",
                     )
                 )
-            
+
             # ProRes on Raspberry Pi warning
             if self.platform == "raspberrypi":
                 issues.append(
@@ -1205,7 +1205,7 @@ class VimeoChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.UPPER()} container is compatible with Vimeo",
+                    message=f"{container.upper()} container is compatible with Vimeo",
                 )
             )
 
@@ -1297,7 +1297,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.UPPER()} is supported for Facebook Reels",
+                    message=f"{codec.upper()} is supported for Facebook Reels",
                     reason="Newer codecs accepted but H.264 recommended for Feed",
                 )
             )
@@ -1305,7 +1305,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"Facebook recommends H.264, not {codec.UPPER()}",
+                    message=f"Facebook recommends H.264, not {codec.upper()}",
                     reason="Facebook will re-encode non-standard codecs",
                     suggestion="Convert to H.264 for best compatibility",
                 )
@@ -1316,7 +1316,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.UPPER()} is preferred by Facebook",
+                    message=f"{container.upper()} is preferred by Facebook",
                     reason="MP4 and MOV offer best compatibility",
                 )
             )
@@ -1324,7 +1324,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{container.UPPER()} is supported but not recommended",
+                    message=f"{container.upper()} is supported but not recommended",
                     suggestion="Use MP4 or MOV for better compatibility",
                 )
             )
