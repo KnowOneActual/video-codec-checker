@@ -8,7 +8,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import click
 
 from videowise.analyzer import VideoAnalyzer
-from videowise.compatibility import check_compatibility, get_available_systems
+from videowise.compatibility import CompatibilityIssue, CompatibilityLevel, check_compatibility, get_available_systems
+from videowise.formatter import ExplanationFormatter
 
 __version__ = "0.1.0"
 
@@ -207,7 +208,26 @@ def check_single_file(
 @click.option("--all", "check_all", is_flag=True, help="Check against all systems")
 @click.option("--json", "output_json", is_flag=True, help="Output results as JSON")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed information")
-def check(video_path: str, system: str, check_all: bool, output_json: bool, verbose: bool):
+@click.option(
+    "--explain",
+    "-e",
+    is_flag=True,
+    help="Show extended explanations with codec knowledge and context",
+)
+@click.option(
+    "--no-color",
+    is_flag=True,
+    help="Disable colored output (useful for logs/files)",
+)
+def check(
+    video_path: str,
+    system: str,
+    check_all: bool,
+    output_json: bool,
+    verbose: bool,
+    explain: bool,
+    no_color: bool,
+):
     r"""Check video compatibility with a specific system.
 
     VIDEO_PATH: Path to the video file to check
@@ -217,6 +237,7 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
         videowise check video.mov --system qlab --json
         videowise check video.mp4 --all
         videowise check video.mp4 --all --verbose
+        videowise check video.mp4 --system safari --explain
     """
     # Validation: must specify either --system or --all
     if not system and not check_all:
@@ -237,6 +258,10 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
             err=True,
         )
         sys.exit(2)
+
+    # Create formatter
+    use_color = not no_color and not output_json
+    formatter = ExplanationFormatter(use_color=use_color, explain_mode=explain)
 
     try:
         path = Path(video_path)
@@ -281,8 +306,11 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
 
         # Check all systems
         all_results: List[Dict[str, Any]] = []
+        all_issues_objects: List[Tuple[str, List[CompatibilityIssue]]] = []
+        
         for sys_name in systems_to_check:
             issues = check_compatibility(video_info, sys_name)
+            all_issues_objects.append((sys_name, issues))
             all_results.append(
                 {
                     "system": sys_name,
@@ -318,7 +346,7 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
                 }
             click.echo(json.dumps(result, indent=2))
         else:
-            # Regular output
+            # Regular output with formatter
             click.secho(f"\n📹 Video: {path.name}", bold=True)
 
             if verbose:
@@ -336,43 +364,13 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
                     f"\n🔍 Checking against all {len(systems_to_check)} systems\n", bold=True
                 )
 
-            # Display results for each system
-            for result_data in all_results:
-                sys_name_str: str = result_data["system"]
-                issues_list: List[Dict[str, Any]] = result_data["issues"]
+            # Show severity guide in explain mode
+            if explain and not check_all:
+                click.echo(formatter.format_severity_guide())
 
-                # System header
-                click.echo("\n" + "=" * 60)
-                click.secho(f"🎬 {sys_name_str.upper()}", bold=True, fg="cyan")
-                click.echo("=" * 60)
-
-                if not issues_list:
-                    click.secho("✅ No compatibility issues found!", fg="green")
-                else:
-                    for issue_dict in issues_list:
-                        level = issue_dict.get("level", "").lower()
-                        message = issue_dict.get("message", "")
-                        reason = issue_dict.get("reason")
-                        suggestion = issue_dict.get("suggestion")
-
-                        if level == "compatible":
-                            color = "green"
-                            icon = "✅"
-                        elif level == "warning":
-                            color = "yellow"
-                            icon = "⚠️"
-                        elif level == "incompatible":
-                            color = "red"
-                            icon = "❌"
-                        else:
-                            color = "white"
-                            icon = "ℹ️"
-
-                        click.secho(f"\n{icon} {message}", fg=color, bold=True)
-                        if reason:
-                            click.echo(f"   Reason: {reason}")
-                        if suggestion:
-                            click.echo(f"   Suggestion: {suggestion}")
+            # Display results for each system using formatter
+            for sys_name, issues in all_issues_objects:
+                click.echo(formatter.format_system_summary(sys_name, issues, explain))
 
             # Summary if checking all systems
             if check_all:
@@ -474,6 +472,16 @@ def check(video_path: str, system: str, check_all: bool, output_json: bool, verb
 @click.option("--json", "output_json", is_flag=True, help="Output results as JSON")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed information")
 @click.option(
+    "--explain",
+    is_flag=True,
+    help="Show extended explanations with codec knowledge and context",
+)
+@click.option(
+    "--no-color",
+    is_flag=True,
+    help="Disable colored output (useful for logs/files)",
+)
+@click.option(
     "--continue-on-error",
     is_flag=True,
     default=True,
@@ -487,6 +495,8 @@ def batch(
     extensions: str,
     output_json: bool,
     verbose: bool,
+    explain: bool,
+    no_color: bool,
     continue_on_error: bool,
 ):
     r"""Check multiple video files or directories for compatibility.
@@ -498,6 +508,7 @@ def batch(
         videowise batch /path/to/videos/ --recursive --all
         videowise batch *.mp4 --system instagram --json
         videowise batch /media --recursive --extensions .mp4,.mov
+        videowise batch videos/ --system safari --explain
     """
     # Validation: must specify either --system or --all
     if not system and not check_all:
