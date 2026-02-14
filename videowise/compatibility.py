@@ -664,6 +664,322 @@ class ProPresenterChecker(CompatibilityChecker):
         return issues
 
 
+class WirecastChecker(CompatibilityChecker):
+    """Compatibility checker for Wirecast live streaming software.
+    
+    Wirecast is professional live streaming software for Mac and Windows.
+    Used extensively for multi-camera sports, event, and conference streaming.
+    """
+
+    SUPPORTED_CODECS = {
+        "h264",
+        "hevc",
+        "prores",
+        "dnxhd",
+        "dnxhr",
+        "mjpeg",
+    }
+
+    RECOMMENDED_CODECS = ["h264", "prores"]
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        bitrate = video_info.get("bitrate")
+
+        # Check codec support
+        if codec not in self.SUPPORTED_CODECS:
+            supported = ", ".join(sorted(self.SUPPORTED_CODECS))
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} may not be supported by Wirecast",
+                    reason=f"Wirecast officially supports: {supported}",
+                    suggestion="Convert to H.264 or ProRes for best compatibility",
+                )
+            )
+            return issues
+
+        # Check for recommended codecs
+        if codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="H.264 is fully supported by Wirecast",
+                    reason="Hardware acceleration available for smooth playback",
+                )
+            )
+        elif "prores" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is well-supported by Wirecast",
+                    reason="Professional codec with excellent quality",
+                )
+            )
+        elif codec in ["dnxhd", "dnxhr"]:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is supported by Wirecast",
+                    reason="Professional codec for broadcast workflows",
+                )
+            )
+        elif codec == "hevc":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="HEVC is supported by Wirecast",
+                    reason="Modern codec with good compression",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is supported by Wirecast",
+                )
+            )
+
+        # Check container formats
+        if "mp4" in container or "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is compatible with Wirecast",
+                )
+            )
+        elif "wmv" in container or "avi" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{container.upper()} is supported but MP4/MOV preferred",
+                    suggestion="Use MP4 or MOV for best compatibility",
+                )
+            )
+
+        # Check bitrate for performance
+        if bitrate and bitrate > 150_000_000:  # 150 Mbps
+            mbps = bitrate // 1_000_000
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"High bitrate ({mbps}Mbps) may impact performance",
+                    reason="Very high bitrate can strain CPU during encoding",
+                    suggestion="Consider bitrate under 150 Mbps for smoother operation",
+                )
+            )
+
+        return issues
+
+
+class PlaybackProChecker(CompatibilityChecker):
+    """Compatibility checker for Playback Pro.
+    
+    Playback Pro is professional media playback software for theatre,
+    concerts, and live events. Mac only, designed for reliability.
+    """
+
+    RECOMMENDED_CODECS = ["prores", "h264"]
+    
+    # Bitrate recommendations by resolution
+    HD_BITRATE_MIN = 15_000_000  # 15 Mbps
+    HD_BITRATE_MAX = 30_000_000  # 30 Mbps
+    UHD_BITRATE_MIN = 30_000_000  # 30 Mbps  
+    UHD_BITRATE_MAX = 40_000_000  # 40 Mbps
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # Check codec
+        if "prores" in codec:
+            if "422" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="ProRes 422 is the recommended codec for Playback Pro",
+                        reason="Optimal balance of quality and performance for theatre",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} is fully supported by Playback Pro",
+                        reason="ProRes variants work excellently for live playback",
+                    )
+                )
+        elif codec == "h264":
+            # Check bitrate for H.264
+            if bitrate and resolution:
+                width, height = resolution
+                mbps = bitrate // 1_000_000
+                
+                if width >= 3840 or height >= 2160:  # 4K/UHD
+                    if bitrate < self.UHD_BITRATE_MIN or bitrate > self.UHD_BITRATE_MAX:
+                        issues.append(
+                            CompatibilityIssue(
+                                level=CompatibilityLevel.WARNING,
+                                message=f"H.264 bitrate ({mbps}Mbps) outside recommended range for 4K",
+                                reason="Playback Pro recommends 30-40 Mbps VBR for 4K H.264",
+                                suggestion="Adjust bitrate to 30-40 Mbps for optimal playback",
+                            )
+                        )
+                    else:
+                        issues.append(
+                            CompatibilityIssue(
+                                level=CompatibilityLevel.COMPATIBLE,
+                                message=f"H.264 at {mbps}Mbps is suitable for Playback Pro",
+                                reason="Bitrate within recommended range for 4K",
+                            )
+                        )
+                else:  # HD
+                    if bitrate < self.HD_BITRATE_MIN or bitrate > self.HD_BITRATE_MAX:
+                        issues.append(
+                            CompatibilityIssue(
+                                level=CompatibilityLevel.WARNING,
+                                message=f"H.264 bitrate ({mbps}Mbps) outside recommended range for HD",
+                                reason="Playback Pro recommends 15-30 Mbps VBR for HD H.264",
+                                suggestion="Adjust bitrate to 15-30 Mbps for optimal playback",
+                            )
+                        )
+                    else:
+                        issues.append(
+                            CompatibilityIssue(
+                                level=CompatibilityLevel.COMPATIBLE,
+                                message=f"H.264 at {mbps}Mbps is suitable for Playback Pro",
+                                reason="Bitrate within recommended range for HD",
+                            )
+                        )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 is supported by Playback Pro",
+                        reason="15-30 Mbps VBR recommended for HD, 30-40 Mbps for 4K",
+                    )
+                )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} may not be optimal for Playback Pro",
+                    reason="Playback Pro is optimized for ProRes 422 and H.264",
+                    suggestion="Convert to ProRes 422 for best reliability",
+                )
+            )
+
+        # Check container - MOV only!
+        if "mov" not in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message="Playback Pro requires MOV (QuickTime) container",
+                    reason="Playback Pro only accepts .MOV files",
+                    suggestion="Remux to MOV container: ffmpeg -i input -c copy output.mov",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="MOV container is required by Playback Pro",
+                )
+            )
+
+        return issues
+
+
+class EasyWorshipChecker(CompatibilityChecker):
+    """Compatibility checker for EasyWorship church presentation software.
+    
+    EasyWorship is popular church presentation software (Windows only).
+    EasyWorship 7+ has improved codec support over earlier versions.
+    """
+
+    # EasyWorship 7+ built-in support (no codec packs needed)
+    NATIVE_CODECS = ["h264"]
+    
+    # Also works with Windows Media codecs
+    WINDOWS_CODECS = ["wmv", "mpeg2video"]
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+
+        # Check for native support (H.264 in MP4/MOV)
+        if codec == "h264":
+            if "mp4" in container or "mov" in container or "m4v" in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 in MP4/MOV has native support in EasyWorship 7+",
+                        reason="No additional codecs required",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 is supported by EasyWorship",
+                        reason="H.264 works in most containers",
+                    )
+                )
+        # Check for Windows Media codecs
+        elif codec in self.WINDOWS_CODECS:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is supported on Windows",
+                    reason="Windows Media codecs built into Windows OS",
+                )
+            )
+        # Other codecs may require additional codec packs
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} may require additional codecs",
+                    reason="EasyWorship 7+ natively supports H.264 in MP4/MOV",
+                    suggestion="Convert to H.264 in MP4 for guaranteed compatibility",
+                )
+            )
+
+        # Check container formats
+        if "mp4" in container or "mov" in container or "m4v" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container has native support",
+                    reason="MP4, MOV, and M4V work without additional software",
+                )
+            )
+        elif "wmv" in container or "avi" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} is supported on Windows",
+                    reason="Windows Media formats built into Windows",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{container.upper()} may need additional codec support",
+                    suggestion="Use MP4 container for best compatibility",
+                )
+            )
+
+        return issues
+
+
 # Browser Compatibility
 
 
@@ -1374,6 +1690,9 @@ def get_available_systems() -> List[str]:
             "obs",
             "qlab",
             "propresenter",
+            "wirecast",
+            "playbackpro",
+            "easyworship",
             "safari",
             "chrome",
             "firefox",
@@ -1404,6 +1723,9 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
         "obs": OBSChecker,
         "qlab": QLabChecker,
         "propresenter": ProPresenterChecker,
+        "wirecast": WirecastChecker,
+        "playbackpro": PlaybackProChecker,
+        "easyworship": EasyWorshipChecker,
         "safari": SafariChecker,
         "chrome": ChromeChecker,
         "firefox": FirefoxChecker,
