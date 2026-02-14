@@ -680,7 +680,7 @@ class YouTubeChecker(CompatibilityChecker):
     RECOMMENDED_CODEC = "h264"
     RECOMMENDED_PROFILE = "high"  # High Profile with CABAC
     RECOMMENDED_CONTAINER = "mp4"
-    MAX_FILE_SIZE = 256 * 1024 * 1024 * 1024  # 256GB (256 * 1024^3)
+    MAX_FILE_SIZE = 256 * 1024 * 1024 * 1024  # 256GB
     MAX_DURATION = 12 * 3600  # 12 hours in seconds
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
@@ -768,6 +768,345 @@ class YouTubeChecker(CompatibilityChecker):
         return issues
 
 
+class TikTokChecker(CompatibilityChecker):
+    """Compatibility checker for TikTok uploads."""
+
+    RECOMMENDED_CODEC = "h264"
+    RECOMMENDED_PROFILE = "high"
+    MAX_FILE_SIZE_MOBILE = 287 * 1024 * 1024  # 287MB for mobile uploads
+    MAX_FILE_SIZE_DESKTOP = 10 * 1024 * 1024 * 1024  # 10GB for desktop
+    MAX_DURATION = 10 * 60  # 10 minutes
+    OPTIMAL_BITRATE_MIN = 8_000_000  # 8 Mbps
+    OPTIMAL_BITRATE_MAX = 15_000_000  # 15 Mbps
+    LOW_QUALITY_THRESHOLD = 5_000_000  # 5 Mbps triggers quality flag
+
+    def __init__(self, upload_source: str = "mobile"):
+        """Initialize TikTok checker.
+
+        Args:
+            upload_source: 'mobile' or 'desktop' to determine file size limit
+        """
+        self.upload_source = upload_source
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+        file_size = video_info.get("file_size", 0)
+
+        # Check codec (H.264 recommended, HEVC causes issues)
+        if codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="H.264 is the optimal codec for TikTok",
+                    reason="Best compatibility across all devices",
+                )
+            )
+        elif codec == "hevc":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="HEVC may cause playback issues on some devices",
+                    reason="15-20% of US iOS devices have HEVC compatibility issues",
+                    suggestion="Convert to H.264 for universal compatibility",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"TikTok recommends H.264, not {codec.upper()}",
+                    reason="TikTok re-encodes all uploads",
+                    suggestion="Upload as H.264 to maintain quality control",
+                )
+            )
+
+        # Check container
+        if "mp4" in container or "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is supported by TikTok",
+                )
+            )
+        elif "webm" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="WebM is supported but MP4 is preferred for TikTok",
+                    suggestion="Convert to MP4 for better compatibility",
+                )
+            )
+
+        # Check resolution (1080x1920 recommended for 9:16 aspect ratio)
+        if resolution:
+            width, height = resolution
+            if width == 1080 and height == 1920:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="1080x1920 is optimal for TikTok",
+                        reason="Perfect 9:16 aspect ratio for vertical video",
+                    )
+                )
+            elif width > 1080 or height > 1920:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"Resolution {width}x{height} will be downscaled",
+                        reason="TikTok displays videos at 1080p maximum",
+                        suggestion="Export at 1080x1920 to avoid wasted bitrate",
+                    )
+                )
+
+        # Check bitrate
+        if bitrate:
+            mbps = bitrate // 1_000_000
+            if bitrate < self.LOW_QUALITY_THRESHOLD:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"Low bitrate ({mbps}Mbps) may trigger quality downgrade",
+                        reason="TikTok flags videos below 5 Mbps as low quality",
+                        suggestion="Use 8-15 Mbps for optimal quality",
+                    )
+                )
+            elif bitrate > 20_000_000:  # 20 Mbps
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"High bitrate ({mbps}Mbps) will be compressed anyway",
+                        reason="TikTok flattens bitrates above 20 Mbps",
+                        suggestion="Use 8-15 Mbps to optimize file size",
+                    )
+                )
+
+        # Check file size based on upload source
+        max_size = (
+            self.MAX_FILE_SIZE_DESKTOP
+            if self.upload_source == "desktop"
+            else self.MAX_FILE_SIZE_MOBILE
+        )
+        if file_size > max_size:
+            size_mb = file_size // (1024 * 1024)
+            limit_mb = max_size // (1024 * 1024) if max_size < 1024**3 else "10GB"
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message=f"File size {size_mb}MB exceeds TikTok {self.upload_source} limit",
+                    reason=f"TikTok {self.upload_source} uploads limited to {limit_mb}",
+                    suggestion=(
+                        "Compress video or use desktop upload for larger files"
+                        if self.upload_source == "mobile"
+                        else "Compress video to reduce file size"
+                    ),
+                )
+            )
+
+        return issues
+
+
+class VimeoChecker(CompatibilityChecker):
+    """Compatibility checker for Vimeo uploads."""
+
+    RECOMMENDED_CODEC = "h264"
+    RECOMMENDED_PROFILE = "high"
+    ALSO_ACCEPTS = ["prores"]  # Accepted but not recommended
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # Check codec
+        if codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="H.264 is the recommended codec for Vimeo uploads",
+                    reason="Fast upload and optimal platform processing",
+                )
+            )
+        elif "prores" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="ProRes is accepted but not recommended for uploads",
+                    reason="ProRes files are very large and slow to upload",
+                    suggestion="Use H.264 for faster uploads; save ProRes for archival",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"Vimeo recommends H.264, not {codec.upper()}",
+                    reason="Vimeo re-encodes all uploads for streaming",
+                    suggestion="Upload as H.264 for best results",
+                )
+            )
+
+        # Check container
+        if "mp4" in container or "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is compatible with Vimeo",
+                )
+            )
+
+        # Check bitrate based on resolution
+        if resolution and bitrate:
+            width, height = resolution
+            mbps = bitrate // 1_000_000
+
+            if width >= 3840 and height >= 2160:  # 4K
+                if bitrate < 40_000_000 or bitrate > 50_000_000:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message=f"4K bitrate ({mbps}Mbps) outside recommended range",
+                            reason="Vimeo recommends 40-50 Mbps for 4K video",
+                            suggestion="Adjust bitrate to 40-50 Mbps for optimal quality",
+                        )
+                    )
+                else:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.COMPATIBLE,
+                            message=f"4K bitrate ({mbps}Mbps) is optimal for Vimeo",
+                        )
+                    )
+            elif width >= 1920 and height >= 1080:  # 1080p
+                if bitrate < 10_000_000 or bitrate > 20_000_000:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message=f"1080p bitrate ({mbps}Mbps) outside recommended range",
+                            reason="Vimeo recommends 10-20 Mbps for 1080p video",
+                            suggestion="Adjust bitrate to 10-20 Mbps for optimal quality",
+                        )
+                    )
+                else:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.COMPATIBLE,
+                            message=f"1080p bitrate ({mbps}Mbps) is optimal for Vimeo",
+                        )
+                    )
+            elif width >= 1280 and height >= 720:  # 720p
+                if bitrate < 5_000_000 or bitrate > 10_000_000:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message=f"720p bitrate ({mbps}Mbps) outside recommended range",
+                            reason="Vimeo recommends 5-10 Mbps for 720p video",
+                            suggestion="Adjust bitrate to 5-10 Mbps for optimal quality",
+                        )
+                    )
+                else:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.COMPATIBLE,
+                            message=f"720p bitrate ({mbps}Mbps) is optimal for Vimeo",
+                        )
+                    )
+
+        return issues
+
+
+class FacebookChecker(CompatibilityChecker):
+    """Compatibility checker for Facebook video uploads."""
+
+    RECOMMENDED_CODEC = "h264"
+    NEWER_CODECS = ["hevc", "vp9", "av1"]  # Supported in Reels
+    MAX_FILE_SIZE = 4 * 1024 * 1024 * 1024  # 4GB
+    MAX_DURATION = 240 * 60  # 240 minutes
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        file_size = video_info.get("file_size", 0)
+        resolution = video_info.get("resolution")
+
+        # Check codec
+        if codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="H.264 is the recommended codec for Facebook",
+                    reason="Universal compatibility across Feed, Stories, and Ads",
+                )
+            )
+        elif codec in self.NEWER_CODECS:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is supported for Facebook Reels",
+                    reason="Newer codecs accepted but H.264 recommended for Feed",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"Facebook recommends H.264, not {codec.upper()}",
+                    reason="Facebook will re-encode non-standard codecs",
+                    suggestion="Convert to H.264 for best compatibility",
+                )
+            )
+
+        # Check container
+        if "mp4" in container or "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} is preferred by Facebook",
+                    reason="MP4 and MOV offer best compatibility",
+                )
+            )
+        elif "avi" in container or "wmv" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{container.upper()} is supported but not recommended",
+                    suggestion="Use MP4 or MOV for better compatibility",
+                )
+            )
+
+        # Check file size
+        if file_size > self.MAX_FILE_SIZE:
+            size_gb = file_size / (1024 * 1024 * 1024)
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message=f"File size {size_gb:.1f}GB exceeds Facebook's 4GB limit",
+                    reason="Facebook has a maximum file size of 4GB",
+                    suggestion="Compress video or reduce quality to meet size limit",
+                )
+            )
+
+        # Check resolution recommendations
+        if resolution:
+            width, height = resolution
+            if width >= 1280 and height >= 720:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"Resolution {width}x{height} is suitable for Facebook",
+                        reason="720p or higher provides good quality",
+                    )
+                )
+
+        return issues
+
+
 # System Registry
 
 
@@ -790,6 +1129,9 @@ def get_available_systems() -> List[str]:
             "instagram",
             "twitter",
             "youtube",
+            "tiktok",
+            "vimeo",
+            "facebook",
         ]
     )
 
@@ -816,6 +1158,9 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
         "instagram": InstagramChecker,
         "twitter": TwitterChecker,
         "youtube": YouTubeChecker,
+        "tiktok": TikTokChecker,
+        "vimeo": VimeoChecker,
+        "facebook": FacebookChecker,
     }
 
     system_lower = system.lower()
