@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import click
 
 from videowise.analyzer import VideoAnalyzer
-from videowise.compatibility import CompatibilityIssue, CompatibilityLevel, check_compatibility, get_available_systems
+from videowise.compatibility import CompatibilityIssue, check_compatibility, get_available_systems
 from videowise.formatter import ExplanationFormatter
 
 __version__ = "0.1.0"
