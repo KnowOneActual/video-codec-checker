@@ -13,9 +13,11 @@ Detailed breakdown of compatibility features for each supported system.
 - [Browser Compatibility](#browser-compatibility)
   - [Safari](#safari)
   - [Chrome](#chrome)
+  - [Firefox](#firefox)
 - [Social Media Platforms](#social-media-platforms)
   - [Instagram](#instagram)
   - [Twitter/X](#twitterx)
+  - [YouTube](#youtube)
 
 ---
 
@@ -293,6 +295,63 @@ Detailed breakdown of compatibility features for each supported system.
 
 ---
 
+### Firefox
+
+**Supported Codecs:**
+- ✅ H.264 (all profiles)
+- ✅ VP8
+- ✅ VP9
+- ✅ AV1
+- ⚠️ HEVC (limited support - Windows 10+ only with extensions)
+- ❌ ProRes (not supported)
+
+**Container Formats:**
+- ✅ MP4 (for H.264)
+- ✅ WebM (preferred for VP8/VP9)
+- ✅ OGG
+
+**Codec-Container Pairings:**
+- **Best:** VP9 in WebM - Native support, excellent compression
+- **Best:** H.264 in MP4 - Universal compatibility
+- **Good:** AV1 in WebM - Modern, efficient codec
+- **Limited:** HEVC in MP4 - Requires Windows 10+ with HEVC Video Extensions
+
+**Compatibility Checks:**
+- ✅ H.264, VP8, VP9, and AV1 full support
+- ✅ Optimal container pairing detection (VP9/WebM, H.264/MP4)
+- ✅ HEVC limited support warning (Windows 10+ only)
+- ✅ ProRes rejection with conversion suggestions
+
+**What VideoWise Checks:**
+```
+✅ VP9 in WebM is natively supported by Firefox
+   Reason: WebM is Firefox's preferred format for VP8/VP9
+
+✅ H.264 in MP4 is fully supported by Firefox
+   Reason: Universal browser compatibility
+
+⚠️  HEVC has limited support in Firefox
+   Reason: HEVC requires Windows 10+ with HEVC Video Extensions
+   Suggestion: Convert to H.264 or VP9 for broader compatibility
+
+❌ Firefox does not support ProRes codec
+   Reason: Firefox supports H.264, VP8, VP9, and AV1
+   Suggestion: Convert to H.264 (MP4) or VP9 (WebM) for Firefox
+```
+
+**Optimal Settings:**
+- **For maximum compatibility:** H.264 Main Profile in MP4
+- **For modern web:** VP9 in WebM
+- **For future-proof:** AV1 in WebM (with H.264 fallback)
+- AAC audio for MP4, Opus audio for WebM
+
+**Browser Version Notes:**
+- VP9 supported since Firefox 28 (2014)
+- AV1 supported since Firefox 67 (2019)
+- HEVC support varies by platform and requires codec pack on Windows
+
+---
+
 ## Social Media Platforms
 
 ### Instagram
@@ -385,6 +444,99 @@ Detailed breakdown of compatibility features for each supported system.
 
 ---
 
+### YouTube
+
+**Supported Codecs:**
+- ✅ **H.264** (recommended for uploads)
+- ✅ HEVC (H.265)
+- ✅ VP9
+- ✅ AV1
+- ✅ ProRes (accepted but not recommended)
+- ⚠️ All uploads are re-encoded by YouTube
+
+**Profile Recommendations:**
+- ✅ **High Profile with CABAC** - Optimal upload quality
+- ⚠️ Main Profile - Works but High Profile preferred
+- ⚠️ Baseline Profile - Works but wastes bitrate
+
+**Container Formats:**
+- ✅ **MP4** (preferred - fastest processing)
+- ✅ MOV (accepted)
+- ✅ AVI (accepted)
+- ⚠️ Other formats accepted but may process slower
+
+**File Size & Duration Limits:**
+- Maximum file size: 256 GB
+- Maximum duration: 12 hours
+- Verified accounts: 15 minutes default, up to 12 hours with verification
+
+**Upload Strategy:**
+- YouTube re-encodes ALL uploads to multiple formats (H.264, VP9, AV1)
+- Upload highest quality source for best final quality
+- H.264 High Profile gives you best control before re-encoding
+- ProRes accepted but creates huge uploads with no quality benefit
+
+**Compatibility Checks:**
+- ✅ H.264 High Profile detection and recommendation
+- ✅ Profile-based warnings (Baseline, Main suggest High)
+- ✅ MP4 container preference detection
+- ✅ File size validation (256 GB limit)
+- ✅ Container format compatibility
+
+**What VideoWise Checks:**
+```
+✅ H.264 High Profile is optimal for YouTube
+   Reason: Best quality for YouTube's re-encoding process
+
+✅ MP4 is YouTube's preferred container format
+   Reason: Fastest processing and best compatibility
+
+⚠️  H.264 Baseline Profile detected
+   Reason: YouTube recommends High Profile for best quality
+   Suggestion: Use High Profile with CABAC for optimal results
+
+⚠️  YouTube recommends H.264, not ProRes for uploads
+   Reason: YouTube re-encodes all uploads to multiple formats
+   Suggestion: Upload as H.264 for best quality control and processing speed
+
+⚠️  MOV is accepted but MP4 is preferred
+   Suggestion: Use MP4 for faster upload processing
+
+❌ File size 300GB exceeds YouTube's 256GB limit
+   Reason: YouTube has a maximum file size of 256GB
+   Suggestion: Compress video or split into multiple parts
+```
+
+**Optimal Settings:**
+- **Codec:** H.264 High Profile with CABAC
+- **Container:** MP4
+- **Bitrate:** High (YouTube will re-encode anyway, so start with quality)
+  - 1080p: 8-12 Mbps recommended
+  - 4K: 35-45 Mbps recommended
+- **Audio:** AAC at 320 kbps or higher
+- **Frame Rate:** Match source (23.976, 24, 25, 29.97, 30, 50, 60 fps)
+
+**Resolution Recommendations:**
+- 2160p (4K): 3840x2160
+- 1440p: 2560x1440
+- 1080p: 1920x1080
+- 720p: 1280x720
+
+**Why H.264 for Uploads?**
+1. **Predictable encoding:** You control the quality before YouTube's re-encode
+2. **Fast processing:** MP4+H.264 processes faster than other formats
+3. **Quality control:** High Profile gives best compression for upload
+4. **Universal support:** Works on all devices during processing
+
+**ProRes Warning:**
+While YouTube accepts ProRes, uploading it provides no quality benefit:
+- ProRes 422 HQ @ 1080p = ~220 Mbps = 99 GB per hour
+- H.264 High @ 1080p = ~12 Mbps = 5.4 GB per hour
+- **Result after YouTube re-encodes both: Identical quality**
+- Save bandwidth and upload time - use H.264 High Profile
+
+---
+
 ## Summary Table
 
 | System | Best Codec(s) | Container | Special Notes |
@@ -396,8 +548,10 @@ Detailed breakdown of compatibility features for each supported system.
 | **ProPresenter** | HAP, ProRes | MOV | HAP = GPU accelerated |
 | **Safari** | H.264, HEVC | MP4 | No VP9/AV1 support |
 | **Chrome** | VP9, H.264, AV1 | WebM, MP4 | Very permissive |
+| **Firefox** | H.264, VP9, AV1 | MP4, WebM | VP9/WebM native support |
 | **Instagram** | H.264 Baseline | MP4 | Max 1080p, avoid re-encode |
 | **Twitter** | H.264 High | MP4, MOV | 512 MB / 8 GB limit |
+| **YouTube** | H.264 High | MP4 | Upload high quality source |
 
 ---
 
@@ -420,7 +574,7 @@ Detailed breakdown of compatibility features for each supported system.
 **High Profile:**
 - Best compression efficiency
 - Highest complexity features
-- Best for: Twitter, modern devices, archival
+- Best for: YouTube, Twitter, modern devices, archival
 - File size: Smallest
 
 ### ProRes Variants
