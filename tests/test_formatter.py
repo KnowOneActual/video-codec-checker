@@ -1,7 +1,5 @@
 """Tests for the ExplanationFormatter."""
 
-import pytest
-
 from videowise.compatibility import CompatibilityIssue, CompatibilityLevel
 from videowise.formatter import ExplanationFormatter, get_severity_info
 

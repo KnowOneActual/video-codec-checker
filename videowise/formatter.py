@@ -22,14 +22,20 @@ class ExplanationFormatter:
             "color": "\033[93m",  # Yellow
             "name": "Warning",
             "description": "This video may have issues or suboptimal performance.",
-            "impact": "The video might work but could have quality loss, performance issues, or compatibility problems.",
+            "impact": (
+                "The video might work but could have quality loss, "
+                "performance issues, or compatibility problems."
+            ),
         },
         CompatibilityLevel.INCOMPATIBLE: {
             "icon": "❌",
             "color": "\033[91m",  # Red
             "name": "Incompatible",
             "description": "This video will NOT work.",
-            "impact": "The video will fail to play, upload, or process. Conversion is required.",
+            "impact": (
+                "The video will fail to play, upload, or process. "
+                "Conversion is required."
+            ),
         },
     }
 
@@ -77,7 +83,9 @@ class ExplanationFormatter:
 
         return output
 
-    def _format_extended_explanation(self, issue: CompatibilityIssue, system: str) -> str:
+    def _format_extended_explanation(
+        self, issue: CompatibilityIssue, system: str
+    ) -> str:
         """Format extended explanation for explain mode.
 
         Args:
@@ -103,7 +111,9 @@ class ExplanationFormatter:
 
         return output
 
-    def _get_codec_knowledge(self, issue: CompatibilityIssue, system: str) -> Optional[str]:
+    def _get_codec_knowledge(
+        self, issue: CompatibilityIssue, system: str
+    ) -> Optional[str]:
         """Get additional codec/system-specific knowledge.
 
         Args:
@@ -120,58 +130,64 @@ class ExplanationFormatter:
         if "h.264" in message_lower or "h264" in message_lower:
             if "profile" in message_lower:
                 return (
-                    "H.264 profiles (Baseline, Main, High) determine feature complexity. "
-                    "Baseline is most compatible but least efficient. High offers better "
-                    "compression but requires more processing power."
+                    "H.264 profiles (Baseline, Main, High) determine feature "
+                    "complexity. Baseline is most compatible but least efficient. "
+                    "High offers better compression but requires more processing "
+                    "power."
                 )
             if system.lower() == "instagram":
                 return (
-                    "Instagram re-encodes videos to H.264 Baseline for maximum device compatibility. "
-                    "Using Baseline from the start prevents quality loss from double encoding."
+                    "Instagram re-encodes videos to H.264 Baseline for maximum "
+                    "device compatibility. Using Baseline from the start prevents "
+                    "quality loss from double encoding."
                 )
 
         # VP9 knowledge
         if "vp9" in message_lower:
             if system.lower() in ["safari", "casparcg"]:
                 return (
-                    "VP9 is a modern, efficient codec by Google, but not universally supported. "
-                    "H.264 or HEVC are safer choices for broad compatibility."
+                    "VP9 is a modern, efficient codec by Google, but not "
+                    "universally supported. H.264 or HEVC are safer choices for "
+                    "broad compatibility."
                 )
 
         # ProRes knowledge
         if "prores" in message_lower:
             if "proxy" in message_lower or "lt" in message_lower:
                 return (
-                    "ProRes Proxy and LT are optimized for editing and playback, with lower bitrates "
-                    "than standard ProRes. They're ideal for real-time systems like QLab."
+                    "ProRes Proxy and LT are optimized for editing and playback, "
+                    "with lower bitrates than standard ProRes. They're ideal for "
+                    "real-time systems like QLab."
                 )
             if "4444" in message_lower:
                 return (
-                    "ProRes 4444 supports alpha channels (transparency), making it perfect for "
-                    "overlays and graphics in live production."
+                    "ProRes 4444 supports alpha channels (transparency), making it "
+                    "perfect for overlays and graphics in live production."
                 )
 
         # HAP codec knowledge
         if "hap" in message_lower:
             return (
-                "HAP is GPU-accelerated and designed for real-time playback. It offloads "
-                "video decoding to the graphics card, providing best performance in ProPresenter."
+                "HAP is GPU-accelerated and designed for real-time playback. It "
+                "offloads video decoding to the graphics card, providing best "
+                "performance in ProPresenter."
             )
 
         # Bitrate knowledge
         if "bitrate" in message_lower:
             if "100" in message_lower or "200" in message_lower:
                 return (
-                    "High bitrates require fast storage (SSD recommended) and powerful CPU/GPU. "
-                    "For live production, consider ProRes Proxy or DNxHD 36 for lower bitrates "
-                    "with similar quality."
+                    "High bitrates require fast storage (SSD recommended) and "
+                    "powerful CPU/GPU. For live production, consider ProRes Proxy "
+                    "or DNxHD 36 for lower bitrates with similar quality."
                 )
 
         # Variable frame rate knowledge
         if "variable" in message_lower and "frame" in message_lower:
             return (
-                "Variable Frame Rate (VFR) videos change frame rate during playback, which causes "
-                "timing issues in live production. Always use Constant Frame Rate (CFR) for precise timing."
+                "Variable Frame Rate (VFR) videos change frame rate during "
+                "playback, which causes timing issues in live production. Always "
+                "use Constant Frame Rate (CFR) for precise timing."
             )
 
         return None
@@ -195,7 +211,9 @@ class ExplanationFormatter:
 
         return output
 
-    def format_system_summary(self, system: str, issues: list, explain: bool = False) -> str:
+    def format_system_summary(
+        self, system: str, issues: list, explain: bool = False
+    ) -> str:
         """Format a summary for a specific system.
 
         Args:
@@ -217,7 +235,9 @@ class ExplanationFormatter:
         # Group issues by severity
         compatible = [i for i in issues if i.level == CompatibilityLevel.COMPATIBLE]
         warnings = [i for i in issues if i.level == CompatibilityLevel.WARNING]
-        incompatible = [i for i in issues if i.level == CompatibilityLevel.INCOMPATIBLE]
+        incompatible = [
+            i for i in issues if i.level == CompatibilityLevel.INCOMPATIBLE
+        ]
 
         # Show issues by severity (worst first)
         for issue_list in [incompatible, warnings, compatible]:
