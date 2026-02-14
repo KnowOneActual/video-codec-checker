@@ -672,7 +672,9 @@ def test_mitti_4k_codec_guidance():
     issues = checker.check(video_info)
 
     assert any("4k" in issue.message.lower() for issue in issues)
-    assert any("hap" in issue.message.lower() or "prores" in issue.message.lower() for issue in issues)
+    assert any(
+        "hap" in issue.message.lower() or "prores" in issue.message.lower() for issue in issues
+    )
 
 
 def test_mitti_high_bitrate_warning():
@@ -704,7 +706,11 @@ def test_millumin_quicktime_support():
     issues = checker.check(video_info)
 
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
-    assert any("quicktime" in issue.reason.lower() or "avfoundation" in issue.reason.lower() for issue in issues if issue.reason)
+    assert any(
+        "quicktime" in issue.reason.lower() or "avfoundation" in issue.reason.lower()
+        for issue in issues
+        if issue.reason
+    )
 
 
 def test_millumin_hap_projection_optimal():
