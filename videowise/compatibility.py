@@ -126,7 +126,7 @@ class CasparCGChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message="ProRes 4444 supports alpha channel for transparency",
-                    reason="Professional quality with alpha support",
+                    reason="Professional quality with transparency support",
                 )
             )
         # Check for NotchLC
@@ -1079,6 +1079,7 @@ class TikTokChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message=f"{container.upper()} container is supported by TikTok",
+                    reason="Standard container formats for mobile video",
                 )
             )
         elif "webm" in container:
