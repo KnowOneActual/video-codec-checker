@@ -466,7 +466,7 @@ def create_system_command(system_name: str, system_display: str, description: st
     @click.option("--verbose", "-v", is_flag=True, help="Show detailed video information")
     @click.option("--no-color", is_flag=True, help="Disable colored output")
     def system_command(paths, recursive, extensions, output_json, verbose, no_color):
-        fr"""Check video compatibility with {system_display}.
+        rf"""Check video compatibility with {system_display}.
 
         \b
         Quick Examples:
@@ -487,7 +487,7 @@ def create_system_command(system_name: str, system_display: str, description: st
             no_color=no_color,
         )
 
-    system_command.__doc__ = fr"""Check video compatibility with {system_display}.
+    system_command.__doc__ = rf"""Check video compatibility with {system_display}.
 
     \b
     Quick Examples:
