@@ -12,7 +12,7 @@
 
 A video codec compatibility checker that explains *why* your video won't work and how to fix it, for content creators, live production operators, and developers.
 
-> 💡 **February 2026 Update**: Based on user feedback, we've redesigned the CLI to be simpler and more intuitive! Commands like `videowise casparcg video.mp4` now replace verbose flag syntax. Your input matters—keep it coming!
+> 💡 **February 2026 Update**: Based on user feedback, redesigned the CLI to be simpler and more intuitive! Commands like `videowise casparcg video.mp4` now replace verbose flag syntax. Your input matters. Please keep it coming!
 
 ## The Problem Being Solved
 
