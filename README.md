@@ -112,6 +112,7 @@ videowise --version
 - **[Usage Examples](docs/EXAMPLES.md)** - Real-world workflows and use cases
 - **[Python API Reference](docs/API_REFERENCE.md)** - Using VideoWise in your Python code
 - **[Compatibility Matrix](docs/COMPATIBILITY_MATRIX.md)** - Detailed system compatibility features
+- **[Media Players & VJ Software](docs/MEDIA_PLAYERS_VJ.md)** - In-depth guide for VLC, Resolume, Mitti, Millumin
 
 ## Development
 
