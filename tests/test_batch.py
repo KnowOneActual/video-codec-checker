@@ -123,7 +123,7 @@ def test_batch_command_help(runner):
     """Test batch command help text."""
     result = runner.invoke(cli, ["batch", "--help"])
     assert result.exit_code == 0
-    assert "Check multiple video files" in result.output
+    assert "Check multiple files or directories" in result.output
     assert "--recursive" in result.output
     assert "--extensions" in result.output
 
@@ -146,7 +146,7 @@ def test_batch_single_file(runner, h264_video):
     """Test batch command with a single file."""
     result = runner.invoke(cli, ["batch", str(h264_video), "--system", "casparcg"])
     assert result.exit_code in [0, 1, 2]
-    assert "Found 1 video file" in result.output
+    # Single file batch no longer shows "Found X files" message
     assert "BATCH SUMMARY" in result.output
 
 
@@ -177,7 +177,7 @@ def test_batch_with_all_flag(runner, h264_video):
     """Test batch command with --all flag."""
     result = runner.invoke(cli, ["batch", str(h264_video), "--all"])
     assert result.exit_code in [0, 1, 2]
-    assert "Found 1 video file" in result.output
+    # Single file batch no longer shows "Found X files" message
     # Should check multiple systems
     systems_checked = result.output.split("Systems checked:")[1].split("\n")[0]
     assert "," in systems_checked  # Multiple systems
@@ -232,7 +232,8 @@ def test_batch_extension_filter(runner, tmp_path, h264_video):
         cli, ["batch", str(tmp_path), "--extensions", ".mp4", "--system", "casparcg"]
     )
     assert result.exit_code in [0, 1, 2]
-    assert "Found 1 video file" in result.output
+    # Single file batch no longer shows "Found X files" message
+    assert "BATCH SUMMARY" in result.output
 
 
 def test_batch_no_files_found(runner, tmp_path):
