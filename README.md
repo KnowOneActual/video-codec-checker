@@ -140,7 +140,7 @@ make check         # Run all quality checks
 - ✅ Full browser support (Safari, Chrome, Firefox)
 - ✅ Complete social media coverage (Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook)
 - ✅ VJ/media player support (VLC, Resolume, Mitti, Millumin)
-- ✅ Church/theatre presentation (Wirecast, Playback Pro, EasyWorship)
+- ✅ Live presentation (Wirecast, Playback Pro, EasyWorship)
 
 ### Coming Next (Phase 3)
 - [ ] Streaming platforms (Twitch, Restream, Zoom)
