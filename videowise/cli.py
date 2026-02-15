@@ -274,7 +274,7 @@ def run_compatibility_check(
         if not is_batch and not output_json:
             path = Path(file_path)
             analyzer = VideoAnalyzer(str(path))
-            
+
             codec = analyzer.get_codec_name() or "unknown"
             codec_profile = analyzer.get_codec_profile()
             container = analyzer.get_container_format() or "unknown"
@@ -457,6 +457,7 @@ def run_compatibility_check(
 # Preset commands for common systems
 def create_system_command(system_name: str, system_display: str, description: str):
     """Factory function to create system-specific commands."""
+
     @cli.command(name=system_name)
     @click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True))
     @click.option("--recursive", "-r", is_flag=True, help="Scan directories recursively")
@@ -485,7 +486,7 @@ def create_system_command(system_name: str, system_display: str, description: st
             explain=False,
             no_color=no_color,
         )
-    
+
     system_command.__doc__ = f"""Check video compatibility with {system_display}.
 
     \b
@@ -496,7 +497,7 @@ def create_system_command(system_name: str, system_display: str, description: st
     
     {description}
     """
-    
+
     return system_command
 
 
@@ -534,7 +535,7 @@ def learn(paths, recursive, extensions, output_json, verbose, no_color):
       videowise learn problem_video.mp4
       videowise learn exports/ -r
       videowise learn video.mp4 > training_guide.txt
-    
+
     This mode explains:
     - What each codec is and how it works
     - Why certain systems don't support specific formats
@@ -579,7 +580,7 @@ def check(paths, system, check_all, recursive, extensions, output_json, verbose,
       videowise check video.mp4 --system casparcg  # Check one system
       videowise check videos/ -r --all             # Batch check all
       videowise check video.mp4 --explain          # Educational mode
-    
+
     \b
     TIP: For faster, simpler commands use:
       videowise casparcg video.mp4      # Instead of --system casparcg
@@ -596,7 +597,7 @@ def check(paths, system, check_all, recursive, extensions, output_json, verbose,
         click.echo("\nTIP: Use preset commands for easier usage:")
         click.echo(f"  videowise {system} {paths[0] if paths else 'video.mp4'}")
         sys.exit(2)
-    
+
     # Default to all systems if nothing specified
     if not system and not check_all:
         systems_to_check = get_available_systems()
@@ -689,17 +690,27 @@ def systems():
       videowise check video.mp4 -s obs  # Use with --system flag
     """
     available_systems = get_available_systems()
-    
+
     click.secho("\n📋 Available Systems:\n", bold=True, fg="cyan")
-    
+
     # Group by category
     categories = {
-        "Live Production": ["casparcg", "vmix", "obs", "qlab", "propresenter", "wirecast", "playbackpro", "easyworship", "playoutbee"],
+        "Live Production": [
+            "casparcg",
+            "vmix",
+            "obs",
+            "qlab",
+            "propresenter",
+            "wirecast",
+            "playbackpro",
+            "easyworship",
+            "playoutbee",
+        ],
         "VJ / Media Players": ["resolume", "vlc", "mitti", "millumin"],
         "Browsers": ["safari", "chrome", "firefox"],
         "Social Media": ["instagram", "twitter", "youtube", "tiktok", "vimeo", "facebook"],
     }
-    
+
     for category, systems in categories.items():
         click.secho(f"{category}:", bold=True)
         for sys in systems:
@@ -707,10 +718,12 @@ def systems():
                 # Show both preset command and --system usage
                 click.echo(f"  • {sys:20} → videowise {sys} video.mp4")
         click.echo()
-    
+
     click.secho("💡 TIP:", fg="cyan", bold=True)
     click.echo("  Use system names directly as commands for simpler usage!")
-    click.echo("  Example: 'videowise casparcg video.mp4' instead of 'videowise check video.mp4 --system casparcg'\n")
+    click.echo(
+        "  Example: 'videowise casparcg video.mp4' instead of 'videowise check video.mp4 --system casparcg'\n"
+    )
 
 
 def main():
