@@ -39,8 +39,14 @@ class CompatibilityChecker:
         raise NotImplementedError
 
 
+# Live Production Systems
+
+
 class CasparCGChecker(CompatibilityChecker):
-    """Compatibility checker for CasparCG Server."""
+    """Compatibility checker for CasparCG Server.
+
+    Enhanced with HAP codec support and alpha channel detection.
+    """
 
     SUPPORTED_CODECS = {
         "h264",
@@ -49,6 +55,14 @@ class CasparCGChecker(CompatibilityChecker):
         "dnxhr",
         "mpeg2video",
         "mjpeg",
+        "hap",  # GPU-accelerated codec
+        "notchlc",  # NotchLC for high-quality playback
+    }
+
+    ALPHA_CHANNEL_CODECS = {
+        "prores4444",
+        "hap_alpha",
+        "hap_q_alpha",
     }
 
     RECOMMENDED_CONTAINERS = {
@@ -56,6 +70,8 @@ class CasparCGChecker(CompatibilityChecker):
         "prores": ["mov"],
         "dnxhd": ["mov", "mxf"],
         "dnxhr": ["mov", "mxf"],
+        "hap": ["mov"],  # HAP requires MOV container
+        "notchlc": ["mov"],
     }
 
     def __init__(self, version: str = "2.3"):
@@ -66,12 +82,60 @@ class CasparCGChecker(CompatibilityChecker):
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
         frame_rate = video_info.get("frame_rate")
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
 
         if not codec:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.UNKNOWN,
                     message="Unable to determine video codec",
+                )
+            )
+            return issues
+
+        # Check for HAP codec (GPU-accelerated)
+        if "hap" in codec:
+            if "alpha" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} provides GPU-accelerated playback with alpha",
+                        reason="HAP Alpha ideal for overlays and graphics with transparency",
+                    )
+                )
+            elif "hap_q" in codec or "hapq" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP Q provides high-quality GPU-accelerated playback",
+                        reason="Best quality HAP variant for broadcast",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP codec provides GPU-accelerated playback",
+                        reason="Optimal for real-time playback in CasparCG",
+                    )
+                )
+        # Check for ProRes with alpha channel
+        elif "prores" in codec and "4444" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="ProRes 4444 supports alpha channel for transparency",
+                    reason="Professional quality with transparency support",
+                )
+            )
+        # Check for NotchLC
+        elif "notchlc" in codec or "notch" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="NotchLC provides high-quality real-time playback",
+                    reason="Popular in broadcast for quality and performance balance",
                 )
             )
         elif codec not in self.SUPPORTED_CODECS:
@@ -81,11 +145,19 @@ class CasparCGChecker(CompatibilityChecker):
                     level=CompatibilityLevel.INCOMPATIBLE,
                     message=(f"CasparCG {self.version} does not support " f"{codec.upper()} codec"),
                     reason=f"CasparCG only supports: {supported}",
-                    suggestion="Convert to ProRes, DNxHD, or H.264 in MP4 container",
+                    suggestion="Convert to HAP (GPU-accelerated), ProRes, DNxHD, or H.264",
                 )
             )
             return issues
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is supported by CasparCG {self.version}",
+                )
+            )
 
+        # Check container compatibility
         if codec in self.RECOMMENDED_CONTAINERS:
             recommended = self.RECOMMENDED_CONTAINERS[codec]
             container_ok = any(rec in container for rec in recommended)
@@ -106,6 +178,7 @@ class CasparCGChecker(CompatibilityChecker):
                     )
                 )
 
+        # Check for constant frame rate (critical for live production)
         if frame_rate and "/" in str(frame_rate):
             issues.append(
                 CompatibilityIssue(
@@ -119,13 +192,192 @@ class CasparCGChecker(CompatibilityChecker):
                 )
             )
 
-        if not issues:
+        # Check for 4K content bandwidth
+        if resolution and bitrate:
+            width, height = resolution
+            if width >= 3840 and height >= 2160:
+                mbps = bitrate // 1_000_000
+                if bitrate > 200_000_000:  # 200 Mbps
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message=f"4K at {mbps}Mbps may stress system bandwidth",
+                            reason="Very high bitrate 4K requires powerful hardware",
+                            suggestion="Consider HAP codec for GPU-accelerated 4K playback",
+                        )
+                    )
+
+        return issues
+
+
+class PlayoutBeeChecker(CompatibilityChecker):
+    """Compatibility checker for PlayoutBee playout software.
+
+    PlayoutBee is a broadcast-grade playout solution for Windows, macOS,
+    and Raspberry Pi with integration for ATEM, OBS, vMix, and NDI workflows.
+    """
+
+    SUPPORTED_CODECS = {
+        "h264",
+        "prores",
+        "hap",  # Optimal for GPU acceleration
+    }
+
+    HAP_VARIANTS = {
+        "hap",  # Standard HAP
+        "hap_alpha",  # HAP with alpha channel
+        "hap_q",  # HAP high quality
+        "hap_q_alpha",  # HAP high quality with alpha
+    }
+
+    ALPHA_CODECS = {
+        "prores4444",
+        "hap_alpha",
+        "hap_q_alpha",
+    }
+
+    def __init__(self, platform: str = "desktop"):
+        """Initialize PlayoutBee checker.
+
+        Args:
+            platform: 'desktop' (Windows/Mac) or 'raspberrypi' for Pi deployments
+        """
+        self.platform = platform
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # Check for HAP codec (optimal for PlayoutBee)
+        if "hap" in codec:
+            if "alpha" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} is optimal for PlayoutBee with transparency",
+                        reason="GPU-accelerated playback with alpha channel support",
+                    )
+                )
+            elif "hap_q" in codec or "hapq" in codec:
+                if self.platform == "raspberrypi":
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message="HAP Q may be demanding on Raspberry Pi",
+                            reason="HAP Q has higher data rates than standard HAP",
+                            suggestion="Use standard HAP for Raspberry Pi deployments",
+                        )
+                    )
+                else:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.COMPATIBLE,
+                            message="HAP Q provides high-quality GPU-accelerated playback",
+                            reason="Best quality for desktop playout systems",
+                        )
+                    )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP codec is optimal for PlayoutBee",
+                        reason="GPU-accelerated real-time playback with low CPU usage",
+                    )
+                )
+
+            # HAP requires MOV container
+            if "mov" not in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="HAP codec requires MOV container",
+                        suggestion="Remux to MOV container for HAP codec",
+                    )
+                )
+        # Check for H.264
+        elif codec == "h264":
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"Video is compatible with CasparCG {self.version}",
+                    message="H.264 is compatible with PlayoutBee",
+                    reason="Hardware acceleration available, good compatibility",
                 )
             )
+
+            # Warn about high bitrate H.264 on Raspberry Pi
+            if self.platform == "raspberrypi" and bitrate and bitrate > 50_000_000:
+                mbps = bitrate // 1_000_000
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"H.264 at {mbps}Mbps may be demanding on Raspberry Pi",
+                        reason="Raspberry Pi has limited decode bandwidth",
+                        suggestion="Keep H.264 bitrate under 50 Mbps for Pi, or use HAP codec",
+                    )
+                )
+        # Check for ProRes
+        elif "prores" in codec:
+            if "4444" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="ProRes 4444 supports alpha channel workflows",
+                        reason="Professional quality with transparency support",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} is supported by PlayoutBee",
+                        reason="Professional codec with good quality",
+                    )
+                )
+
+            # ProRes on Raspberry Pi warning
+            if self.platform == "raspberrypi":
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="ProRes is very demanding on Raspberry Pi",
+                        reason="High data rates exceed Pi's capabilities",
+                        suggestion="Convert to HAP codec for Raspberry Pi deployments",
+                    )
+                )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} may not be optimal for PlayoutBee",
+                    reason="PlayoutBee works best with HAP, H.264, or ProRes",
+                    suggestion="Convert to HAP for GPU acceleration or H.264 for compatibility",
+                )
+            )
+
+        # Check container format
+        if "mov" in container or "mp4" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is supported by PlayoutBee",
+                )
+            )
+
+        # Check resolution for Raspberry Pi
+        if self.platform == "raspberrypi" and resolution:
+            width, height = resolution
+            if width > 1920 or height > 1080:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"Resolution {width}x{height} may be too high for Raspberry Pi",
+                        reason="Pi works best with 1080p or lower",
+                        suggestion="Use 1080p for reliable playback on Raspberry Pi",
+                    )
+                )
 
         return issues
 
@@ -412,6 +664,746 @@ class ProPresenterChecker(CompatibilityChecker):
         return issues
 
 
+class WirecastChecker(CompatibilityChecker):
+    """Compatibility checker for Wirecast live streaming software.
+
+    Wirecast is professional live streaming software for Mac and Windows.
+    Used extensively for multi-camera sports, event, and conference streaming.
+    """
+
+    SUPPORTED_CODECS = {
+        "h264",
+        "hevc",
+        "prores",
+        "dnxhd",
+        "dnxhr",
+        "mjpeg",
+    }
+
+    RECOMMENDED_CODECS = ["h264", "prores"]
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        bitrate = video_info.get("bitrate")
+
+        # Check codec support
+        if codec not in self.SUPPORTED_CODECS:
+            supported = ", ".join(sorted(self.SUPPORTED_CODECS))
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} may not be supported by Wirecast",
+                    reason=f"Wirecast officially supports: {supported}",
+                    suggestion="Convert to H.264 or ProRes for best compatibility",
+                )
+            )
+            return issues
+
+        # Check for recommended codecs
+        if codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="H.264 is fully supported by Wirecast",
+                    reason="Hardware acceleration available for smooth playback",
+                )
+            )
+        elif "prores" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is well-supported by Wirecast",
+                    reason="Professional codec with excellent quality",
+                )
+            )
+        elif codec in ["dnxhd", "dnxhr"]:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is supported by Wirecast",
+                    reason="Professional codec for broadcast workflows",
+                )
+            )
+        elif codec == "hevc":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="HEVC is supported by Wirecast",
+                    reason="Modern codec with good compression",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is supported by Wirecast",
+                )
+            )
+
+        # Check container formats
+        if "mp4" in container or "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is compatible with Wirecast",
+                )
+            )
+        elif "wmv" in container or "avi" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{container.upper()} is supported but MP4/MOV preferred",
+                    suggestion="Use MP4 or MOV for best compatibility",
+                )
+            )
+
+        # Check bitrate for performance
+        if bitrate and bitrate > 150_000_000:  # 150 Mbps
+            mbps = bitrate // 1_000_000
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"High bitrate ({mbps}Mbps) may impact performance",
+                    reason="Very high bitrate can strain CPU during encoding",
+                    suggestion="Consider bitrate under 150 Mbps for smoother operation",
+                )
+            )
+
+        return issues
+
+
+class PlaybackProChecker(CompatibilityChecker):
+    """Compatibility checker for Playback Pro.
+
+    Playback Pro is professional media playback software for theatre,
+    concerts, and live events. Mac only, designed for reliability.
+    """
+
+    RECOMMENDED_CODECS = ["prores", "h264"]
+
+    # Bitrate recommendations by resolution
+    HD_BITRATE_MIN = 15_000_000  # 15 Mbps
+    HD_BITRATE_MAX = 30_000_000  # 30 Mbps
+    UHD_BITRATE_MIN = 30_000_000  # 30 Mbps
+    UHD_BITRATE_MAX = 40_000_000  # 40 Mbps
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # Check codec
+        if "prores" in codec:
+            if "422" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="ProRes 422 is the recommended codec for Playback Pro",
+                        reason="Optimal balance of quality and performance for theatre",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} is fully supported by Playback Pro",
+                        reason="ProRes variants work excellently for live playback",
+                    )
+                )
+        elif codec == "h264":
+            # Check bitrate for H.264
+            if bitrate and resolution:
+                width, height = resolution
+                mbps = bitrate // 1_000_000
+
+                if width >= 3840 or height >= 2160:  # 4K/UHD
+                    if bitrate < self.UHD_BITRATE_MIN or bitrate > self.UHD_BITRATE_MAX:
+                        issues.append(
+                            CompatibilityIssue(
+                                level=CompatibilityLevel.WARNING,
+                                message=f"H.264 bitrate ({mbps}Mbps) outside recommended range for 4K",
+                                reason="Playback Pro recommends 30-40 Mbps VBR for 4K H.264",
+                                suggestion="Adjust bitrate to 30-40 Mbps for optimal playback",
+                            )
+                        )
+                    else:
+                        issues.append(
+                            CompatibilityIssue(
+                                level=CompatibilityLevel.COMPATIBLE,
+                                message=f"H.264 at {mbps}Mbps is suitable for Playback Pro",
+                                reason="Bitrate within recommended range for 4K",
+                            )
+                        )
+                else:  # HD
+                    if bitrate < self.HD_BITRATE_MIN or bitrate > self.HD_BITRATE_MAX:
+                        issues.append(
+                            CompatibilityIssue(
+                                level=CompatibilityLevel.WARNING,
+                                message=f"H.264 bitrate ({mbps}Mbps) outside recommended range for HD",
+                                reason="Playback Pro recommends 15-30 Mbps VBR for HD H.264",
+                                suggestion="Adjust bitrate to 15-30 Mbps for optimal playback",
+                            )
+                        )
+                    else:
+                        issues.append(
+                            CompatibilityIssue(
+                                level=CompatibilityLevel.COMPATIBLE,
+                                message=f"H.264 at {mbps}Mbps is suitable for Playback Pro",
+                                reason="Bitrate within recommended range for HD",
+                            )
+                        )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 is supported by Playback Pro",
+                        reason="15-30 Mbps VBR recommended for HD, 30-40 Mbps for 4K",
+                    )
+                )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} may not be optimal for Playback Pro",
+                    reason="Playback Pro is optimized for ProRes 422 and H.264",
+                    suggestion="Convert to ProRes 422 for best reliability",
+                )
+            )
+
+        # Check container - MOV only!
+        if "mov" not in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message="Playback Pro requires MOV (QuickTime) container",
+                    reason="Playback Pro only accepts .MOV files",
+                    suggestion="Remux to MOV container: ffmpeg -i input -c copy output.mov",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="MOV container is required by Playback Pro",
+                )
+            )
+
+        return issues
+
+
+class EasyWorshipChecker(CompatibilityChecker):
+    """Compatibility checker for EasyWorship church presentation software.
+
+    EasyWorship is popular church presentation software (Windows only).
+    EasyWorship 7+ has improved codec support over earlier versions.
+    """
+
+    # EasyWorship 7+ built-in support (no codec packs needed)
+    NATIVE_CODECS = ["h264"]
+
+    # Also works with Windows Media codecs
+    WINDOWS_CODECS = ["wmv", "mpeg2video"]
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+
+        # Check for native support (H.264 in MP4/MOV)
+        if codec == "h264":
+            if "mp4" in container or "mov" in container or "m4v" in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 in MP4/MOV has native support in EasyWorship 7+",
+                        reason="No additional codecs required",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 is supported by EasyWorship",
+                        reason="H.264 works in most containers",
+                    )
+                )
+        # Check for Windows Media codecs
+        elif codec in self.WINDOWS_CODECS:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is supported on Windows",
+                    reason="Windows Media codecs built into Windows OS",
+                )
+            )
+        # Other codecs may require additional codec packs
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} may require additional codecs",
+                    reason="EasyWorship 7+ natively supports H.264 in MP4/MOV",
+                    suggestion="Convert to H.264 in MP4 for guaranteed compatibility",
+                )
+            )
+
+        # Check container formats
+        if "mp4" in container or "mov" in container or "m4v" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container has native support",
+                    reason="MP4, MOV, and M4V work without additional software",
+                )
+            )
+        elif "wmv" in container or "avi" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} is supported on Windows",
+                    reason="Windows Media formats built into Windows",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{container.upper()} may need additional codec support",
+                    suggestion="Use MP4 container for best compatibility",
+                )
+            )
+
+        return issues
+
+
+# Media Players and VJ Software
+
+
+class VLCChecker(CompatibilityChecker):
+    """Compatibility checker for VLC media player.
+
+    VLC is a universal free media player (Windows/Mac/Linux) that plays
+    virtually everything through FFmpeg libraries. The standard for testing.
+    """
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # VLC plays virtually everything
+        issues.append(
+            CompatibilityIssue(
+                level=CompatibilityLevel.COMPATIBLE,
+                message=f"{codec.upper()} is supported by VLC media player",
+                reason="VLC uses FFmpeg libraries for universal codec support",
+            )
+        )
+
+        # Check for hardware decoding opportunities
+        if codec in ["h264", "hevc", "vp9", "av1"]:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} may benefit from hardware acceleration",
+                    reason="Enable hardware decoding in VLC preferences for better performance",
+                )
+            )
+
+        # Check for very high bitrate or resolution
+        if bitrate and bitrate > 300_000_000:  # 300 Mbps
+            mbps = bitrate // 1_000_000
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"Very high bitrate ({mbps}Mbps) may cause stuttering",
+                    reason="Extreme bitrates can exceed disk I/O capabilities",
+                    suggestion="Ensure fast storage (NVMe SSD) for smooth playback",
+                )
+            )
+
+        if resolution:
+            width, height = resolution
+            if width >= 7680 or height >= 4320:  # 8K
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="8K video requires powerful hardware",
+                        reason="8K playback needs modern CPU/GPU and fast storage",
+                        suggestion="Enable hardware decoding and use VLC 3.0+",
+                    )
+                )
+
+        # Container compatibility (VLC plays everything)
+        if container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is fully supported",
+                    reason="VLC supports all major container formats",
+                )
+            )
+
+        return issues
+
+
+class ResolumeChecker(CompatibilityChecker):
+    """Compatibility checker for Resolume Arena/Avenue VJ software.
+
+    Resolume is the industry standard for VJs, concerts, festivals, and clubs.
+    DXV codec is proprietary and optimal. HAP codec also fully supported.
+    """
+
+    OPTIMAL_CODECS = ["dxv", "dxv2", "dxv3"]  # Resolume's proprietary GPU codec
+    ALSO_OPTIMAL = ["hap", "hap_alpha", "hap_q", "hap_q_alpha"]  # HAP variants
+    SUPPORTED_CODECS = ["h264", "hevc", "prores", "mjpeg"]  # Fallbacks
+
+    def __init__(self, platform: str = "windows"):
+        """Initialize Resolume checker.
+
+        Args:
+            platform: 'windows' or 'mac' for platform-specific advice
+        """
+        self.platform = platform
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # Check for DXV codec (optimal)
+        if "dxv" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="DXV is the optimal codec for Resolume",
+                    reason="GPU-accelerated, proprietary to Resolume for best performance",
+                )
+            )
+        # Check for HAP codec (also optimal)
+        elif "hap" in codec:
+            if "alpha" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} provides GPU-accelerated playback with alpha",
+                        reason="HAP Alpha perfect for overlays and VJ graphics",
+                    )
+                )
+            elif "hap_q" in codec or "hapq" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP Q provides high-quality GPU-accelerated playback",
+                        reason="Best quality HAP variant, performance equal to DXV",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP codec is optimal for Resolume",
+                        reason="GPU-accelerated, works across all VJ software",
+                    )
+                )
+
+            # HAP requires MOV container
+            if "mov" not in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="HAP codec requires MOV container",
+                        suggestion="Remux to MOV: ffmpeg -i input -c copy output.mov",
+                    )
+                )
+        # Check for H.264 (CPU-based fallback)
+        elif codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="H.264 will use CPU decoding, not GPU",
+                    reason="H.264 performs poorly with multiple layers in Resolume",
+                    suggestion="Convert to DXV or HAP for GPU acceleration",
+                )
+            )
+        # Check for ProRes (Mac only, CPU-based)
+        elif "prores" in codec:
+            if self.platform == "mac":
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="ProRes works but is CPU-based on Mac",
+                        reason="ProRes not GPU-accelerated, can limit layer count",
+                        suggestion="Convert to DXV or HAP for better performance",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="ProRes on Windows is CPU-based and slow",
+                        reason="ProRes not optimized for Windows, limits layers",
+                        suggestion="Convert to DXV or HAP for GPU acceleration",
+                    )
+                )
+        # Check for HEVC
+        elif codec == "hevc":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="HEVC should be converted to DXV or HAP",
+                    reason="HEVC is CPU-intensive and not optimized for VJ work",
+                    suggestion="Convert to DXV for best Resolume performance",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} is not optimal for Resolume",
+                    reason="Resolume works best with GPU-accelerated codecs",
+                    suggestion="Convert to DXV (Resolume only) or HAP (universal VJ)",
+                )
+            )
+
+        # Check resolution for layer count
+        if resolution:
+            width, height = resolution
+            if width >= 3840 and height >= 2160:  # 4K
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="4K video limits the number of simultaneous layers",
+                        reason="4K requires 4x bandwidth of 1080p",
+                        suggestion="Use 1080p for more layers, or DXV/HAP for best 4K performance",
+                    )
+                )
+
+        # Check bitrate
+        if bitrate and bitrate > 200_000_000:  # 200 Mbps
+            mbps = bitrate // 1_000_000
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"Very high bitrate ({mbps}Mbps) may limit layer count",
+                    reason="High bitrate stresses disk I/O even with GPU codecs",
+                    suggestion="Use DXV or HAP with moderate bitrate for more layers",
+                )
+            )
+
+        return issues
+
+
+class MittiChecker(CompatibilityChecker):
+    """Compatibility checker for Mitti video playback software.
+
+    Mitti is professional playback software for Mac, used extensively in
+    corporate events, theatre, and exhibitions. Known for extreme reliability.
+    """
+
+    RECOMMENDED_CODECS = ["prores", "hap"]  # Transcodes everything to these
+    APPLE_SILICON_OPTIMAL = ["prores"]  # Hardware accelerated on M1/M2/M3
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # Check for recommended codecs
+        if "prores" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is optimal for Mitti",
+                    reason="Hardware accelerated on Apple Silicon Macs (M1/M2/M3)",
+                )
+            )
+        elif "hap" in codec:
+            if "alpha" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP Alpha is optimal for Mitti with transparency",
+                        reason="GPU-accelerated playback with alpha channel",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP is optimal for Mitti",
+                        reason="GPU-accelerated, especially for 4K and multi-output",
+                    )
+                )
+
+            # HAP requires MOV
+            if "mov" not in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="HAP codec requires MOV container",
+                        suggestion="Remux to MOV container",
+                    )
+                )
+        # Other codecs: Mitti can transcode
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} should be transcoded for Mitti",
+                    reason="Mitti recommends ProRes or HAP for reliable playback",
+                    suggestion=(
+                        "Use Mitti's built-in transcoding to ProRes (Apple Silicon) "
+                        "or HAP (multi-output)"
+                    ),
+                )
+            )
+
+        # Check container (MOV preferred)
+        if "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="MOV container is preferred by Mitti",
+                    reason="QuickTime MOV is Mac's native format",
+                )
+            )
+        elif "mp4" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="MP4 works but MOV is preferred for Mitti",
+                    suggestion="Use MOV container for best compatibility",
+                )
+            )
+
+        # Check resolution for performance
+        if resolution:
+            width, height = resolution
+            if width >= 3840 and height >= 2160:  # 4K
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="4K video: use HAP for multi-output, ProRes for single output",
+                        reason=(
+                            "4K ProRes great on Apple Silicon; 4K HAP better for "
+                            "HDMI/DisplayPort multi-output"
+                        ),
+                        suggestion="HAP for GPU path (external displays), ProRes for SDI",
+                    )
+                )
+
+        # Check bitrate
+        if bitrate and bitrate > 250_000_000:  # 250 Mbps
+            mbps = bitrate // 1_000_000
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"High bitrate ({mbps}Mbps) may stress playback",
+                    reason="Very high bitrate can cause dropped frames",
+                    suggestion="Use ProRes 422 or HAP with moderate bitrate",
+                )
+            )
+
+        return issues
+
+
+class MilluminChecker(CompatibilityChecker):
+    """Compatibility checker for Millumin video mapping software.
+
+    Millumin is professional software for Mac used in video mapping,
+    projection, theatre, dance, museums, and interactive installations.
+    """
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+
+        # Millumin supports all QuickTime formats
+        issues.append(
+            CompatibilityIssue(
+                level=CompatibilityLevel.COMPATIBLE,
+                message=f"{codec.upper()} is supported by Millumin",
+                reason="Millumin uses QuickTime and AVFoundation for codec support",
+            )
+        )
+
+        # Check for recommended codecs
+        if "prores" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="ProRes is excellent for Millumin",
+                    reason="Native Mac codec with hardware acceleration on Apple Silicon",
+                )
+            )
+        elif "hap" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="HAP is optimal for Millumin projection mapping",
+                    reason="GPU-accelerated, ideal for multi-projector setups",
+                )
+            )
+        elif codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="H.264 works but ProRes/HAP recommended for projection",
+                    reason="H.264 is CPU-based, can limit real-time performance",
+                    suggestion="Use ProRes or HAP for better projection mapping performance",
+                )
+            )
+
+        # Check container (MOV preferred)
+        if "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="MOV is the preferred container for Millumin",
+                    reason="QuickTime MOV native to macOS",
+                )
+            )
+        elif "mp4" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="MP4 is supported by Millumin",
+                    reason="MP4 works well for standard playback",
+                )
+            )
+
+        # Check resolution for projection
+        if resolution:
+            width, height = resolution
+            if width >= 3840 and height >= 2160:  # 4K
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="4K video requires powerful Mac for smooth projection",
+                        reason="4K projection mapping is GPU-intensive",
+                        suggestion="Use HAP codec for best 4K projection performance",
+                    )
+                )
+
+        return issues
+
+
+# Browser Compatibility
+
+
 class SafariChecker(CompatibilityChecker):
     """Compatibility checker for Safari browser."""
 
@@ -479,6 +1471,75 @@ class ChromeChecker(CompatibilityChecker):
             )
 
         return issues
+
+
+class FirefoxChecker(CompatibilityChecker):
+    """Compatibility checker for Firefox browser."""
+
+    SUPPORTED_CODECS = ["h264", "vp8", "vp9", "av1"]
+    PARTIALLY_SUPPORTED = ["hevc"]  # Limited to Windows 10+ with extensions
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+
+        if codec in self.SUPPORTED_CODECS:
+            # Check for optimal container pairing
+            if codec in ["vp8", "vp9"] and "webm" in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} in WebM is natively supported by Firefox",
+                        reason="WebM is Firefox's preferred format for VP8/VP9",
+                    )
+                )
+            elif codec == "h264" and "mp4" in container:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 in MP4 is fully supported by Firefox",
+                        reason="Universal browser compatibility",
+                    )
+                )
+            elif codec == "av1":
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="AV1 is supported by Firefox",
+                        reason="Modern codec with good efficiency",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} is supported by Firefox",
+                    )
+                )
+        elif codec in self.PARTIALLY_SUPPORTED:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{codec.upper()} has limited support in Firefox",
+                    reason="HEVC requires Windows 10+ with HEVC Video Extensions",
+                    suggestion="Convert to H.264 or VP9 for broader compatibility",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message=f"Firefox does not support {codec.upper()} codec",
+                    reason="Firefox supports H.264, VP8, VP9, and AV1",
+                    suggestion="Convert to H.264 (MP4) or VP9 (WebM) for Firefox",
+                )
+            )
+
+        return issues
+
+
+# Social Media Platforms
 
 
 class InstagramChecker(CompatibilityChecker):
@@ -599,6 +1660,443 @@ class TwitterChecker(CompatibilityChecker):
         return issues
 
 
+class YouTubeChecker(CompatibilityChecker):
+    """Compatibility checker for YouTube uploads."""
+
+    RECOMMENDED_CODEC = "h264"
+    RECOMMENDED_PROFILE = "high"  # High Profile with CABAC
+    RECOMMENDED_CONTAINER = "mp4"
+    MAX_FILE_SIZE = 256 * 1024 * 1024 * 1024  # 256GB
+    MAX_DURATION = 12 * 3600  # 12 hours in seconds
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        profile = video_info.get("profile", "").lower()
+        container = video_info.get("container", "").lower()
+        file_size = video_info.get("file_size", 0)
+
+        # Check codec (H.264 recommended for uploads)
+        if codec != self.RECOMMENDED_CODEC:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"YouTube recommends H.264, not {codec.upper()} for uploads",
+                    reason="YouTube re-encodes all uploads to multiple formats",
+                    suggestion="Upload as H.264 for best quality control and processing speed",
+                )
+            )
+        else:
+            # Check H.264 profile
+            if profile and "high" in profile:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 High Profile is optimal for YouTube",
+                        reason="Best quality for YouTube's re-encoding process",
+                    )
+                )
+            elif profile:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"H.264 {profile.title()} Profile detected",
+                        reason="YouTube recommends High Profile for best quality",
+                        suggestion="Use High Profile with CABAC for optimal results",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="H.264 codec is supported by YouTube",
+                    )
+                )
+
+        # Check container (MP4 preferred)
+        if "mp4" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="MP4 is YouTube's preferred container format",
+                    reason="Fastest processing and best compatibility",
+                )
+            )
+        elif "mov" in container or "avi" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{container.upper()} is accepted but MP4 is preferred",
+                    suggestion="Use MP4 for faster upload processing",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="YouTube works best with MP4 container",
+                    suggestion="Remux to MP4 for optimal compatibility",
+                )
+            )
+
+        # Check file size
+        if file_size > self.MAX_FILE_SIZE:
+            size_gb = file_size // (1024 * 1024 * 1024)
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message=f"File size {size_gb}GB exceeds YouTube's 256GB limit",
+                    reason="YouTube has a maximum file size of 256GB",
+                    suggestion="Compress video or split into multiple parts",
+                )
+            )
+
+        return issues
+
+
+class TikTokChecker(CompatibilityChecker):
+    """Compatibility checker for TikTok uploads."""
+
+    RECOMMENDED_CODEC = "h264"
+    RECOMMENDED_PROFILE = "high"
+    MAX_FILE_SIZE_MOBILE = 287 * 1024 * 1024  # 287MB for mobile uploads
+    MAX_FILE_SIZE_DESKTOP = 10 * 1024 * 1024 * 1024  # 10GB for desktop
+    MAX_DURATION = 10 * 60  # 10 minutes
+    OPTIMAL_BITRATE_MIN = 8_000_000  # 8 Mbps
+    OPTIMAL_BITRATE_MAX = 15_000_000  # 15 Mbps
+    LOW_QUALITY_THRESHOLD = 5_000_000  # 5 Mbps triggers quality flag
+
+    def __init__(self, upload_source: str = "mobile"):
+        """Initialize TikTok checker.
+
+        Args:
+            upload_source: 'mobile' or 'desktop' to determine file size limit
+        """
+        self.upload_source = upload_source
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+        file_size = video_info.get("file_size", 0)
+
+        # Check codec (H.264 recommended, HEVC causes issues)
+        if codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="H.264 is the optimal codec for TikTok",
+                    reason="Best compatibility across all devices",
+                )
+            )
+        elif codec == "hevc":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="HEVC may cause playback issues on some devices",
+                    reason="15-20% of US iOS devices have HEVC compatibility issues",
+                    suggestion="Convert to H.264 for universal compatibility",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"TikTok recommends H.264, not {codec.upper()}",
+                    reason="TikTok re-encodes all uploads",
+                    suggestion="Upload as H.264 to maintain quality control",
+                )
+            )
+
+        # Check container
+        if "mp4" in container or "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is supported by TikTok",
+                    reason="Standard container formats for mobile video",
+                )
+            )
+        elif "webm" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="WebM is supported but MP4 is preferred for TikTok",
+                    suggestion="Convert to MP4 for better compatibility",
+                )
+            )
+
+        # Check resolution (1080x1920 recommended for 9:16 aspect ratio)
+        if resolution:
+            width, height = resolution
+            if width == 1080 and height == 1920:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="1080x1920 is optimal for TikTok",
+                        reason="Perfect 9:16 aspect ratio for vertical video",
+                    )
+                )
+            elif width > 1080 or height > 1920:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"Resolution {width}x{height} will be downscaled",
+                        reason="TikTok displays videos at 1080p maximum",
+                        suggestion="Export at 1080x1920 to avoid wasted bitrate",
+                    )
+                )
+
+        # Check bitrate
+        if bitrate:
+            mbps = bitrate // 1_000_000
+            if bitrate < self.LOW_QUALITY_THRESHOLD:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"Low bitrate ({mbps}Mbps) may trigger quality downgrade",
+                        reason="TikTok flags videos below 5 Mbps as low quality",
+                        suggestion="Use 8-15 Mbps for optimal quality",
+                    )
+                )
+            elif bitrate > 20_000_000:  # 20 Mbps
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=f"High bitrate ({mbps}Mbps) will be compressed anyway",
+                        reason="TikTok flattens bitrates above 20 Mbps",
+                        suggestion="Use 8-15 Mbps to optimize file size",
+                    )
+                )
+
+        # Check file size based on upload source
+        max_size = (
+            self.MAX_FILE_SIZE_DESKTOP
+            if self.upload_source == "desktop"
+            else self.MAX_FILE_SIZE_MOBILE
+        )
+        if file_size > max_size:
+            size_mb = file_size // (1024 * 1024)
+            limit_mb = max_size // (1024 * 1024) if max_size < 1024**3 else "10GB"
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message=f"File size {size_mb}MB exceeds TikTok {self.upload_source} limit",
+                    reason=f"TikTok {self.upload_source} uploads limited to {limit_mb}",
+                    suggestion=(
+                        "Compress video or use desktop upload for larger files"
+                        if self.upload_source == "mobile"
+                        else "Compress video to reduce file size"
+                    ),
+                )
+            )
+
+        return issues
+
+
+class VimeoChecker(CompatibilityChecker):
+    """Compatibility checker for Vimeo uploads."""
+
+    RECOMMENDED_CODEC = "h264"
+    RECOMMENDED_PROFILE = "high"
+    ALSO_ACCEPTS = ["prores"]  # Accepted but not recommended
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution")
+        bitrate = video_info.get("bitrate")
+
+        # Check codec
+        if codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="H.264 is the recommended codec for Vimeo uploads",
+                    reason="Fast upload and optimal platform processing",
+                )
+            )
+        elif "prores" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message="ProRes is accepted but not recommended for uploads",
+                    reason="ProRes files are very large and slow to upload",
+                    suggestion="Use H.264 for faster uploads; save ProRes for archival",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"Vimeo recommends H.264, not {codec.upper()}",
+                    reason="Vimeo re-encodes all uploads for streaming",
+                    suggestion="Upload as H.264 for best results",
+                )
+            )
+
+        # Check container
+        if "mp4" in container or "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is compatible with Vimeo",
+                )
+            )
+
+        # Check bitrate based on resolution
+        if resolution and bitrate:
+            width, height = resolution
+            mbps = bitrate // 1_000_000
+
+            if width >= 3840 and height >= 2160:  # 4K
+                if bitrate < 40_000_000 or bitrate > 50_000_000:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message=f"4K bitrate ({mbps}Mbps) outside recommended range",
+                            reason="Vimeo recommends 40-50 Mbps for 4K video",
+                            suggestion="Adjust bitrate to 40-50 Mbps for optimal quality",
+                        )
+                    )
+                else:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.COMPATIBLE,
+                            message=f"4K bitrate ({mbps}Mbps) is optimal for Vimeo",
+                        )
+                    )
+            elif width >= 1920 and height >= 1080:  # 1080p
+                if bitrate < 10_000_000 or bitrate > 20_000_000:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message=f"1080p bitrate ({mbps}Mbps) outside recommended range",
+                            reason="Vimeo recommends 10-20 Mbps for 1080p video",
+                            suggestion="Adjust bitrate to 10-20 Mbps for optimal quality",
+                        )
+                    )
+                else:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.COMPATIBLE,
+                            message=f"1080p bitrate ({mbps}Mbps) is optimal for Vimeo",
+                        )
+                    )
+            elif width >= 1280 and height >= 720:  # 720p
+                if bitrate < 5_000_000 or bitrate > 10_000_000:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message=f"720p bitrate ({mbps}Mbps) outside recommended range",
+                            reason="Vimeo recommends 5-10 Mbps for 720p video",
+                            suggestion="Adjust bitrate to 5-10 Mbps for optimal quality",
+                        )
+                    )
+                else:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.COMPATIBLE,
+                            message=f"720p bitrate ({mbps}Mbps) is optimal for Vimeo",
+                        )
+                    )
+
+        return issues
+
+
+class FacebookChecker(CompatibilityChecker):
+    """Compatibility checker for Facebook video uploads."""
+
+    RECOMMENDED_CODEC = "h264"
+    NEWER_CODECS = ["hevc", "vp9", "av1"]  # Supported in Reels
+    MAX_FILE_SIZE = 4 * 1024 * 1024 * 1024  # 4GB
+    MAX_DURATION = 240 * 60  # 240 minutes
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+        file_size = video_info.get("file_size", 0)
+        resolution = video_info.get("resolution")
+
+        # Check codec
+        if codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="H.264 is the recommended codec for Facebook",
+                    reason="Universal compatibility across Feed, Stories, and Ads",
+                )
+            )
+        elif codec in self.NEWER_CODECS:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is supported for Facebook Reels",
+                    reason="Newer codecs accepted but H.264 recommended for Feed",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"Facebook recommends H.264, not {codec.upper()}",
+                    reason="Facebook will re-encode non-standard codecs",
+                    suggestion="Convert to H.264 for best compatibility",
+                )
+            )
+
+        # Check container
+        if "mp4" in container or "mov" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} is preferred by Facebook",
+                    reason="MP4 and MOV offer best compatibility",
+                )
+            )
+        elif "avi" in container or "wmv" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"{container.upper()} is supported but not recommended",
+                    suggestion="Use MP4 or MOV for better compatibility",
+                )
+            )
+
+        # Check file size
+        if file_size > self.MAX_FILE_SIZE:
+            size_gb = file_size / (1024 * 1024 * 1024)
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message=f"File size {size_gb:.1f}GB exceeds Facebook's 4GB limit",
+                    reason="Facebook has a maximum file size of 4GB",
+                    suggestion="Compress video or reduce quality to meet size limit",
+                )
+            )
+
+        # Check resolution recommendations
+        if resolution:
+            width, height = resolution
+            if width >= 1280 and height >= 720:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"Resolution {width}x{height} is suitable for Facebook",
+                        reason="720p or higher provides good quality",
+                    )
+                )
+
+        return issues
+
+
+# System Registry
+
+
 def get_available_systems() -> List[str]:
     """Return list of all available system names.
 
@@ -608,14 +2106,27 @@ def get_available_systems() -> List[str]:
     return sorted(
         [
             "casparcg",
+            "playoutbee",
             "vmix",
             "obs",
             "qlab",
             "propresenter",
+            "wirecast",
+            "playbackpro",
+            "easyworship",
+            "vlc",
+            "resolume",
+            "mitti",
+            "millumin",
             "safari",
             "chrome",
+            "firefox",
             "instagram",
             "twitter",
+            "youtube",
+            "tiktok",
+            "vimeo",
+            "facebook",
         ]
     )
 
@@ -632,14 +2143,27 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
     """
     checkers = {
         "casparcg": CasparCGChecker,
+        "playoutbee": PlayoutBeeChecker,
         "vmix": VmixChecker,
         "obs": OBSChecker,
         "qlab": QLabChecker,
         "propresenter": ProPresenterChecker,
+        "wirecast": WirecastChecker,
+        "playbackpro": PlaybackProChecker,
+        "easyworship": EasyWorshipChecker,
+        "vlc": VLCChecker,
+        "resolume": ResolumeChecker,
+        "mitti": MittiChecker,
+        "millumin": MilluminChecker,
         "safari": SafariChecker,
         "chrome": ChromeChecker,
+        "firefox": FirefoxChecker,
         "instagram": InstagramChecker,
         "twitter": TwitterChecker,
+        "youtube": YouTubeChecker,
+        "tiktok": TikTokChecker,
+        "vimeo": VimeoChecker,
+        "facebook": FacebookChecker,
     }
 
     system_lower = system.lower()

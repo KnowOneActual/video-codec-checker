@@ -1,8 +1,8 @@
 # VideoWise
 
-> ⚠️ **UNDER DEVELOPMENT**: This project is under development and is not yet feature-complete. The core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
+> ⚠️ **UNDER DEVELOPMENT**: Core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
 >
-> ✅ **What Works Now**: Basic CLI, 9 system compatibility checkers, Python API, `--all` flag, **batch processing**, **enhanced explanations**
+> ✅ **What Works**: Full CLI, **22 system checkers**, Python API, `--all` flag, batch processing, enhanced explanations  
 > 🚧 **In Progress**: Additional platforms, advanced features
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
@@ -11,45 +11,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A video codec compatibility checker that explains *why* your video won't work and how to fix it, for content creators, live production operators, and developers.
-
-## Quick Start
-
-```bash
-# Install
-git clone https://github.com/KnowOneActual/video-codec-checker.git
-cd video-codec-checker
-pip install -e .
-
-# Check a single video file
-videowise check video.mp4 --system casparcg
-
-# Check against ALL systems at once
-videowise check video.mp4 --all
-
-# Get extended explanations and codec knowledge (great for learning!)
-videowise check video.mp4 --system safari --explain
-
-# Process multiple files or directories
-videowise batch videos/ --recursive --all
-
-# Check multiple specific files
-videowise batch video1.mp4 video2.mov --system casparcg
-
-# Plain text output (no colors, perfect for CI/CD pipelines)
-videowise check video.mp4 --system casparcg --no-color
-
-# Get detailed output
-videowise check video.mp4 --system instagram -v
-
-# Combine flags for educational reports
-videowise batch videos/ --all --explain --no-color > educational_report.txt
-
-# JSON output for scripting
-videowise check video.mp4 --system safari --json
-videowise batch videos/ --all --json > report.json
-```
-
-**See [CLI Usage Guide](docs/CLI_USAGE.md) for complete documentation.**
 
 ## The Problem Being Solved
 
@@ -63,72 +24,48 @@ You've spent hours creating the perfect video, but:
 
 ### For Live Production Operators
 You're setting up for a show and:
-- Your playback software (CasparCG, vMix, Linux Show Player) refuses to load the video
-- The file plays fine on your computer, but stutters during live playback
-- Graphics overlays work with some files but not others
-- You're 10 minutes from showtime and need to know if you should re-encode NOW
-- Client delivers last-minute content, and you need to know instantly if it's compatible
-- **You have 50 videos to check before the show starts**
-- **You need to train your team on what codecs work and why**
+- Your playback software (CasparCG, vMix, Resolume) refuses to load the video or stutters during live playback
+- You're 10 minutes from showtime with last-minute content and need instant compatibility verification
+- **You have 50 videos to check before the show starts and need to train your team on what codecs work and why**
 
 Most tools either show you raw technical data (codec, bitrate, profile) or just fail silently. **VideoWise bridges that gap** by explaining compatibility issues in plain English and suggesting actual fixes.
 
+## Quick Start
+
+```bash
+# Install
+git clone https://github.com/KnowOneActual/video-codec-checker.git
+cd video-codec-checker
+pip install -e .
+
+# Check a single video
+videowise check video.mp4 --system casparcg
+
+# Check against ALL 22 systems
+videowise check video.mp4 --all
+
+# Get extended explanations (great for learning!)
+videowise check video.mp4 --system resolume --explain
+
+# Process multiple files or directories
+videowise batch videos/ --recursive --all
+```
+
+**📚 [Complete CLI Guide](docs/CLI_USAGE.md)** | **💡 [Usage Examples](docs/EXAMPLES.md)** | **🐍 [Python API](docs/API_REFERENCE.md)**
+
 ## What VideoWise Does
 
-VideoWise analyzes video files and provides human-readable explanations:
+VideoWise analyzes video files and provides:
 
-**For Upload/Playback:**
-- "This won't play in Safari because it uses VP9 codec - Safari only supports H.264 and HEVC."
-- "Instagram will re-encode this (losing quality) because it's H.264 High Profile instead of Baseline."
-- "This file is 850MB, but Twitter's limit is 512MB - you'll need to compress it."
-- "This MP4 container uses AV1 codec, which isn't widely supported yet - consider H.264 for maximum compatibility."
+- **Human-readable explanations**: "This won't play in Safari because it uses VP9 codec - Safari only supports H.264 and HEVC."
+- **Actionable suggestions**: "Instagram will re-encode this (losing quality) because it's H.264 High Profile instead of Baseline."
+- **Live production warnings**: "This file will cause dropped frames in vMix - bitrate is 180Mbps, but your system can only handle 100Mbps smoothly."
+- **VJ/Performance advice**: "Convert to DXV or HAP for Resolume - H.264 is CPU-based and limits your layer count."
+- **Educational mode**: Use `--explain` flag to learn about H.264 profiles, ProRes variants, HAP codec performance, and VFR issues
+- **Batch processing**: Check entire directories at once to find which videos need re-encoding before the show
+- **Multi-system validation**: Use `--all` flag to check against all 22 systems simultaneously
 
-**For Live Production:**
-- "CasparCG 2.3 can't play this - it requires ProRes, DNxHD, or H.264 in MP4 container."
-- "This file will cause dropped frames in vMix - bitrate is 180Mbps, but your system can only handle 100Mbps smoothly."
-- "QLab performance will suffer with H.264 - convert to ProRes 422 Proxy for smooth scrubbing."
-- "ProPresenter works best with HAP codec for GPU-accelerated playback."
-- "Warning: Variable frame rate video will cause timing issues in live production - convert to constant frame rate."
-
-**With Extended Explanations (--explain flag):**
-- Learn about H.264 profiles: "H.264 profiles (Baseline, Main, High) determine feature complexity. Baseline is most compatible but least efficient..."
-- Understand ProRes variants: "ProRes Proxy and LT are optimized for editing and playback, with lower bitrates than standard ProRes..."
-- Learn why HAP is fast: "HAP is GPU-accelerated and designed for real-time playback. It offloads video decoding to the graphics card..."
-- Understand VFR issues: "Variable Frame Rate (VFR) videos change frame rate during playback, which causes timing issues in live production..."
-
-**For Batch Processing:**
-- Check entire directories of videos at once
-- Get a summary report of all compatibility issues
-- Find which videos need re-encoding before the show
-- Validate entire media libraries against all systems
-- Generate educational reports for team training
-
-## Current Status
-
-✅ **Phase 1 Complete - Phase 2 Complete**:
-- [x] Project structure and test framework
-- [x] File validation and error handling
-- [x] FFprobe integration for metadata extraction
-- [x] Comprehensive codec/container/profile parsing
-- [x] Complete compatibility rules engine (9 systems)
-- [x] 140 passing tests with 94% code coverage
-- [x] ✨ **Basic CLI with colored output**
-- [x] JSON output for automation
-- [x] CI/CD with GitHub Actions
-- [x] Code quality tools (Black, isort, flake8, mypy)
-- [x] Pre-commit hooks for automated quality checks
-- [x] ✨ **`--all` flag (check all systems at once)**
-- [x] ✨ **Batch processing (check multiple files/directories)**
-- [x] ✨ **Enhanced explanation formatter with educational codec knowledge**
-- [x] ✨ **Plain text mode for CI/CD (`--no-color` flag)**
-
-**Supported Systems:**
-
-| Category | Systems | Status |
-|----------|---------|--------|
-| **Live Production** | CasparCG, vMix, OBS Studio, QLab, ProPresenter | ✅ Complete |
-| **Browsers** | Safari, Chrome | ✅ Complete |
-| **Social Media** | Instagram, Twitter/X | ✅ Complete |
+**[See detailed examples and real-world scenarios →](docs/EXAMPLES.md)**
 
 ## Installation
 
@@ -136,503 +73,108 @@ VideoWise analyzes video files and provides human-readable explanations:
 
 You need FFmpeg installed:
 
-**macOS:**
 ```bash
+# macOS
 brew install ffmpeg
-```
 
-**Linux (Ubuntu/Debian):**
-```bash
+# Linux (Ubuntu/Debian)
 sudo apt-get install ffmpeg
-```
 
-**Windows:**
-Download from [ffmpeg.org](https://ffmpeg.org/download.html)
+# Windows: Download from ffmpeg.org
+```
 
 ### Install VideoWise
 
 ```bash
-# Clone the repo
 git clone https://github.com/KnowOneActual/video-codec-checker.git
 cd video-codec-checker
-
-# Install dependencies and package
-pip install -r requirements.txt
 pip install -e .
 
 # Verify installation
 videowise --version
-
-# Run tests (all should pass)
-pytest -v
 ```
 
-## CLI Usage
+## Supported Systems (22 Total)
 
-### Basic Examples
+| Category | Systems | Status |
+|----------|---------|--------|
+| **Live Production** | CasparCG, PlayoutBee, vMix, OBS Studio, QLab, ProPresenter | ✅ Complete |
+| **Church/Theatre Presentation** | Wirecast, Playback Pro, EasyWorship | ✅ Complete |
+| **Media Players & VJ Software** | VLC, Resolume, Mitti, Millumin | ✅ Complete |
+| **Browsers** | Safari, Chrome, Firefox | ✅ Complete |
+| **Social Media** | Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook | ✅ Complete |
 
-**Check CasparCG compatibility:**
-```bash
-videowise check sponsor_video.mov --system casparcg
-```
+**[View detailed compatibility matrix →](docs/COMPATIBILITY_MATRIX.md)**
 
-Output:
-```
-Analyzing sponsor_video.mov...
+## Documentation
 
-Compatibility Check: CASPARCG
-──────────────────────────────────────────────────
-✓ Video is compatible with CasparCG 2.3
-```
-
-**Check with extended explanations (educational mode):**
-```bash
-videowise check video.mp4 --system safari --explain
-```
-
-Output includes codec knowledge:
-```
-Analyzing video.mp4...
-
-Compatibility Check: SAFARI
-──────────────────────────────────────────────────
-❌ VP9 codec not supported
-   Reason: Safari only supports H.264 and HEVC
-   Suggestion: Convert to H.264 for Safari compatibility
-
-   📖 About Incompatible:
-      This video will NOT work.
-      The video will fail to play, upload, or process. Conversion is required.
-
-   💡 Additional Context:
-      VP9 is a modern, efficient codec by Google, but not universally 
-      supported. H.264 or HEVC are safer choices for broad compatibility.
-
-📊 SEVERITY LEVELS EXPLAINED
-============================================================
-
-✅ COMPATIBLE
-   This video will work without issues.
-   Impact: No problems expected. The video should play smoothly.
-
-⚠️  WARNING
-   This video may have issues or suboptimal performance.
-   Impact: The video might work but could have quality loss, 
-           performance issues, or compatibility problems.
-
-❌ INCOMPATIBLE
-   This video will NOT work.
-   Impact: The video will fail to play, upload, or process. 
-           Conversion is required.
-```
-
-**Plain text output for CI/CD:**
-```bash
-videowise check video.mp4 --system casparcg --no-color
-```
-
-Output without ANSI color codes - perfect for log files and CI/CD pipelines.
-
-**Check Instagram with verbose output:**
-```bash
-videowise check promo.mp4 --system instagram -v
-```
-
-**Check ALL systems at once:**
-```bash
-videowise check video.mp4 --all
-```
-
-Output shows results for all 9 systems with a summary:
-```
-📹 Video: video.mp4
-
-🔍 Checking against all 9 systems
-
-============================================================
-🎬 CASPARCG
-============================================================
-✅ Video is compatible with CasparCG 2.3
-
-============================================================
-🎬 SAFARI
-============================================================
-⚠️  Safari may have performance issues...
-
-... (all systems) ...
-
-============================================================
-📊 SUMMARY
-============================================================
-
-✅ Compatible (7):
-   • casparcg
-   • vmix
-   ...
-
-⚠️  Warnings (2):
-   • safari
-   • qlab
-```
-
-### Batch Processing
-
-**Check all videos in a directory:**
-```bash
-videowise batch /path/to/videos/ --system casparcg
-```
-
-**Recursively check entire media library:**
-```bash
-videowise batch /media/library/ --recursive --all
-```
-
-Output:
-```
-📂 Found 15 video file(s) to check
-
-======================================================================
-📊 BATCH SUMMARY
-======================================================================
-
-Total files processed: 15
-Systems checked: casparcg, vmix, obs, qlab, propresenter, safari, chrome, instagram, twitter
-
-✅ Fully compatible: 10
-⚠️  Warnings: 3
-❌ Incompatible: 2
-```
-
-**Check specific file types:**
-```bash
-videowise batch videos/ --recursive --extensions .mp4,.mov --all
-```
-
-**Generate educational report for team training:**
-```bash
-videowise batch training-videos/ --all --explain --no-color > team_training_report.txt
-```
-
-**Generate batch report:**
-```bash
-videowise batch videos/ --recursive --all --json > compatibility_report.json
-```
-
-### JSON Output
-
-**Single file:**
-```bash
-videowise check video.mp4 --system casparcg --json > results.json
-```
-
-**All systems:**
-```bash
-videowise check video.mp4 --all --json > full_report.json
-```
-
-**Batch processing:**
-```bash
-videowise batch videos/ --recursive --all --json > batch_report.json
-```
-
-### Available Systems
-
-- `casparcg` - CasparCG Server
-- `vmix` - vMix
-- `obs` - OBS Studio
-- `qlab` - QLab
-- `propresenter` - ProPresenter
-- `safari` - Safari browser
-- `chrome` - Chrome browser
-- `instagram` - Instagram
-- `twitter` - Twitter/X
-
-### Exit Codes
-
-- `0`: Compatible (all checks passed)
-- `1`: Warnings (may have issues)
-- `2`: Incompatible (will not work)
-
-**For `--all` flag:** Exit code reflects the worst case across all systems.
-
-**For `batch` command:** Exit code reflects the worst case across all files.
-
-**For complete CLI documentation, see [CLI Usage Guide](docs/CLI_USAGE.md)**
-
-## Python API Usage
-
-You can also use VideoWise as a Python library:
-
-```python
-from videowise.analyzer import VideoAnalyzer
-from videowise.compatibility import check_compatibility
-from videowise.utils import get_video_info
-from videowise.formatter import ExplanationFormatter
-
-# Analyze video file
-analyzer = VideoAnalyzer('video.mp4')
-video_info = get_video_info(analyzer)
-
-# Check compatibility
-issues = check_compatibility(video_info, 'casparcg')
-
-# Format output with explanations
-formatter = ExplanationFormatter(use_color=True, explain_mode=True)
-for issue in issues:
-    print(formatter.format_issue(issue, system='casparcg'))
-```
+- **[CLI Usage Guide](docs/CLI_USAGE.md)** - Complete command reference and options
+- **[Usage Examples](docs/EXAMPLES.md)** - Real-world workflows and use cases
+- **[Python API Reference](docs/API_REFERENCE.md)** - Using VideoWise in your Python code
+- **[Compatibility Matrix](docs/COMPATIBILITY_MATRIX.md)** - Detailed system compatibility features
+- **[Media Players & VJ Software](docs/MEDIA_PLAYERS_VJ.md)** - In-depth guide for VLC, Resolume, Mitti, Millumin
 
 ## Development
 
-### For Contributors
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
+- **[Testing Guide](TESTING.md)** - Running tests and adding test coverage
+- **[Development Setup](DEVELOPMENT.md)** - Setting up your development environment
 
-We use modern Python tooling for code quality and automated testing:
-
-```bash
-# One-time setup
-make install-dev      # Install dev dependencies
-make setup-hooks      # Install pre-commit hooks
-
-# Daily workflow
-make format          # Auto-format code (Black + isort)
-make test            # Run tests
-make check           # Run all quality checks (what CI runs)
-```
-
-**All code is automatically checked** on every commit with:
-- **Black** - Code formatting
-- **isort** - Import sorting
-- **flake8** - Linting
-- **mypy** - Type checking
-
-**All code is automatically tested** on every push via GitHub Actions:
-- Tests run on Python 3.8, 3.9, 3.10, 3.11, 3.12
-- All quality checks must pass
-- CLI smoke tests verify basic functionality
-
-**See [TESTING.md](TESTING.md) for a comprehensive testing guide.**
-**See [DEVELOPMENT.md](DEVELOPMENT.md) for the complete contributor guide.**
-
-### Quick Development Commands
+**Quick development commands:**
 
 ```bash
-make help          # Show all available commands
+make install-dev    # Install dev dependencies
 make test          # Run tests
-make test-cov      # Run tests with coverage report
-make format        # Auto-format code (Black + isort)
-make check         # Check code quality (no modifications)
-make lint          # Run linters (flake8, mypy)
-make clean         # Remove build artifacts
+make format        # Auto-format code
+make check         # Run all quality checks
 ```
-
-### Running Tests
-
-```bash
-# Run all tests
-pytest
-
-# Run with verbose output
-pytest -v
-
-# Run specific test file
-pytest tests/test_compatibility.py
-
-# Run with coverage report
-pytest --cov=videowise --cov-report=html
-```
-
-Building this test-first. Every feature has comprehensive tests. **Currently: 140 passing tests with 94% code coverage**
-
-**Note:** Tests generate temporary video files using ffmpeg. If ffmpeg is not available, those tests will be skipped.
-
-**For detailed testing information, see [TESTING.md](TESTING.md)**
-
-### Continuous Integration
-
-Every push triggers automated testing via GitHub Actions:
-
-- **Linting**: Black, isort, flake8, mypy
-- **Testing**: Python 3.8-3.12 on Ubuntu
-- **CLI Tests**: Verify basic functionality
-
-View status: [Actions tab](https://github.com/KnowOneActual/video-codec-checker/actions)
-
-### Project Structure
-
-```
-video-codec-checker/
-├── videowise/          # Core package
-│   ├── __init__.py
-│   ├── analyzer.py     # Video file analysis and metadata extraction
-│   ├── compatibility.py # Rules engine (9 systems)
-│   ├── formatter.py    # Enhanced explanation formatter
-│   ├── utils.py        # Helper functions
-│   └── cli.py          # Command-line interface
-├── tests/              # Comprehensive test suite
-│   ├── conftest.py    # Test fixtures (video generation)
-│   ├── test_analyzer.py  # File validation tests
-│   ├── test_codec_parsing.py  # Metadata extraction tests
-│   ├── test_compatibility.py  # Core system tests
-│   ├── test_compatibility_extended.py  # Extended tests
-│   ├── test_batch.py   # Batch processing tests
-│   ├── test_cli.py     # CLI tests (including --all flag)
-│   ├── test_cli_explain.py  # Explanation flag tests
-│   └── test_formatter.py  # Formatter tests
-├── examples/           # Example scripts
-├── docs/               # Documentation
-│   └── CLI_USAGE.md   # Complete CLI guide
-├── .github/workflows/  # CI/CD
-│   └── ci.yml         # GitHub Actions
-├── .pre-commit-config.yaml  # Pre-commit hooks
-├── Makefile           # Development commands
-├── TESTING.md         # Testing guide
-├── DEVELOPMENT.md     # Contributor guide
-├── requirements.txt
-├── pyproject.toml
-└── README.md
-```
-
-## Compatibility Features
-
-### Live Production Systems
-
-**CasparCG Server**
-- ✅ Codec validation (H.264, ProRes, DNxHD, DNxHR, MPEG-2, MJPEG)
-- ✅ Container format recommendations
-- ✅ Variable frame rate detection (live timing issues)
-
-**vMix**
-- ✅ Bitrate performance warnings (100Mbps, 200Mbps thresholds)
-- ✅ 4K resolution hardware requirements
-- ✅ ProRes/DNx optimization detection
-
-**OBS Studio**
-- ✅ H.264/HEVC/AV1 hardware acceleration detection
-- ✅ MKV default format recognition
-- ✅ Multi-codec support validation
-
-**QLab**
-- ✅ ProRes Proxy/LT optimal performance detection
-- ✅ H.264 scrubbing performance warnings
-- ✅ ProRes 4444 alpha channel support
-
-**ProPresenter**
-- ✅ HAP codec GPU acceleration (best performance)
-- ✅ ProRes 4444 transparency support
-- ✅ H.264/HEVC compatibility validation
-
-### Browser Compatibility
-
-**Safari**
-- ✅ H.264 and HEVC support only
-- ✅ VP9 rejection detection
-- ✅ MP4 container recommendations
-
-**Chrome**
-- ✅ H.264, VP8, VP9, AV1 support
-- ✅ Multi-format compatibility
-
-### Social Media Platforms
-
-**Instagram**
-- ✅ H.264 Baseline Profile optimization
-- ✅ Resolution downscaling warnings (1080p max)
-- ✅ Re-encoding quality loss detection
-- ✅ Profile-specific recommendations
-
-**Twitter/X**
-- ✅ H.264 High Profile recommendations
-- ✅ File size limits (512MB standard, 8GB premium)
-- ✅ Account tier detection
-- ✅ Container format validation
 
 ## Roadmap
 
-### Phase 1: Foundation ✅ COMPLETE
-- [x] Project setup and structure
-- [x] Basic file validation
-- [x] FFprobe integration
-- [x] Parse codec, container, and profile information
-- [x] Compatibility rules engine
-- [x] Live production systems (CasparCG, vMix, OBS, QLab, ProPresenter)
-- [x] Browser compatibility (Safari, Chrome)
-- [x] Social media platforms (Instagram, Twitter)
-- [x] Comprehensive test coverage (140 tests, 94% coverage)
+### Current Status (Phase 2 Complete! 🎉)
+- ✅ **22 system compatibility checkers** with 160+ passing tests (94% coverage)
+- ✅ CLI with colored output, `--all` flag, batch processing
+- ✅ Educational mode with `--explain` flag
+- ✅ JSON output for automation
+- ✅ CI/CD with automated testing
+- ✅ Full browser support (Safari, Chrome, Firefox)
+- ✅ Complete social media coverage (Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook)
+- ✅ VJ/media player support (VLC, Resolume, Mitti, Millumin)
+- ✅ Church/theatre presentation (Wirecast, Playback Pro, EasyWorship)
 
-### Phase 2: User Interface ✅ COMPLETE
-- [x] Basic CLI tool for terminal use
-- [x] Colored terminal output
-- [x] JSON output format
-- [x] CI/CD pipeline
-- [x] Code quality automation
-- [x] Pre-commit hooks
-- [x] ✨ **`--all` flag (check all systems)**
-- [x] ✨ **Batch processing support (check multiple files/directories)**
-- [x] ✨ **Enhanced explanation formatter with codec knowledge**
-- [x] ✨ **Plain text mode (`--no-color` flag)**
-- [x] Summary reports
+### Coming Next (Phase 3)
+- [ ] Streaming platforms (Twitch, Restream, Zoom)
+- [ ] Additional live production (Blackmagic ATEM, Roland V-Series)
+- [ ] Video editing software (DaVinci Resolve, Adobe Premiere)
+- [ ] Media servers (Catalyst, Disguise, Watchout)
 
-### Phase 3: Additional Systems
-- [ ] Linux Show Player compatibility
-- [ ] Wirecast compatibility
-- [ ] Playback Pro compatibility
-- [ ] Firefox browser rules
-- [ ] TikTok, YouTube platform rules
-- [ ] Streaming platforms (Twitch, Vimeo, Restream)
-- [ ] Video editor compatibility (Premiere, DaVinci Resolve, Final Cut Pro)
-
-### Phase 4: Advanced Features
-- [ ] Provide ffmpeg commands to fix issues
-- [ ] Pre-show compatibility checker mode
-- [ ] Watch folder mode (auto-check files as they arrive)
-- [ ] Export reports (for production documentation)
+### Future (Phase 4)
+- [ ] Auto-generate ffmpeg fix commands
+- [ ] Watch folder mode
 - [ ] Web interface
-- [ ] Package for PyPI (pip install videowise)
+- [ ] PyPI package
 
-**See [ROADMAP.md](ROADMAP.md) for detailed plans.**
-
-## Wanted: Your Input!
-
-**For Content Creators:**
-- Which platforms do you upload to? (YouTube, Instagram, Twitter, Vimeo, web browsers?)
-- What error messages have you encountered that made no sense?
-- What tools do you currently use to check video compatibility?
-- Would educational codec explanations help you learn?
-
-**For Live Production Operators:**
-- What playback systems do you use? (CasparCG, vMix, OBS, Linux Show Player, Wirecast, PlayoutBee?)
-- What "this file worked in testing but failed live" stories do you have?
-- What codec combinations always cause problems?
-- What do you wish you could check BEFORE loading a file into your system?
-- Would team training materials with codec explanations be useful?
-
-**For Everyone:**
-- What would make this tool actually useful for your workflow?
-- Would you use a CLI tool, web interface, or both?
-- Is the `--explain` flag helpful for learning about codecs?
-
-**Open an [issue](https://github.com/KnowOneActual/video-codec-checker/issues)** or **start a [discussion](https://github.com/KnowOneActual/video-codec-checker/discussions)** - your real-world pain points will shape what gets built.
+**[View detailed roadmap →](ROADMAP.md)**
 
 ## Contributing
 
-Contributions are welcome! Whether it's:
-- **Bug reports** - something broken? Let me know
-- **Feature ideas** - what would make this useful?
-- **Compatibility data** - know the quirks of a platform or playback system?
-- **Real-world war stories** - "this codec broke my show" tales help us build better checks
-- **Code contributions** - see [DEVELOPMENT.md](DEVELOPMENT.md)
-- **Documentation improvements** - clearer explanations always welcome
-- **Test cases** - additional edge cases to cover
-- **Codec knowledge** - help expand the explanation database
+Contributions are welcome! We're especially looking for:
+- **Bug reports** - Something broken? Let us know
+- **Feature ideas** - What would make this useful for you?
+- **Compatibility data** - Know the quirks of a platform or playback system?
+- **Real-world war stories** - "This codec broke my show" tales help us build better checks
+- **Documentation improvements** - Clearer explanations always welcome
 
-This is an open learning project. Questions and "newbie" contributions are encouraged.
+**Special call for live production operators and VJs:** Your domain knowledge is invaluable.
 
-**Special call for live production operators:** Your domain knowledge is invaluable. Would like to know what actually breaks in the field.
+**[Read the full contributing guide →](CONTRIBUTING.md)**
+
+## Get Involved
+
+- **Have questions?** [Start a discussion](https://github.com/KnowOneActual/video-codec-checker/discussions)
+- **Found a bug?** [Open an issue](https://github.com/KnowOneActual/video-codec-checker/issues)
+- **Want to help?** Check out [good first issues](https://github.com/KnowOneActual/video-codec-checker/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 ## License
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
-
-## Why "VideoWise"?
-
-Because understanding *why* your video won't work makes you wiser about video codecs, and wise decisions save you hours of frustration - whether you're uploading to social media or running a live show.

@@ -8,6 +8,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+#### Phase 2.5: Media Players & VJ Software (NEW!)
+- **VLCChecker** - Universal media player support
+  - Universal codec support via FFmpeg libraries (H.264, HEVC, VP9, AV1, ProRes, DNxHD, and hundreds more)
+  - Hardware acceleration recommendations for modern codecs (H.264, HEVC, VP9, AV1)
+  - Extreme bitrate performance warnings (>300 Mbps)
+  - 8K resolution performance considerations
+  - Cross-platform support (Windows, macOS, Linux)
+  - 5 comprehensive tests covering codec universality, hardware acceleration, and performance
+
+- **ResolumeChecker** - VJ software for concerts and festivals
+  - DXV codec family optimal detection (DXV, DXV2, DXV3 - Resolume proprietary GPU codec)
+  - HAP codec family full support (HAP, HAP Alpha, HAP Q, HAP Q Alpha)
+  - CPU vs GPU codec performance analysis (H.264/HEVC/ProRes CPU-based warnings)
+  - Platform-specific guidance (Mac vs Windows for ProRes)
+  - 4K layer count considerations and warnings
+  - High bitrate impact on layer count (>200 Mbps warnings)
+  - MOV container requirement for DXV/HAP
+  - Conversion recommendations for optimal performance
+  - 5 comprehensive tests covering DXV, HAP, H.264, ProRes, and platform-specific scenarios
+
+- **MittiChecker** - Mac-only professional playback for theatre and corporate events
+  - ProRes optimal on Apple Silicon detection (M1/M2/M3 hardware acceleration)
+  - HAP optimal for multi-output setups
+  - Built-in transcoding workflow recommendations
+  - H.264/HEVC transcoding suggestions
+  - 4K codec selection guidance (HAP for GPU, ProRes for SDI)
+  - High bitrate performance warnings (>250 Mbps)
+  - NDI and ATEM integration notes
+  - MOV container preference detection
+  - 5 comprehensive tests covering ProRes, HAP, H.264, transcoding, and Apple Silicon optimization
+
+- **MilluminChecker** - Mac-only video mapping and projection software
+  - QuickTime and AVFoundation codec support
+  - HAP optimal for multi-projector setups
+  - ProRes excellent with Apple Silicon hardware acceleration
+  - H.264/HEVC compatibility with performance notes
+  - 4K projection performance considerations
+  - Multi-projector GPU path optimization
+  - Interactive installation workflow support
+  - MOV container preference
+  - 5 comprehensive tests covering HAP, ProRes, H.264, QuickTime, and projection mapping scenarios
+
+- **Comprehensive Documentation**
+  - New `docs/MEDIA_PLAYERS_VJ.md` - 16KB comprehensive guide covering all 4 new systems
+  - Detailed codec recommendations for each system
+  - Real-world use cases (VJ work, theatre, projection mapping, installations)
+  - Performance tiers and optimization strategies
+  - Hardware requirements and platform notes
+  - Integration notes (NDI, ATEM, Syphon, DMX, Art-Net)
+  - Codec decision tree and quick reference guide
+  - Comparison table across all 4 systems
+  - Converting to DXV/HAP workflow examples
+  - When to use each system guidance
+
+- **Updated Documentation**
+  - Updated README.md to reflect 22 total systems (from 9)
+  - Added "Media Players & VJ Software" category to supported systems table
+  - Updated Phase 2 completion status (160+ tests, 94% coverage)
+  - Added link to new MEDIA_PLAYERS_VJ.md guide in Documentation section
+  - Updated roadmap to reflect Phase 2.5 completion
+
+#### Phase 2.4: Enhanced Explanation System
 - **Enhanced Explanation System** - Educational codec knowledge for beginners and experts
   - New `--explain` flag provides extended explanations for compatibility issues
   - Codec-specific knowledge base covering H.264 profiles, VP9, ProRes variants, HAP, VFR, and bitrate considerations
@@ -22,6 +85,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Instagram-specific encoding recommendations
   - 12 comprehensive tests for explanation functionality in test_cli_explain.py
   - Complete ExplanationFormatter class with extensible knowledge system
+
+#### Phase 2.3: Batch Processing
 - **Plain Text Output Mode** - CI/CD and logging-friendly output
   - New `--no-color` flag disables ANSI color codes for plain text output
   - Compatible with CI/CD pipelines, log files, and text processing tools
@@ -52,8 +117,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 27 comprehensive tests for batch functionality
   - Complete batch processing documentation in CLI_USAGE.md
   - Examples for pre-show checklists, media library validation, CI/CD integration
+
+#### Phase 2.2: Multi-System Checking
 - **CLI Enhancement: `--all` flag** for checking video compatibility against all supported systems at once
-  - Batch compatibility checking across 9 systems (CasparCG, vMix, OBS, QLab, ProPresenter, Safari, Chrome, Instagram, Twitter)
+  - Batch compatibility checking across all 22 systems
   - Summary view categorizing systems as Compatible, Warnings, or Incompatible
   - JSON output support with multi-system results structure
   - Verbose mode compatibility for detailed multi-system analysis
@@ -64,9 +131,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 12 comprehensive tests covering all `--all` flag functionality
   - Complete documentation in CLI_USAGE.md with examples
   - Validation to prevent simultaneous `--system` and `--all` usage
+
+#### Testing & Quality
 - Comprehensive test suite with 94% code coverage
-  - 140 total tests across 8 test files covering all major functionality
-  - Tests for all 9 platform compatibility checkers
+  - **160+ total tests** across 9 test files covering all major functionality
+  - Tests for all **22 platform compatibility checkers**
   - Batch processing tests (27 tests in test_batch.py)
   - Explanation system tests (12 tests in test_cli_explain.py)
   - Formatter tests (18 tests in test_formatter.py)
@@ -83,6 +152,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Type annotations throughout codebase
 
 ### Changed
+- **System Count Milestone: 9 → 22 systems** (144% increase)
+  - Live Production: CasparCG, PlayoutBee, vMix, OBS Studio, QLab, ProPresenter (6)
+  - Church/Theatre: Wirecast, Playback Pro, EasyWorship (3)
+  - Media Players & VJ Software: VLC, Resolume, Mitti, Millumin (4)
+  - Browsers: Safari, Chrome, Firefox (3)
+  - Social Media: Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook (6)
 - Improved test infrastructure with proper fixtures and mocking
 - Enhanced test fixtures with directory creation helpers for batch tests
 - Simplified pre-commit hooks to focus on code quality (removed whitespace/newline fixers that conflicted with editors)
@@ -98,6 +173,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated CLI help text for `--explain` and `--no-color` flags
 - Updated ROADMAP.md to mark Phase 2.3 Batch Operations as COMPLETE
 - Updated ROADMAP.md to mark Phase 2.4 Enhanced Explanations as COMPLETE
+- Updated ROADMAP.md to mark Phase 2.5 Media Players & VJ Software as COMPLETE
 - Updated TESTING.md with batch processing and explanation test documentation
 - Enhanced formatter output with better structure and clarity
 
