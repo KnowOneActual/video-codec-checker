@@ -9,7 +9,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### Phase 2.5: Media Players & VJ Software (NEW!)
+#### Phase 2.6: CLI Refinement & Developer Experience
+- **Preset System Commands** - Simplified command-line interface
+  - 13 new preset commands for direct system checking: `videowise casparcg video.mp4`, `videowise instagram video.mp4`, etc.
+  - Available presets: casparcg, vmix, obs, qlab, resolume, propresenter, safari, chrome, firefox, instagram, twitter, youtube, tiktok
+  - Eliminates need for verbose `--system` flag in common workflows
+  - Each preset command includes contextual help and examples
+  - Maintained backward compatibility with `check --system` syntax
+  - Dynamic command generation system for easy extension
+
+- **Learn Command** - Educational mode as dedicated command
+  - New `videowise learn video.mp4` command for beginners
+  - Checks against all systems with extended explanations
+  - Replaces need for `check --explain --all` verbose syntax
+  - Perfect for training teams or understanding encoding
+  - Includes codec knowledge base and best practices
+
+- **Systems Command** - Discovery of available platforms
+  - New `videowise systems` command lists all 22 supported systems
+  - Organized by category (Live Production, VJ/Media Players, Browsers, Social Media)
+  - Shows preset command examples for each system
+  - Includes tips for simpler command usage
+
+- **Enhanced Developer Tooling**
+  - Updated `.pre-commit-config.yaml` with flake8 line length enforcement
+  - Comprehensive `CONTRIBUTING.md` with development workflow guide
+  - Editor integration examples (VS Code, PyCharm, Vim/Neovim)
+  - Pre-commit hook setup instructions
+  - Common issues and solutions documentation
+  - Quick reference for development commands
+  - Commit message guidelines (conventional commits)
+
+- **Improved CLI Help System**
+  - Contextual help text for each preset command
+  - Quick start examples in main help
+  - Common workflow examples (pre-show checks, social media exports, learning mode)
+  - TIP messages guiding users to simpler command syntax
+  - Better command organization and discoverability
+
+#### Phase 2.5: Media Players & VJ Software
 - **VLCChecker** - Universal media player support
   - Universal codec support via FFmpeg libraries (H.264, HEVC, VP9, AV1, ProRes, DNxHD, and hundreds more)
   - Hardware acceleration recommendations for modern codecs (H.264, HEVC, VP9, AV1)
@@ -134,7 +172,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Testing & Quality
 - Comprehensive test suite with 94% code coverage
-  - **160+ total tests** across 9 test files covering all major functionality
+  - **274 total tests** across 10 test files covering all major functionality
   - Tests for all **22 platform compatibility checkers**
   - Batch processing tests (27 tests in test_batch.py)
   - Explanation system tests (12 tests in test_cli_explain.py)
@@ -142,22 +180,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Error handling and edge case tests
   - CLI command and output format tests
   - Video metadata parsing and analyzer tests
+  - All tests passing on Python 3.8-3.12
 - Comprehensive development tooling and automation
   - Pre-commit hooks for code quality (Black, isort, flake8, mypy)
+  - Flake8 configuration enforced in pre-commit hooks (max line length 100)
   - Makefile with common development commands
   - GitHub Actions CI/CD pipeline
   - Automated testing on Python 3.8-3.12
+  - CONTRIBUTING.md comprehensive developer guide
   - DEVELOPMENT.md contributor guide
   - TESTING.md comprehensive testing guide
 - Type annotations throughout codebase
 
 ### Changed
+- **Major CLI Refactoring** - Improved user experience and discoverability
+  - `check` command now defaults to checking all systems (was: required `--system` or `--all`)
+  - Added 13 preset commands for common systems (casparcg, instagram, etc.)
+  - `batch` command now legacy (check handles both single and batch)
+  - Improved help text across all commands with examples and tips
+  - Single file checks show detailed output, multiple files show batch summary
+  - Better error messages with suggestions for correct usage
+  - Consistent command structure across all preset commands
+
+- **CLI Output Improvements**
+  - Enhanced summary output when checking all systems
+  - Better categorization of compatible/warning/incompatible results
+  - Improved batch summary with clear file counts and status
+  - More contextual tips and guidance in error messages
+  - Clearer distinction between single-file and batch processing modes
+
+- **Test Suite Updates**
+  - Updated all tests to match new CLI behavior (274 tests passing)
+  - Fixed test_batch.py for single file output format changes
+  - Fixed test_cli.py for default all-systems behavior
+  - Fixed test_cli_explain.py for learn mode and help text changes
+  - Fixed test_error_cases.py for exception handling in verbose mode
+  - All test assertions updated for new command structure
+  - Improved test reliability and clarity
+
 - **System Count Milestone: 9 → 22 systems** (144% increase)
   - Live Production: CasparCG, PlayoutBee, vMix, OBS Studio, QLab, ProPresenter (6)
   - Church/Theatre: Wirecast, Playback Pro, EasyWorship (3)
   - Media Players & VJ Software: VLC, Resolume, Mitti, Millumin (4)
   - Browsers: Safari, Chrome, Firefox (3)
   - Social Media: Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook (6)
+
 - Improved test infrastructure with proper fixtures and mocking
 - Enhanced test fixtures with directory creation helpers for batch tests
 - Simplified pre-commit hooks to focus on code quality (removed whitespace/newline fixers that conflicted with editors)
@@ -174,10 +241,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated ROADMAP.md to mark Phase 2.3 Batch Operations as COMPLETE
 - Updated ROADMAP.md to mark Phase 2.4 Enhanced Explanations as COMPLETE
 - Updated ROADMAP.md to mark Phase 2.5 Media Players & VJ Software as COMPLETE
+- Updated ROADMAP.md to mark Phase 2.6 CLI Refinement as COMPLETE
 - Updated TESTING.md with batch processing and explanation test documentation
 - Enhanced formatter output with better structure and clarity
 
 ### Fixed
+- Fixed flake8 line length violation in cli.py (line 725, 110 chars → split to 2 lines)
+- Fixed all test suite failures after CLI refactoring (274/274 tests passing)
+- Fixed test_batch_single_file for new single-file output format
+- Fixed test_batch_with_all_flag to check JSON output for systems
+- Fixed test_batch_extension_filter for single-file behavior
+- Fixed test_unexpected_error_verbose for Click exception handling
+- Fixed test_check_missing_system for new default behavior
+- Fixed test_batch_command_help for updated help text
+- Fixed test_explain_without_system_shows_error for new defaults
+- Fixed test_learn_command_help for learn mode help text
 - Fixed mypy type checking errors with `no-any-return` annotations
 - Fixed mypy type checking errors with explicit type annotations in CLI loops
 - Fixed Python 3.8 compatibility by downgrading pre-commit to 2.x
