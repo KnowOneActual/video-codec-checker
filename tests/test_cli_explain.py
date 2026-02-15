@@ -175,10 +175,11 @@ class TestExplainFlag:
 
         # Should process the file
         assert result.exit_code in [0, 1, 2]
-        assert "Found 1 video file" in result.output
+        # Single file batch no longer shows "Found X files" message
+        assert "SEVERITY LEVELS" in result.output or "CASPARCG" in result.output
 
     def test_explain_without_system_shows_error(self, runner, h264_video):
-        """Test that explain requires --system or --all flag."""
+        """Test that explain without --system now defaults to all systems."""
         result = runner.invoke(
             cli,
             [
@@ -188,19 +189,17 @@ class TestExplainFlag:
             ],
         )
 
-        # Should fail with error about missing system
-        assert result.exit_code == 2
-        assert "Must specify either --system or --all" in result.output
+        # Now defaults to checking all systems, so should work with warnings
+        assert result.exit_code in [0, 1, 2]
+        # Should show multiple systems
+        assert "SUMMARY" in result.output or "CASPARCG" in result.output
 
     def test_explain_help_text(self, runner):
         """Test that --explain appears in help text."""
         result = runner.invoke(cli, ["check", "--help"])
 
         assert "--explain" in result.output
-        assert (
-            "extended explanations" in result.output.lower()
-            or "codec knowledge" in result.output.lower()
-        )
+        assert "show educational explanations" in result.output.lower()
 
     def test_no_color_help_text(self, runner):
         """Test that --no-color appears in help text."""
