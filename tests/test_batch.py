@@ -146,8 +146,8 @@ def test_batch_single_file(runner, h264_video):
     """Test batch command with a single file."""
     result = runner.invoke(cli, ["batch", str(h264_video), "--system", "casparcg"])
     assert result.exit_code in [0, 1, 2]
-    # Single file batch no longer shows "Found X files" message
-    assert "BATCH SUMMARY" in result.output
+    # Single file batch shows check output, not batch summary
+    assert "CASPARCG" in result.output or "casparcg" in result.output.lower()
 
 
 def test_batch_multiple_files(runner, h264_video, vp9_video):
@@ -175,12 +175,11 @@ def test_batch_directory_recursive(runner, nested_video_dir):
 
 def test_batch_with_all_flag(runner, h264_video):
     """Test batch command with --all flag."""
-    result = runner.invoke(cli, ["batch", str(h264_video), "--all"])
+    result = runner.invoke(cli, ["batch", str(h264_video), "--all", "--json"])
     assert result.exit_code in [0, 1, 2]
-    # Single file batch no longer shows "Found X files" message
-    # Should check multiple systems
-    systems_checked = result.output.split("Systems checked:")[1].split("\n")[0]
-    assert "," in systems_checked  # Multiple systems
+    # Check JSON output for multiple systems
+    output = json.loads(result.output)
+    assert len(output["systems_checked"]) > 1  # Multiple systems checked
 
 
 def test_batch_json_output(runner, h264_video, vp9_video):
@@ -232,8 +231,8 @@ def test_batch_extension_filter(runner, tmp_path, h264_video):
         cli, ["batch", str(tmp_path), "--extensions", ".mp4", "--system", "casparcg"]
     )
     assert result.exit_code in [0, 1, 2]
-    # Single file batch no longer shows "Found X files" message
-    assert "BATCH SUMMARY" in result.output
+    # Single file batch shows check output, not batch summary
+    assert "video.mp4" in result.output or "CASPARCG" in result.output
 
 
 def test_batch_no_files_found(runner, tmp_path):
