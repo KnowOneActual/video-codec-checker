@@ -825,7 +825,7 @@ class PlaybackProChecker(CompatibilityChecker):
                         issues.append(
                             CompatibilityIssue(
                                 level=CompatibilityLevel.WARNING,
-                                message=f"H.264 bitrate ({mbps}Mbps) outside recommended range for 4K",
+                                message=f"H.264 bitrate ({mbps}Mbps) outside recommended range for 4K",  # noqa: E501
                                 reason="Playback Pro recommends 30-40 Mbps VBR for 4K H.264",
                                 suggestion="Adjust bitrate to 30-40 Mbps for optimal playback",
                             )
@@ -843,7 +843,7 @@ class PlaybackProChecker(CompatibilityChecker):
                         issues.append(
                             CompatibilityIssue(
                                 level=CompatibilityLevel.WARNING,
-                                message=f"H.264 bitrate ({mbps}Mbps) outside recommended range for HD",
+                                message=f"H.264 bitrate ({mbps}Mbps) outside recommended range for HD",  # noqa: E501
                                 reason="Playback Pro recommends 15-30 Mbps VBR for HD H.264",
                                 suggestion="Adjust bitrate to 15-30 Mbps for optimal playback",
                             )
