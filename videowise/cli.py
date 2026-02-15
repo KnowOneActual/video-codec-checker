@@ -722,7 +722,8 @@ def systems():
     click.secho("💡 TIP:", fg="cyan", bold=True)
     click.echo("  Use system names directly as commands for simpler usage!")
     click.echo(
-        "  Example: 'videowise casparcg video.mp4' instead of 'videowise check video.mp4 --system casparcg'\n"
+        "  Example: 'videowise casparcg video.mp4' instead of "
+        "'videowise check video.mp4 --system casparcg'\n"
     )
 
 
