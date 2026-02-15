@@ -34,7 +34,7 @@ DEFAULT_VIDEO_EXTENSIONS = [
 @click.version_option(version=__version__)
 @click.pass_context
 def cli(ctx):
-    """VideoWise - Video Codec Compatibility Checker
+    r"""VideoWise - Video Codec Compatibility Checker.
 
     Check if your videos work with CasparCG, Instagram, browsers, and more.
 
@@ -456,7 +456,7 @@ def run_compatibility_check(
 
 # Preset commands for common systems
 def create_system_command(system_name: str, system_display: str, description: str):
-    """Factory function to create system-specific commands."""
+    """Create system-specific command dynamically."""
 
     @cli.command(name=system_name)
     @click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True))
@@ -466,14 +466,14 @@ def create_system_command(system_name: str, system_display: str, description: st
     @click.option("--verbose", "-v", is_flag=True, help="Show detailed video information")
     @click.option("--no-color", is_flag=True, help="Disable colored output")
     def system_command(paths, recursive, extensions, output_json, verbose, no_color):
-        f"""Check video compatibility with {system_display}.
+        fr"""Check video compatibility with {system_display}.
 
         \b
         Quick Examples:
           videowise {system_name} video.mp4
           videowise {system_name} videos/ -r
           videowise {system_name} *.mp4 --json
-        
+
         {description}
         """
         run_compatibility_check(
@@ -487,14 +487,14 @@ def create_system_command(system_name: str, system_display: str, description: st
             no_color=no_color,
         )
 
-    system_command.__doc__ = f"""Check video compatibility with {system_display}.
+    system_command.__doc__ = fr"""Check video compatibility with {system_display}.
 
     \b
     Quick Examples:
       videowise {system_name} video.mp4
       videowise {system_name} videos/ -r
       videowise {system_name} *.mp4 --json
-    
+
     {description}
     """
 
@@ -525,7 +525,7 @@ create_system_command("tiktok", "TikTok", "For TikTok upload compatibility")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed video information")
 @click.option("--no-color", is_flag=True, help="Disable colored output")
 def learn(paths, recursive, extensions, output_json, verbose, no_color):
-    """Educational mode - Learn why videos have compatibility issues.
+    r"""Educational mode - Learn why videos have compatibility issues.
 
     Shows extended explanations about codecs, profiles, and compatibility.
     Perfect for training teams or understanding video encoding.
@@ -569,7 +569,7 @@ def learn(paths, recursive, extensions, output_json, verbose, no_color):
 @click.option("--explain", is_flag=True, help="Show educational explanations")
 @click.option("--no-color", is_flag=True, help="Disable colored output")
 def check(paths, system, check_all, recursive, extensions, output_json, verbose, explain, no_color):
-    """Check video compatibility (defaults to all systems).
+    r"""Check video compatibility (defaults to all systems).
 
     The main compatibility checker. By default, checks against all systems.
     For quicker checks, use preset commands like 'casparcg' or 'instagram'.
@@ -633,7 +633,7 @@ def check(paths, system, check_all, recursive, extensions, output_json, verbose,
 @click.option("--explain", is_flag=True, help="Show educational explanations")
 @click.option("--no-color", is_flag=True, help="Disable colored output")
 def batch(paths, system, check_all, recursive, extensions, output_json, verbose, explain, no_color):
-    """Check multiple files or directories (legacy command).
+    r"""Check multiple files or directories (legacy command).
 
     NOTE: The 'check' command now handles both single files and batches.
     This command is kept for backward compatibility.
@@ -678,7 +678,7 @@ def batch(paths, system, check_all, recursive, extensions, output_json, verbose,
 
 @cli.command()
 def systems():
-    """List all available systems you can check against.
+    r"""List all available systems you can check against.
 
     Shows all supported playback systems, browsers, and platforms.
     Use these names with --system flag or as preset commands.
@@ -711,12 +711,12 @@ def systems():
         "Social Media": ["instagram", "twitter", "youtube", "tiktok", "vimeo", "facebook"],
     }
 
-    for category, systems in categories.items():
+    for category, system_list in categories.items():
         click.secho(f"{category}:", bold=True)
-        for sys in systems:
-            if sys in available_systems:
+        for system_name in system_list:
+            if system_name in available_systems:
                 # Show both preset command and --system usage
-                click.echo(f"  • {sys:20} → videowise {sys} video.mp4")
+                click.echo(f"  • {system_name:20} → videowise {system_name} video.mp4")
         click.echo()
 
     click.secho("💡 TIP:", fg="cyan", bold=True)
