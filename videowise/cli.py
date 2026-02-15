@@ -30,14 +30,36 @@ DEFAULT_VIDEO_EXTENSIONS = [
 ]
 
 
-@click.group()
+@click.group(invoke_without_command=True)
 @click.version_option(version=__version__)
-def cli():
-    """Video Codec Compatibility Checker.
+@click.pass_context
+def cli(ctx):
+    """VideoWise - Video Codec Compatibility Checker
 
-    Check if your video files are compatible with various playback systems.
+    Check if your videos work with CasparCG, Instagram, browsers, and more.
+
+    \b
+    QUICK START:
+      videowise video.mp4              # Check against all systems
+      videowise casparcg video.mp4     # Check for CasparCG compatibility
+      videowise instagram video.mp4    # Check for Instagram compatibility
+      videowise learn video.mp4        # Educational mode with explanations
+
+    \b
+    COMMON WORKFLOWS:
+      # Pre-show check for live production
+      videowise casparcg show-videos/ -r
+
+      # Social media batch export check
+      videowise instagram exports/*.mp4
+
+      # Learn about codec issues
+      videowise learn problematic_video.mp4
+
+    Run 'videowise --help' to see all commands and options.
     """
-    pass
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
 
 
 def determine_worst_level(all_results: List[Dict[str, Any]]) -> int:
@@ -195,158 +217,76 @@ def check_single_file(
         }, 2
 
 
-@cli.command()
-@click.argument("video_path", type=click.Path(exists=True))
-@click.option(
-    "--system",
-    "-s",
-    help=(
-        "Target playback system (casparcg, vmix, obs, qlab, propresenter, "
-        "safari, chrome, instagram, twitter). Use --all to check all systems."
-    ),
-)
-@click.option("--all", "check_all", is_flag=True, help="Check against all systems")
-@click.option("--json", "output_json", is_flag=True, help="Output results as JSON")
-@click.option("--verbose", "-v", is_flag=True, help="Show detailed information")
-@click.option(
-    "--explain",
-    "-e",
-    is_flag=True,
-    help="Show extended explanations with codec knowledge and context",
-)
-@click.option(
-    "--no-color",
-    is_flag=True,
-    help="Disable colored output (useful for logs/files)",
-)
-def check(
-    video_path: str,
-    system: str,
-    check_all: bool,
-    output_json: bool,
-    verbose: bool,
-    explain: bool,
-    no_color: bool,
+def run_compatibility_check(
+    paths: Tuple[str, ...],
+    systems_to_check: List[str],
+    recursive: bool = False,
+    extensions: Optional[str] = None,
+    output_json: bool = False,
+    verbose: bool = False,
+    explain: bool = False,
+    no_color: bool = False,
 ):
-    r"""Check video compatibility with a specific system.
+    """Core compatibility checking logic shared between commands."""
+    # Parse extensions
+    ext_list: Optional[List[str]] = None
+    if extensions:
+        ext_list = [
+            ext.strip() if ext.startswith(".") else f".{ext.strip()}"
+            for ext in extensions.split(",")
+        ]
 
-    VIDEO_PATH: Path to the video file to check
+    # Find all video files
+    video_files = find_video_files(list(paths), recursive, ext_list)
 
-    Examples:\b
-        videowise check video.mp4 --system casparcg
-        videowise check video.mov --system qlab --json
-        videowise check video.mp4 --all
-        videowise check video.mp4 --all --verbose
-        videowise check video.mp4 --system safari --explain
-    """
-    # Validation: must specify either --system or --all
-    if not system and not check_all:
-        click.secho(
-            "Error: Must specify either --system or --all flag",
-            fg="red",
-            err=True,
-        )
-        click.echo("\nExamples:")
-        click.echo("  videowise check video.mp4 --system casparcg")
-        click.echo("  videowise check video.mp4 --all")
+    if not video_files:
+        click.secho("Error: No video files found", fg="red", err=True)
         sys.exit(2)
 
-    if system and check_all:
-        click.secho(
-            "Error: Cannot use both --system and --all flags",
-            fg="red",
-            err=True,
-        )
-        sys.exit(2)
+    # Single file or batch processing
+    is_batch = len(video_files) > 1
+
+    if not output_json and is_batch:
+        click.secho(f"\n📂 Found {len(video_files)} video file(s) to check\n", bold=True)
 
     # Create formatter
     use_color = not no_color and not output_json
     formatter = ExplanationFormatter(use_color=use_color, explain_mode=explain)
 
-    try:
-        path = Path(video_path)
-        analyzer = VideoAnalyzer(str(path))
+    # Process files
+    batch_results = []
+    errors = []
+    worst_exit_code = 0
 
-        metadata = analyzer.get_metadata()
-        if not metadata:
-            click.secho(
-                "Error: Unable to extract video metadata. Is ffmpeg/ffprobe installed?",
-                fg="red",
-                err=True,
-            )
-            sys.exit(2)
+    for file_path in video_files:
+        if not output_json and verbose and is_batch:
+            click.secho(f"\nProcessing: {file_path}", fg="cyan")
 
-        codec = analyzer.get_codec_name() or "unknown"
-        codec_profile = analyzer.get_codec_profile()
-        container = analyzer.get_container_format() or "unknown"
-        resolution = analyzer.get_resolution()
-        framerate = analyzer.get_frame_rate()
-        bitrate = analyzer.get_bitrate()
-        file_size = analyzer.get_file_size()
+        result, exit_code = check_single_file(file_path, systems_to_check, verbose)
 
-        if codec_profile:
-            codec_display = f"{codec} ({codec_profile})"
-        else:
-            codec_display = codec
+        batch_results.append(result)
+        worst_exit_code = max(worst_exit_code, exit_code)
 
-        video_info = {
-            "codec": codec.split()[0].lower(),
-            "profile": codec_profile,
-            "container": container,
-            "width": resolution[0] if resolution else None,
-            "height": resolution[1] if resolution else None,
-            "resolution": resolution,
-            "framerate": float(framerate) if framerate else None,
-            "bitrate": bitrate,
-            "file_size": file_size,
-        }
+        if "error" in result:
+            errors.append(result)
 
-        # Determine systems to check
-        systems_to_check = get_available_systems() if check_all else [system]
+        # For single file, show detailed output
+        if not is_batch and not output_json:
+            path = Path(file_path)
+            analyzer = VideoAnalyzer(str(path))
+            
+            codec = analyzer.get_codec_name() or "unknown"
+            codec_profile = analyzer.get_codec_profile()
+            container = analyzer.get_container_format() or "unknown"
+            resolution = analyzer.get_resolution()
+            framerate = analyzer.get_frame_rate()
+            bitrate = analyzer.get_bitrate()
 
-        # Check all systems
-        all_results: List[Dict[str, Any]] = []
-        all_issues_objects: List[Tuple[str, List[CompatibilityIssue]]] = []
-
-        for sys_name in systems_to_check:
-            issues = check_compatibility(video_info, sys_name)
-            all_issues_objects.append((sys_name, issues))
-            all_results.append(
-                {
-                    "system": sys_name,
-                    "issues": [
-                        {
-                            "level": issue.level.value,
-                            "message": issue.message,
-                            "reason": issue.reason,
-                            "suggestion": issue.suggestion,
-                        }
-                        for issue in issues
-                    ],
-                }
-            )
-
-        # Output results
-        if output_json:
-            # For backward compatibility: if single system, use old format
-            if len(systems_to_check) == 1:
-                result = {
-                    "file": str(path),
-                    "system": systems_to_check[0],
-                    "video_info": video_info,
-                    "issues": all_results[0]["issues"],
-                }
+            if codec_profile:
+                codec_display = f"{codec} ({codec_profile})"
             else:
-                # Multiple systems: use new format
-                result = {
-                    "file": str(path),
-                    "video_info": video_info,
-                    "systems_checked": systems_to_check,
-                    "results": all_results,
-                }
-            click.echo(json.dumps(result, indent=2))
-        else:
-            # Regular output with formatter
+                codec_display = codec
+
             click.secho(f"\n📹 Video: {path.name}", bold=True)
 
             if verbose:
@@ -359,6 +299,7 @@ def check(
                 if bitrate:
                     click.echo(f"Bitrate: {bitrate / 1_000_000:.2f} Mbps")
 
+            check_all = len(systems_to_check) > 1
             if check_all:
                 click.secho(
                     f"\n🔍 Checking against all {len(systems_to_check)} systems\n", bold=True
@@ -368,8 +309,12 @@ def check(
             if explain and not check_all:
                 click.echo(formatter.format_severity_guide())
 
-            # Display results for each system using formatter
-            for sys_name, issues in all_issues_objects:
+            # Display results for each system
+            all_issues_objects: List[Tuple[str, List[CompatibilityIssue]]] = []
+            for result_data in result["results"]:
+                sys_name = result_data["system"]
+                issues = check_compatibility(result["video_info"], sys_name)
+                all_issues_objects.append((sys_name, issues))
                 click.echo(formatter.format_system_summary(sys_name, issues, explain))
 
             # Summary if checking all systems
@@ -382,7 +327,7 @@ def check(
                 warning_systems = []
                 incompatible_systems = []
 
-                for result_data in all_results:
+                for result_data in result["results"]:
                     system_name: str = result_data["system"]
                     system_issues: List[Dict[str, Any]] = result_data["issues"]
 
@@ -431,154 +376,33 @@ def check(
 
                 click.echo()
 
-        # Determine exit code
-        exit_code = determine_worst_level(all_results)
-        sys.exit(exit_code)
-
-    except FileNotFoundError as e:
-        click.secho(f"Error: {e}", fg="red", err=True)
-        sys.exit(2)
-    except Exception as e:
-        click.secho(f"Unexpected error: {e}", fg="red", err=True)
-        if verbose:
-            import traceback
-
-            traceback.print_exc()
-        sys.exit(2)
-
-
-@cli.command()
-@click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True))
-@click.option(
-    "--system",
-    "-s",
-    help=(
-        "Target playback system (casparcg, vmix, obs, qlab, propresenter, "
-        "safari, chrome, instagram, twitter). Use --all to check all systems."
-    ),
-)
-@click.option("--all", "check_all", is_flag=True, help="Check against all systems")
-@click.option(
-    "--recursive",
-    "-r",
-    is_flag=True,
-    help="Recursively scan directories for video files",
-)
-@click.option(
-    "--extensions",
-    "-e",
-    help=f"Comma-separated list of file extensions (default: {','.join(DEFAULT_VIDEO_EXTENSIONS)})",
-)
-@click.option("--json", "output_json", is_flag=True, help="Output results as JSON")
-@click.option("--verbose", "-v", is_flag=True, help="Show detailed information")
-@click.option(
-    "--explain",
-    is_flag=True,
-    help="Show extended explanations with codec knowledge and context",
-)
-@click.option(
-    "--no-color",
-    is_flag=True,
-    help="Disable colored output (useful for logs/files)",
-)
-@click.option(
-    "--continue-on-error",
-    is_flag=True,
-    default=True,
-    help="Continue processing files even if some fail (default: True)",
-)
-def batch(
-    paths: Tuple[str, ...],
-    system: str,
-    check_all: bool,
-    recursive: bool,
-    extensions: str,
-    output_json: bool,
-    verbose: bool,
-    explain: bool,
-    no_color: bool,
-    continue_on_error: bool,
-):
-    r"""Check multiple video files or directories for compatibility.
-
-    PATHS: One or more video files or directories to check
-
-    Examples:\b
-        videowise batch video1.mp4 video2.mov --system casparcg
-        videowise batch /path/to/videos/ --recursive --all
-        videowise batch *.mp4 --system instagram --json
-        videowise batch /media --recursive --extensions .mp4,.mov
-        videowise batch videos/ --system safari --explain
-    """
-    # Validation: must specify either --system or --all
-    if not system and not check_all:
-        click.secho(
-            "Error: Must specify either --system or --all flag",
-            fg="red",
-            err=True,
-        )
-        sys.exit(2)
-
-    if system and check_all:
-        click.secho(
-            "Error: Cannot use both --system and --all flags",
-            fg="red",
-            err=True,
-        )
-        sys.exit(2)
-
-    # Parse extensions
-    ext_list: Optional[List[str]] = None
-    if extensions:
-        ext_list = [
-            ext.strip() if ext.startswith(".") else f".{ext.strip()}"
-            for ext in extensions.split(",")
-        ]
-
-    # Find all video files
-    video_files = find_video_files(list(paths), recursive, ext_list)
-
-    if not video_files:
-        click.secho("Error: No video files found", fg="red", err=True)
-        sys.exit(2)
-
-    if not output_json:
-        click.secho(f"\n📂 Found {len(video_files)} video file(s) to check\n", bold=True)
-
-    # Determine systems to check
-    systems_to_check = get_available_systems() if check_all else [system]
-
-    # Process all files
-    batch_results = []
-    errors = []
-    worst_exit_code = 0
-
-    for file_path in video_files:
-        if not output_json and verbose:
-            click.secho(f"\nProcessing: {file_path}", fg="cyan")
-
-        result, exit_code = check_single_file(file_path, systems_to_check, verbose)
-
-        batch_results.append(result)
-        worst_exit_code = max(worst_exit_code, exit_code)
-
-        if "error" in result:
-            errors.append(result)
-            if not continue_on_error:
-                break
-
     # Output results
     if output_json:
-        output = {
-            "total_files": len(video_files),
-            "processed_files": len(batch_results),
-            "systems_checked": systems_to_check,
-            "results": batch_results,
-            "errors": len(errors),
-        }
-        click.echo(json.dumps(output, indent=2))
-    else:
-        # Display summary
+        if is_batch:
+            output = {
+                "total_files": len(video_files),
+                "processed_files": len(batch_results),
+                "systems_checked": systems_to_check,
+                "results": batch_results,
+                "errors": len(errors),
+            }
+            click.echo(json.dumps(output, indent=2))
+        else:
+            # Single file JSON
+            result = batch_results[0]
+            if len(systems_to_check) == 1:
+                # Backward compatibility
+                output = {
+                    "file": result["file"],
+                    "system": systems_to_check[0],
+                    "video_info": result["video_info"],
+                    "issues": result["results"][0]["issues"],
+                }
+            else:
+                output = result
+            click.echo(json.dumps(output, indent=2))
+    elif is_batch:
+        # Batch summary
         click.echo("\n" + "=" * 70)
         click.secho("📊 BATCH SUMMARY", bold=True, fg="cyan")
         click.echo("=" * 70)
@@ -628,6 +452,265 @@ def batch(
         click.echo()
 
     sys.exit(worst_exit_code)
+
+
+# Preset commands for common systems
+def create_system_command(system_name: str, system_display: str, description: str):
+    """Factory function to create system-specific commands."""
+    @cli.command(name=system_name)
+    @click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True))
+    @click.option("--recursive", "-r", is_flag=True, help="Scan directories recursively")
+    @click.option("--extensions", "-e", help="File extensions to check (e.g., .mp4,.mov)")
+    @click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+    @click.option("--verbose", "-v", is_flag=True, help="Show detailed video information")
+    @click.option("--no-color", is_flag=True, help="Disable colored output")
+    def system_command(paths, recursive, extensions, output_json, verbose, no_color):
+        f"""Check video compatibility with {system_display}.
+
+        \b
+        Quick Examples:
+          videowise {system_name} video.mp4
+          videowise {system_name} videos/ -r
+          videowise {system_name} *.mp4 --json
+        
+        {description}
+        """
+        run_compatibility_check(
+            paths=paths,
+            systems_to_check=[system_name],
+            recursive=recursive,
+            extensions=extensions,
+            output_json=output_json,
+            verbose=verbose,
+            explain=False,
+            no_color=no_color,
+        )
+    
+    system_command.__doc__ = f"""Check video compatibility with {system_display}.
+
+    \b
+    Quick Examples:
+      videowise {system_name} video.mp4
+      videowise {system_name} videos/ -r
+      videowise {system_name} *.mp4 --json
+    
+    {description}
+    """
+    
+    return system_command
+
+
+# Create preset commands for all major systems
+create_system_command("casparcg", "CasparCG", "For live broadcast playout servers")
+create_system_command("vmix", "vMix", "For live video mixing and streaming")
+create_system_command("obs", "OBS Studio", "For live streaming and recording")
+create_system_command("qlab", "QLab", "For theatre and live show playback")
+create_system_command("resolume", "Resolume", "For VJ and live video performance")
+create_system_command("propresenter", "ProPresenter", "For church presentations")
+create_system_command("safari", "Safari", "For Safari browser playback")
+create_system_command("chrome", "Chrome", "For Chrome browser playback")
+create_system_command("firefox", "Firefox", "For Firefox browser playback")
+create_system_command("instagram", "Instagram", "For Instagram upload compatibility")
+create_system_command("twitter", "Twitter/X", "For Twitter/X upload compatibility")
+create_system_command("youtube", "YouTube", "For YouTube upload compatibility")
+create_system_command("tiktok", "TikTok", "For TikTok upload compatibility")
+
+
+@cli.command()
+@click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True))
+@click.option("--recursive", "-r", is_flag=True, help="Scan directories recursively")
+@click.option("--extensions", "-e", help="File extensions to check (e.g., .mp4,.mov)")
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed video information")
+@click.option("--no-color", is_flag=True, help="Disable colored output")
+def learn(paths, recursive, extensions, output_json, verbose, no_color):
+    """Educational mode - Learn why videos have compatibility issues.
+
+    Shows extended explanations about codecs, profiles, and compatibility.
+    Perfect for training teams or understanding video encoding.
+
+    \b
+    Examples:
+      videowise learn problem_video.mp4
+      videowise learn exports/ -r
+      videowise learn video.mp4 > training_guide.txt
+    
+    This mode explains:
+    - What each codec is and how it works
+    - Why certain systems don't support specific formats
+    - Best practices for video encoding
+    - How to fix compatibility issues
+    """
+    run_compatibility_check(
+        paths=paths,
+        systems_to_check=get_available_systems(),
+        recursive=recursive,
+        extensions=extensions,
+        output_json=output_json,
+        verbose=verbose,
+        explain=True,
+        no_color=no_color,
+    )
+
+
+@cli.command()
+@click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True))
+@click.option(
+    "--system",
+    "-s",
+    help="Check specific system (or use preset commands like 'casparcg', 'instagram')",
+)
+@click.option("--all", "check_all", is_flag=True, help="Check against all systems (default)")
+@click.option("--recursive", "-r", is_flag=True, help="Scan directories recursively")
+@click.option("--extensions", "-e", help="File extensions to check (e.g., .mp4,.mov)")
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed video information")
+@click.option("--explain", is_flag=True, help="Show educational explanations")
+@click.option("--no-color", is_flag=True, help="Disable colored output")
+def check(paths, system, check_all, recursive, extensions, output_json, verbose, explain, no_color):
+    """Check video compatibility (defaults to all systems).
+
+    The main compatibility checker. By default, checks against all systems.
+    For quicker checks, use preset commands like 'casparcg' or 'instagram'.
+
+    \b
+    Examples:
+      videowise check video.mp4                    # Check all systems
+      videowise check video.mp4 --system casparcg  # Check one system
+      videowise check videos/ -r --all             # Batch check all
+      videowise check video.mp4 --explain          # Educational mode
+    
+    \b
+    TIP: For faster, simpler commands use:
+      videowise casparcg video.mp4      # Instead of --system casparcg
+      videowise instagram video.mp4     # Instead of --system instagram
+      videowise learn video.mp4         # Instead of --explain
+    """
+    # Handle backward compatibility and defaults
+    if system and check_all:
+        click.secho(
+            "Error: Cannot use both --system and --all flags",
+            fg="red",
+            err=True,
+        )
+        click.echo("\nTIP: Use preset commands for easier usage:")
+        click.echo(f"  videowise {system} {paths[0] if paths else 'video.mp4'}")
+        sys.exit(2)
+    
+    # Default to all systems if nothing specified
+    if not system and not check_all:
+        systems_to_check = get_available_systems()
+    elif check_all:
+        systems_to_check = get_available_systems()
+    else:
+        systems_to_check = [system]
+
+    run_compatibility_check(
+        paths=paths,
+        systems_to_check=systems_to_check,
+        recursive=recursive,
+        extensions=extensions,
+        output_json=output_json,
+        verbose=verbose,
+        explain=explain,
+        no_color=no_color,
+    )
+
+
+@cli.command()
+@click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True))
+@click.option(
+    "--system",
+    "-s",
+    help="Target system (use preset commands for easier usage)",
+)
+@click.option("--all", "check_all", is_flag=True, help="Check against all systems")
+@click.option("--recursive", "-r", is_flag=True, help="Scan directories recursively")
+@click.option("--extensions", "-e", help="File extensions to check (e.g., .mp4,.mov)")
+@click.option("--json", "output_json", is_flag=True, help="Output as JSON")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed information")
+@click.option("--explain", is_flag=True, help="Show educational explanations")
+@click.option("--no-color", is_flag=True, help="Disable colored output")
+def batch(paths, system, check_all, recursive, extensions, output_json, verbose, explain, no_color):
+    """Check multiple files or directories (legacy command).
+
+    NOTE: The 'check' command now handles both single files and batches.
+    This command is kept for backward compatibility.
+
+    \b
+    Use 'check' instead:
+      videowise check videos/ -r --all
+      videowise casparcg videos/ -r
+    """
+    if not system and not check_all:
+        click.secho(
+            "Error: Must specify either --system or --all flag",
+            fg="red",
+            err=True,
+        )
+        click.echo("\nTIP: Use simpler preset commands:")
+        click.echo("  videowise casparcg videos/ -r")
+        click.echo("  videowise instagram exports/")
+        sys.exit(2)
+
+    if system and check_all:
+        click.secho(
+            "Error: Cannot use both --system and --all flags",
+            fg="red",
+            err=True,
+        )
+        sys.exit(2)
+
+    systems_to_check = get_available_systems() if check_all else [system]
+
+    run_compatibility_check(
+        paths=paths,
+        systems_to_check=systems_to_check,
+        recursive=recursive,
+        extensions=extensions,
+        output_json=output_json,
+        verbose=verbose,
+        explain=explain,
+        no_color=no_color,
+    )
+
+
+@cli.command()
+def systems():
+    """List all available systems you can check against.
+
+    Shows all supported playback systems, browsers, and platforms.
+    Use these names with --system flag or as preset commands.
+
+    \b
+    Example:
+      videowise systems                 # See all available
+      videowise casparcg video.mp4      # Use as preset command
+      videowise check video.mp4 -s obs  # Use with --system flag
+    """
+    available_systems = get_available_systems()
+    
+    click.secho("\n📋 Available Systems:\n", bold=True, fg="cyan")
+    
+    # Group by category
+    categories = {
+        "Live Production": ["casparcg", "vmix", "obs", "qlab", "propresenter", "wirecast", "playbackpro", "easyworship", "playoutbee"],
+        "VJ / Media Players": ["resolume", "vlc", "mitti", "millumin"],
+        "Browsers": ["safari", "chrome", "firefox"],
+        "Social Media": ["instagram", "twitter", "youtube", "tiktok", "vimeo", "facebook"],
+    }
+    
+    for category, systems in categories.items():
+        click.secho(f"{category}:", bold=True)
+        for sys in systems:
+            if sys in available_systems:
+                # Show both preset command and --system usage
+                click.echo(f"  • {sys:20} → videowise {sys} video.mp4")
+        click.echo()
+    
+    click.secho("💡 TIP:", fg="cyan", bold=True)
+    click.echo("  Use system names directly as commands for simpler usage!")
+    click.echo("  Example: 'videowise casparcg video.mp4' instead of 'videowise check video.mp4 --system casparcg'\n")
 
 
 def main():
