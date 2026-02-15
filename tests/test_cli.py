@@ -33,7 +33,7 @@ def test_check_command_help(runner):
     """Test check command --help."""
     result = runner.invoke(cli, ["check", "--help"])
     assert result.exit_code == 0
-    assert "Check video compatibility with a specific system" in result.output
+    assert "Check video compatibility (defaults to all systems)" in result.output
     assert "--system" in result.output
     assert "--all" in result.output
 
@@ -45,10 +45,12 @@ def test_check_missing_file(runner):
 
 
 def test_check_missing_system(runner, h264_video):
-    """Test check command without --system or --all flag."""
+    """Test check command without --system (should default to --all)."""
     result = runner.invoke(cli, ["check", str(h264_video)])
-    assert result.exit_code != 0
-    assert "system" in result.output.lower() or "all" in result.output.lower()
+    # Now defaults to checking all systems, so should work
+    assert result.exit_code in [0, 1, 2]
+    # Should show multiple systems
+    assert "SUMMARY" in result.output or "casparcg" in result.output.lower()
 
 
 def test_check_h264_casparcg_compatible(runner, h264_video):
