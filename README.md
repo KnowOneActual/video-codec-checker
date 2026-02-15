@@ -139,8 +139,8 @@ make check         # Run all quality checks
 - ✅ CI/CD with automated testing
 - ✅ Full browser support (Safari, Chrome, Firefox)
 - ✅ Complete social media coverage (Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook)
-- ✅ VJ/media player support (VLC, Resolume, Mitti, Millumin)
-- ✅ Live presentation (Wirecast, Playback Pro, EasyWorship)
+- ✅ VJ/media player support (QLAb,VLC, Resolume, Mitti, Millumin)
+- ✅ Live presentation (Wirecast, Playback Pro, EasyWorship, PlayOutBee)
 
 ### Coming Next (Phase 3)
 - [ ] Streaming platforms (Twitch, Restream, Zoom)
