@@ -2,7 +2,7 @@
 
 > ⚠️ **UNDER DEVELOPMENT**: Core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
 >
-> ✅ **What Works**: Full CLI, **22 system checkers**, Python API, `--all` flag, batch processing, enhanced explanations  
+> ✅ **What Works**: Full CLI, **22 system checkers**, Python API, preset commands, batch processing, enhanced explanations  
 > 🚧 **In Progress**: Additional platforms, advanced features
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
@@ -38,17 +38,22 @@ git clone https://github.com/KnowOneActual/video-codec-checker.git
 cd video-codec-checker
 pip install -e .
 
-# Check a single video
-videowise check video.mp4 --system casparcg
+# Check for specific systems (SIMPLE!)
+videowise casparcg video.mp4
+videowise instagram video.mp4
+videowise resolume video.mp4
 
 # Check against ALL 22 systems
-videowise check video.mp4 --all
+videowise check video.mp4
 
-# Get extended explanations (great for learning!)
-videowise check video.mp4 --system resolume --explain
+# Learn mode - understand why videos fail
+videowise learn video.mp4
 
-# Process multiple files or directories
-videowise batch videos/ --recursive --all
+# See all available systems
+videowise systems
+
+# Batch check directories
+videowise casparcg videos/ -r
 ```
 
 **📚 [Complete CLI Guide](docs/CLI_USAGE.md)** | **💡 [Usage Examples](docs/EXAMPLES.md)** | **🐍 [Python API](docs/API_REFERENCE.md)**
@@ -61,9 +66,9 @@ VideoWise analyzes video files and provides:
 - **Actionable suggestions**: "Instagram will re-encode this (losing quality) because it's H.264 High Profile instead of Baseline."
 - **Live production warnings**: "This file will cause dropped frames in vMix - bitrate is 180Mbps, but your system can only handle 100Mbps smoothly."
 - **VJ/Performance advice**: "Convert to DXV or HAP for Resolume - H.264 is CPU-based and limits your layer count."
-- **Educational mode**: Use `--explain` flag to learn about H.264 profiles, ProRes variants, HAP codec performance, and VFR issues
+- **Educational mode**: Use `videowise learn` to understand H.264 profiles, ProRes variants, HAP codec performance, and VFR issues
 - **Batch processing**: Check entire directories at once to find which videos need re-encoding before the show
-- **Multi-system validation**: Use `--all` flag to check against all 22 systems simultaneously
+- **Multi-system validation**: Check against all 22 systems simultaneously (default behavior)
 
 **[See detailed examples and real-world scenarios →](docs/EXAMPLES.md)**
 
@@ -133,13 +138,14 @@ make check         # Run all quality checks
 
 ### Current Status (Phase 2 Complete! 🎉)
 - ✅ **22 system compatibility checkers** with 160+ passing tests (94% coverage)
-- ✅ CLI with colored output, `--all` flag, batch processing
-- ✅ Educational mode with `--explain` flag
+- ✅ **Preset commands** for instant checks (videowise casparcg, videowise instagram, etc.)
+- ✅ **Learn mode** with educational explanations
+- ✅ CLI with colored output, batch processing
 - ✅ JSON output for automation
 - ✅ CI/CD with automated testing
 - ✅ Full browser support (Safari, Chrome, Firefox)
 - ✅ Complete social media coverage (Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook)
-- ✅ VJ/media player support (QLAb,VLC, Resolume, Mitti, Millumin)
+- ✅ VJ/media player support (QLab, VLC, Resolume, Mitti, Millumin)
 - ✅ Live presentation (Wirecast, Playback Pro, EasyWorship, PlayOutBee)
 
 ### Coming Next (Phase 3)
