@@ -29,7 +29,7 @@ def test_wirecast_h264_compatible():
     
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("H.264" in issue.message for issue in issues)
-    assert any("hardware acceleration" in issue.message.lower() for issue in issues)
+    assert any(issue.reason and "hardware acceleration" in issue.reason.lower() for issue in issues)
 
 
 def test_wirecast_prores_compatible():
