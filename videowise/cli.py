@@ -703,6 +703,7 @@ def systems():
             "propresenter",
             "wirecast",
             "playbackpro",
+            "provideoplayer",
             "easyworship",
             "playoutbee",
         ],

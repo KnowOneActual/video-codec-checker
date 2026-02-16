@@ -75,9 +75,22 @@ class CasparCGChecker(CompatibilityChecker):
     }
 
     def __init__(self, version: str = "2.3"):
+        """Initialize CasparCG checker with version.
+
+        Args:
+            version: CasparCG Server version (default: "2.3")
+        """
         self.version = version
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility for CasparCG Server.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -245,6 +258,14 @@ class PlayoutBeeChecker(CompatibilityChecker):
         self.platform = platform
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -389,6 +410,14 @@ class VmixChecker(CompatibilityChecker):
     VERY_HIGH_BITRATE_THRESHOLD = 200_000_000  # 200 Mbps
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         bitrate = video_info.get("bitrate")
         codec = video_info.get("codec", "").lower()
@@ -471,6 +500,14 @@ class OBSChecker(CompatibilityChecker):
     RECOMMENDED_CODECS = ["h264", "hevc", "av1"]
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -530,6 +567,14 @@ class QLabChecker(CompatibilityChecker):
     ALPHA_CODECS = ["prores4444"]  # For transparency
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -603,6 +648,14 @@ class ProPresenterChecker(CompatibilityChecker):
     }
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -683,6 +736,14 @@ class WirecastChecker(CompatibilityChecker):
     RECOMMENDED_CODECS = ["h264", "prores"]
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -790,6 +851,14 @@ class PlaybackProChecker(CompatibilityChecker):
     UHD_BITRATE_MAX = 40_000_000  # 40 Mbps
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -834,7 +903,7 @@ class PlaybackProChecker(CompatibilityChecker):
                         issues.append(
                             CompatibilityIssue(
                                 level=CompatibilityLevel.COMPATIBLE,
-                                message=f"H.264 at {mbps}Mbps is suitable for Playback Pro",
+                                message=f"H.264 at {mbps}Mbps is optimal for Playback Pro",
                                 reason="Bitrate within recommended range for 4K",
                             )
                         )
@@ -909,6 +978,14 @@ class EasyWorshipChecker(CompatibilityChecker):
     WINDOWS_CODECS = ["wmv", "mpeg2video"]
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -991,6 +1068,14 @@ class VLCChecker(CompatibilityChecker):
     """
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -1073,6 +1158,14 @@ class ResolumeChecker(CompatibilityChecker):
         self.platform = platform
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -1213,6 +1306,14 @@ class MittiChecker(CompatibilityChecker):
     APPLE_SILICON_OPTIMAL = ["prores"]  # Hardware accelerated on M1/M2/M3
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -1326,6 +1427,14 @@ class MilluminChecker(CompatibilityChecker):
     """
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -1401,6 +1510,135 @@ class MilluminChecker(CompatibilityChecker):
         return issues
 
 
+class ProVideoPlayerChecker(CompatibilityChecker):
+    """Compatibility checker for ProVideoPlayer (PVP) by Renewed Vision.
+
+    PVP is a professional multi-screen media server application designed for
+    live events, churches, and concerts with timecode sync capabilities.
+    """
+
+    SUPPORTED_CODECS = {
+        "dxv",  # Optimal with timecode
+        "hap",
+        "prores",
+        "h264",
+        "hevc",
+    }
+
+    GPU_CODECS = ["dxv", "hap"]  # Hardware accelerated
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+
+        # Check for DXV (optimal for PVP)
+        if "dxv" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="DXV codec works perfectly with PVP timecode features",
+                    reason="GPU-accelerated with excellent timecode sync",
+                )
+            )
+        # Check for HAP
+        elif "hap" in codec:
+            if "alpha" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=(
+                            "HAP Alpha provides GPU-accelerated playback "
+                            "for overlays with transparency"
+                        ),
+                        reason="Ideal for overlays and multi-layer compositions",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP codec provides excellent performance in PVP",
+                        reason="GPU-accelerated for smooth multi-layer playback",
+                    )
+                )
+        # Check for ProRes
+        elif "prores" in codec:
+            if "4444" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="ProRes 4444 supports alpha channel for transparency",
+                        reason="Professional quality for multi-screen setups",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="ProRes is fully supported by PVP",
+                        reason="Professional codec for broadcast workflows",
+                    )
+                )
+        # Check for H.264/H.265
+        elif codec == "h264":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="H.264 is supported by PVP",
+                    reason="Hardware acceleration available",
+                    suggestion="Consider DXV or HAP for better multi-layer performance",
+                )
+            )
+        elif codec == "hevc":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="HEVC is supported by PVP",
+                    reason="Hardware acceleration available",
+                    suggestion="Consider DXV or HAP for better multi-layer performance",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"PVP may have limited support for {codec.upper()}",
+                    reason="PVP works best with DXV, HAP, ProRes, or H.264",
+                    suggestion=("Convert to DXV for optimal timecode and multi-screen performance"),
+                )
+            )
+
+        # Check container
+        if "mov" in container or "mp4" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is supported by PVP",
+                )
+            )
+
+        # Note about timecode support
+        if "dxv" in codec or "hap" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="Timecode following and triggering fully supported",
+                    reason="GPU codecs work excellently with PVP's timecode features",
+                )
+            )
+
+        return issues
+
+
 # Browser Compatibility
 
 
@@ -1410,6 +1648,14 @@ class SafariChecker(CompatibilityChecker):
     SUPPORTED_CODECS = ["h264", "hevc"]
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -1450,6 +1696,14 @@ class ChromeChecker(CompatibilityChecker):
     SUPPORTED_CODECS = ["h264", "vp8", "vp9", "av1"]
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
 
@@ -1480,6 +1734,14 @@ class FirefoxChecker(CompatibilityChecker):
     PARTIALLY_SUPPORTED = ["hevc"]  # Limited to Windows 10+ with extensions
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -1549,6 +1811,14 @@ class InstagramChecker(CompatibilityChecker):
     MAX_DURATION = 60  # 60 seconds for feed, 90 for reels
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         profile = video_info.get("profile", "").lower()
@@ -1607,9 +1877,22 @@ class TwitterChecker(CompatibilityChecker):
     MAX_DURATION_STANDARD = 140  # seconds
 
     def __init__(self, account_type: str = "standard"):
+        """Initialize Twitter/X checker.
+
+        Args:
+            account_type: Account type
+        """
         self.account_type = account_type
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -1670,6 +1953,14 @@ class YouTubeChecker(CompatibilityChecker):
     MAX_DURATION = 12 * 3600  # 12 hours in seconds
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         profile = video_info.get("profile", "").lower()
@@ -1775,6 +2066,14 @@ class TikTokChecker(CompatibilityChecker):
         self.upload_source = upload_source
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -1904,6 +2203,14 @@ class VimeoChecker(CompatibilityChecker):
     ALSO_ACCEPTS = ["prores"]  # Accepted but not recommended
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -2016,6 +2323,14 @@ class FacebookChecker(CompatibilityChecker):
     MAX_DURATION = 240 * 60  # 240 minutes
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues found
+        """
         issues: List[CompatibilityIssue] = []
         codec = video_info.get("codec", "").lower()
         container = video_info.get("container", "").lower()
@@ -2118,6 +2433,7 @@ def get_available_systems() -> List[str]:
             "resolume",
             "mitti",
             "millumin",
+            "provideoplayer",
             "safari",
             "chrome",
             "firefox",
@@ -2155,6 +2471,7 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
         "resolume": ResolumeChecker,
         "mitti": MittiChecker,
         "millumin": MilluminChecker,
+        "provideoplayer": ProVideoPlayerChecker,
         "safari": SafariChecker,
         "chrome": ChromeChecker,
         "firefox": FirefoxChecker,
