@@ -166,11 +166,11 @@ make check         # Run all quality checks
 
 ## Contributing
 
-Contributions are welcome! We're especially looking for:
+Contributions are welcome!:
 - **Bug reports** - Something broken? Let us know
 - **Feature ideas** - What would make this useful for you?
 - **Compatibility data** - Know the quirks of a platform or playback system?
-- **Real-world war stories** - "This codec broke my show" tales help us build better checks
+- **Real-world war stories** - "This codec broke my show" tales help build better checks
 - **Documentation improvements** - Clearer explanations always welcome
 
 **Special call for live production operators and VJs:** Your domain knowledge is invaluable.
