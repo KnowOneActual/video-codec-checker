@@ -360,7 +360,7 @@ def test_playbackpro_h264_hd_bitrate_optimal():
     }
     issues = checker.check(video_info)
     
-    assert any("optimal" in issue.message.lower() for issue in issues)
+    assert any("suitable" in issue.message.lower() for issue in issues)
 
 
 def test_playbackpro_h264_hd_bitrate_too_low():
