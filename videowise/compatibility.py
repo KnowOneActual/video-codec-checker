@@ -1438,7 +1438,10 @@ class ProVideoPlayerChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP Alpha provides GPU-accelerated playback for overlays with transparency",
+                        message=(
+                            "HAP Alpha provides GPU-accelerated playback "
+                            "for overlays with transparency"
+                        ),
                         reason="Ideal for overlays and multi-layer compositions",
                     )
                 )
