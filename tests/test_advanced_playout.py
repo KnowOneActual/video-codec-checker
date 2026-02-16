@@ -3,15 +3,13 @@
 Tests for Wirecast, Resolume, PlaybackPro, and ProVideoPlayer (PVP).
 """
 
-import pytest
 from videowise.compatibility import (
     CompatibilityLevel,
-    WirecastChecker,
-    ResolumeChecker,
     PlaybackProChecker,
     ProVideoPlayerChecker,
+    ResolumeChecker,
+    WirecastChecker,
 )
-
 
 # Wirecast Tests (10 tests)
 
@@ -26,7 +24,7 @@ def test_wirecast_h264_compatible():
         "bitrate": 8_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("H.264" in issue.message for issue in issues)
     assert any(issue.reason and "hardware acceleration" in issue.reason.lower() for issue in issues)
@@ -42,7 +40,7 @@ def test_wirecast_prores_compatible():
         "bitrate": 150_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("prores" in issue.message.lower() for issue in issues)
 
@@ -57,7 +55,7 @@ def test_wirecast_unsupported_codec():
         "bitrate": 10_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("VP9" in issue.message for issue in issues)
 
@@ -72,7 +70,7 @@ def test_wirecast_high_bitrate_warning():
         "bitrate": 200_000_000,  # 200 Mbps
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("bitrate" in issue.message.lower() for issue in issues)
 
@@ -87,7 +85,7 @@ def test_wirecast_hevc_support():
         "bitrate": 40_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
 
@@ -101,7 +99,7 @@ def test_wirecast_dnxhd_support():
         "bitrate": 145_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
 
@@ -115,7 +113,7 @@ def test_wirecast_mp4_container():
         "bitrate": 8_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any("MP4" in issue.message for issue in issues)
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
@@ -130,7 +128,7 @@ def test_wirecast_wmv_container_warning():
         "bitrate": 8_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any("WMV" in issue.message for issue in issues)
 
 
@@ -144,7 +142,7 @@ def test_wirecast_4k_hevc():
         "bitrate": 50_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
 
@@ -158,7 +156,7 @@ def test_wirecast_mjpeg_support():
         "bitrate": 50_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
 
@@ -175,7 +173,7 @@ def test_resolume_dxv_optimal():
         "bitrate": 50_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("DXV" in issue.message for issue in issues)
     assert any("optimal" in issue.message.lower() for issue in issues)
@@ -191,7 +189,7 @@ def test_resolume_hap_recommended():
         "bitrate": 40_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("HAP" in issue.message for issue in issues)
 
@@ -206,7 +204,7 @@ def test_resolume_hap_alpha():
         "bitrate": 50_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("alpha" in issue.message.lower() for issue in issues)
 
@@ -221,7 +219,7 @@ def test_resolume_hap_q():
         "bitrate": 80_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("HAP Q" in issue.message or "HAP" in issue.message for issue in issues)
 
@@ -236,7 +234,7 @@ def test_resolume_h264_warning():
         "bitrate": 20_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("H.264" in issue.message for issue in issues)
     assert any("CPU" in issue.message for issue in issues)
@@ -252,7 +250,7 @@ def test_resolume_prores_on_mac():
         "bitrate": 150_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("CPU" in issue.message for issue in issues)
 
@@ -267,7 +265,7 @@ def test_resolume_prores_on_windows():
         "bitrate": 150_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("Windows" in issue.message for issue in issues)
 
@@ -282,7 +280,7 @@ def test_resolume_4k_layer_warning():
         "bitrate": 100_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any("4K" in issue.message for issue in issues)
     assert any("layer" in issue.message.lower() for issue in issues)
 
@@ -297,7 +295,7 @@ def test_resolume_high_bitrate_warning():
         "bitrate": 250_000_000,  # 250 Mbps
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("bitrate" in issue.message.lower() for issue in issues)
 
@@ -312,7 +310,7 @@ def test_resolume_hevc_warning():
         "bitrate": 20_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("HEVC" in issue.message for issue in issues)
 
@@ -330,7 +328,7 @@ def test_playbackpro_prores422_optimal():
         "bitrate": 150_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("ProRes 422" in issue.message for issue in issues)
 
@@ -345,7 +343,7 @@ def test_playbackpro_h264_compatible():
         "bitrate": 20_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
 
@@ -359,7 +357,7 @@ def test_playbackpro_h264_hd_bitrate_optimal():
         "bitrate": 20_000_000,  # 20 Mbps
     }
     issues = checker.check(video_info)
-    
+
     assert any("suitable" in issue.message.lower() for issue in issues)
 
 
@@ -373,7 +371,7 @@ def test_playbackpro_h264_hd_bitrate_too_low():
         "bitrate": 10_000_000,  # 10 Mbps
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("bitrate" in issue.message.lower() for issue in issues)
 
@@ -388,7 +386,7 @@ def test_playbackpro_h264_4k_bitrate_optimal():
         "bitrate": 35_000_000,  # 35 Mbps
     }
     issues = checker.check(video_info)
-    
+
     assert any("optimal" in issue.message.lower() for issue in issues)
 
 
@@ -402,7 +400,7 @@ def test_playbackpro_h264_4k_bitrate_too_low():
         "bitrate": 20_000_000,  # 20 Mbps
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("4K" in issue.message for issue in issues)
 
@@ -417,7 +415,7 @@ def test_playbackpro_mov_required():
         "bitrate": 20_000_000,
     }
     issues = checker.check(video_info)
-    
+
     # MOV is required, so MP4 should get incompatible
     assert any(issue.level == CompatibilityLevel.INCOMPATIBLE for issue in issues)
     assert any("MOV" in issue.message for issue in issues)
@@ -433,7 +431,7 @@ def test_playbackpro_mov_compatible():
         "bitrate": 20_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any("MOV" in issue.message for issue in issues)
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
@@ -448,7 +446,7 @@ def test_playbackpro_unsupported_codec():
         "bitrate": 20_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("VP9" in issue.message for issue in issues)
 
@@ -463,7 +461,7 @@ def test_playbackpro_prores4444():
         "bitrate": 200_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("4444" in issue.message for issue in issues)
 
@@ -481,7 +479,7 @@ def test_pvp_dxv_optimal():
         "bitrate": 50_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("DXV" in issue.message for issue in issues)
     assert any("timecode" in issue.message.lower() for issue in issues)
@@ -497,7 +495,7 @@ def test_pvp_hap_compatible():
         "bitrate": 40_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("HAP" in issue.message for issue in issues)
 
@@ -512,7 +510,7 @@ def test_pvp_hap_alpha():
         "bitrate": 50_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("alpha" in issue.message.lower() for issue in issues)
     assert any("overlay" in issue.message.lower() for issue in issues)
@@ -528,7 +526,7 @@ def test_pvp_prores_compatible():
         "bitrate": 150_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("ProRes" in issue.message for issue in issues)
 
@@ -543,7 +541,7 @@ def test_pvp_prores4444_alpha():
         "bitrate": 200_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("alpha" in issue.message.lower() for issue in issues)
 
@@ -558,7 +556,7 @@ def test_pvp_h264_compatible():
         "bitrate": 20_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
     assert any("H.264" in issue.message for issue in issues)
 
@@ -573,7 +571,7 @@ def test_pvp_hevc_compatible():
         "bitrate": 15_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
 
@@ -587,7 +585,7 @@ def test_pvp_unsupported_codec():
         "bitrate": 20_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
     assert any("VP9" in issue.message for issue in issues)
 
@@ -602,7 +600,7 @@ def test_pvp_mov_container():
         "bitrate": 50_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any("MOV" in issue.message for issue in issues)
 
 
@@ -616,5 +614,5 @@ def test_pvp_timecode_support_gpu():
         "bitrate": 40_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert any("timecode" in issue.message.lower() for issue in issues)
