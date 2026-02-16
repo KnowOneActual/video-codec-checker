@@ -707,7 +707,7 @@ class WirecastChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message="H.264 is fully supported by Wirecast",
-                    reason="Hardware acceleration available for smooth playback",
+                    reason="hardware acceleration available for smooth playback",
                 )
             )
         elif "prores" in codec:
@@ -834,7 +834,7 @@ class PlaybackProChecker(CompatibilityChecker):
                         issues.append(
                             CompatibilityIssue(
                                 level=CompatibilityLevel.COMPATIBLE,
-                                message=f"H.264 at {mbps}Mbps is suitable for Playback Pro",
+                                message=f"H.264 at {mbps}Mbps is optimal for Playback Pro",
                                 reason="Bitrate within recommended range for 4K",
                             )
                         )
@@ -852,7 +852,7 @@ class PlaybackProChecker(CompatibilityChecker):
                         issues.append(
                             CompatibilityIssue(
                                 level=CompatibilityLevel.COMPATIBLE,
-                                message=f"H.264 at {mbps}Mbps is suitable for Playback Pro",
+                                message=f"H.264 at {mbps}Mbps is optimal for Playback Pro",
                                 reason="Bitrate within recommended range for HD",
                             )
                         )
@@ -1438,7 +1438,7 @@ class ProVideoPlayerChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP Alpha provides GPU-accelerated playback with transparency",
+                        message="HAP Alpha provides GPU-accelerated playback for overlays with transparency",
                         reason="Ideal for overlays and multi-layer compositions",
                     )
                 )
@@ -1469,11 +1469,20 @@ class ProVideoPlayerChecker(CompatibilityChecker):
                     )
                 )
         # Check for H.264/H.265
-        elif codec == "h264" or codec == "hevc":
+        elif codec == "h264":
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is supported by PVP",
+                    message="H.264 is supported by PVP",
+                    reason="Hardware acceleration available",
+                    suggestion="Consider DXV or HAP for better multi-layer performance",
+                )
+            )
+        elif codec == "hevc":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="HEVC is supported by PVP",
                     reason="Hardware acceleration available",
                     suggestion="Consider DXV or HAP for better multi-layer performance",
                 )
