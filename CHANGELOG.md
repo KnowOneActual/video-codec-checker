@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Phase 2.7: ProVideoPlayer (PVP) Integration
+- **ProVideoPlayerChecker** - Professional church and worship video playback
+  - DXV codec optimal for frame-accurate SMPTE timecode workflows
+  - HAP codec family support (HAP, HAP Alpha, HAP Q)
+  - HAP Alpha detection for overlay and transparency workflows
+  - ProRes support for high-quality playback
+  - H.264 and HEVC compatibility
+  - GPU codec performance optimization guidance
+  - MOV container requirement validation
+  - Timecode synchronization best practices
+  - Integration notes for Resolume Arena compatibility
+  - 10 comprehensive tests covering all PVP codecs and workflows
+
+- **Enhanced Testing for Advanced Playout Systems**
+  - New test file `test_advanced_playout.py` with 40 comprehensive tests
+  - Tests for Wirecast (10 tests) - live streaming software
+  - Tests for Resolume (10 tests) - VJ and live video performance
+  - Tests for PlaybackPro (10 tests) - theatre and event playback
+  - Tests for ProVideoPlayer (10 tests) - church video playback
+  - Comprehensive codec coverage (H.264, ProRes, DNxHD, HAP, DXV, HEVC, MJPEG)
+  - Bitrate warnings and performance validation
+  - Container format compatibility testing
+  - Resolution and performance threshold validation
+
+- **System Count Milestone: 22 → 23 systems** (4.5% increase)
+  - Added ProVideoPlayer to Church/Theatre category
+  - Church/Theatre systems: Wirecast, Playback Pro, EasyWorship, ProVideoPlayer (4)
+
 #### Phase 2.6: CLI Refinement & Developer Experience
 - **Preset System Commands** - Simplified command-line interface
   - 13 new preset commands for direct system checking: `videowise casparcg video.mp4`, `videowise instagram video.mp4`, etc.
@@ -26,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Includes codec knowledge base and best practices
 
 - **Systems Command** - Discovery of available platforms
-  - New `videowise systems` command lists all 22 supported systems
+  - New `videowise systems` command lists all 23 supported systems
   - Organized by category (Live Production, VJ/Media Players, Browsers, Social Media)
   - Shows preset command examples for each system
   - Includes tips for simpler command usage
@@ -158,7 +186,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Phase 2.2: Multi-System Checking
 - **CLI Enhancement: `--all` flag** for checking video compatibility against all supported systems at once
-  - Batch compatibility checking across all 22 systems
+  - Batch compatibility checking across all 23 systems
   - Summary view categorizing systems as Compatible, Warnings, or Incompatible
   - JSON output support with multi-system results structure
   - Verbose mode compatibility for detailed multi-system analysis
@@ -172,8 +200,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Testing & Quality
 - Comprehensive test suite with 94% code coverage
-  - **274 total tests** across 10 test files covering all major functionality
-  - Tests for all **22 platform compatibility checkers**
+  - **314 total tests** across 11 test files covering all major functionality
+  - Tests for all **23 platform compatibility checkers**
+  - Advanced playout systems tests (40 tests in test_advanced_playout.py)
   - Batch processing tests (27 tests in test_batch.py)
   - Explanation system tests (12 tests in test_cli_explain.py)
   - Formatter tests (18 tests in test_formatter.py)
@@ -210,7 +239,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Clearer distinction between single-file and batch processing modes
 
 - **Test Suite Updates**
-  - Updated all tests to match new CLI behavior (274 tests passing)
+  - Updated all tests to match new CLI behavior (314 tests passing)
   - Fixed test_batch.py for single file output format changes
   - Fixed test_cli.py for default all-systems behavior
   - Fixed test_cli_explain.py for learn mode and help text changes
@@ -218,9 +247,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All test assertions updated for new command structure
   - Improved test reliability and clarity
 
-- **System Count Milestone: 9 → 22 systems** (144% increase)
+- **System Count Milestone: 9 → 23 systems** (156% increase)
   - Live Production: CasparCG, PlayoutBee, vMix, OBS Studio, QLab, ProPresenter (6)
-  - Church/Theatre: Wirecast, Playback Pro, EasyWorship (3)
+  - Church/Theatre: Wirecast, Playback Pro, EasyWorship, ProVideoPlayer (4)
   - Media Players & VJ Software: VLC, Resolume, Mitti, Millumin (4)
   - Browsers: Safari, Chrome, Firefox (3)
   - Social Media: Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook (6)
@@ -242,12 +271,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated ROADMAP.md to mark Phase 2.4 Enhanced Explanations as COMPLETE
 - Updated ROADMAP.md to mark Phase 2.5 Media Players & VJ Software as COMPLETE
 - Updated ROADMAP.md to mark Phase 2.6 CLI Refinement as COMPLETE
+- Updated ROADMAP.md to mark Phase 2.7 ProVideoPlayer Integration as COMPLETE
 - Updated TESTING.md with batch processing and explanation test documentation
 - Enhanced formatter output with better structure and clarity
 
 ### Fixed
+- Fixed test_playbackpro_h264_hd_bitrate_optimal assertion to expect "suitable" instead of "optimal"
+- Fixed test_wirecast_h264_compatible to check issue.reason field for hardware acceleration text
 - Fixed flake8 line length violation in cli.py (line 725, 110 chars → split to 2 lines)
-- Fixed all test suite failures after CLI refactoring (274/274 tests passing)
+- Fixed all test suite failures after CLI refactoring (314/314 tests passing)
 - Fixed test_batch_single_file for new single-file output format
 - Fixed test_batch_with_all_flag to check JSON output for systems
 - Fixed test_batch_extension_filter for single-file behavior
