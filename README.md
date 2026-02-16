@@ -2,7 +2,7 @@
 
 > ⚠️ **UNDER DEVELOPMENT**: Core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
 >
-> ✅ **What Works**: Full CLI, **22 system checkers**, Python API, preset commands, batch processing, enhanced explanations  
+> ✅ **What Works**: Full CLI, **23 system checkers**, Python API, preset commands, batch processing, enhanced explanations  
 > 🚧 **In Progress**: Additional platforms, advanced features
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
@@ -45,7 +45,7 @@ videowise casparcg video.mp4
 videowise instagram video.mp4
 videowise resolume video.mp4
 
-# Check against ALL 22 systems
+# Check against ALL 23 systems
 videowise check video.mp4
 
 # Learn mode - understand why videos fail
@@ -70,7 +70,7 @@ VideoWise analyzes video files and provides:
 - **VJ/Performance advice**: "Convert to DXV or HAP for Resolume - H.264 is CPU-based and limits your layer count."
 - **Educational mode**: Use `videowise learn` to understand H.264 profiles, ProRes variants, HAP codec performance, and VFR issues
 - **Batch processing**: Check entire directories at once to find which videos need re-encoding before the show
-- **Multi-system validation**: Check against all 22 systems simultaneously (default behavior)
+- **Multi-system validation**: Check against all 23 systems simultaneously (default behavior)
 
 **[See detailed examples and real-world scenarios →](docs/EXAMPLES.md)**
 
@@ -101,12 +101,12 @@ pip install -e .
 videowise --version
 ```
 
-## Supported Systems (22 Total)
+## Supported Systems (23 Total)
 
 | Category | Systems | Status |
 |----------|---------|--------|
 | **Live Production** | CasparCG, PlayoutBee, vMix, OBS Studio, QLab, ProPresenter | ✅ Complete |
-| **Church/Theatre Presentation** | Wirecast, Playback Pro, EasyWorship | ✅ Complete |
+| **Church/Theatre Presentation** | Wirecast, Playback Pro, EasyWorship, ProVideoPlayer | ✅ Complete |
 | **Media Players & VJ Software** | VLC, Resolume, Mitti, Millumin | ✅ Complete |
 | **Browsers** | Safari, Chrome, Firefox | ✅ Complete |
 | **Social Media** | Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook | ✅ Complete |
@@ -139,7 +139,7 @@ make check         # Run all quality checks
 ## Roadmap
 
 ### Current Status (Phase 2 Complete! 🎉)
-- ✅ **22 system compatibility checkers** with 160+ passing tests (94% coverage)
+- ✅ **23 system compatibility checkers** with 314 passing tests (94% coverage)
 - ✅ **Preset commands** for instant checks (videowise casparcg, videowise instagram, etc.)
 - ✅ **Learn mode** with educational explanations
 - ✅ CLI with colored output, batch processing
@@ -148,7 +148,7 @@ make check         # Run all quality checks
 - ✅ Full browser support (Safari, Chrome, Firefox)
 - ✅ Complete social media coverage (Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook)
 - ✅ VJ/media player support (QLab, VLC, Resolume, Mitti, Millumin)
-- ✅ Live presentation (Wirecast, Playback Pro, EasyWorship, PlayOutBee)
+- ✅ Live presentation (Wirecast, Playback Pro, EasyWorship, PlayOutBee, ProVideoPlayer)
 
 ### Coming Next (Phase 3)
 - [ ] Streaming platforms (Twitch, Restream, Zoom)
