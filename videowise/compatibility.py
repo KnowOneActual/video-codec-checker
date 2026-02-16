@@ -362,7 +362,7 @@ class PlayoutBeeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is supported by PlayoutBee",
+                    message=f"{container.UPPER()} container is supported by PlayoutBee",
                 )
             )
 
@@ -479,7 +479,7 @@ class OBSChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} may have limited support in OBS",
+                    message=f"{codec.UPPER()} may have limited support in OBS",
                     reason="OBS works best with H.264, HEVC, and AV1",
                     suggestion="Consider converting to H.264 for compatibility",
                 )
@@ -489,7 +489,7 @@ class OBSChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is fully supported by OBS Studio",
+                    message=f"{codec.UPPER()} is fully supported by OBS Studio",
                     reason="Hardware acceleration may be available",
                 )
             )
@@ -540,7 +540,7 @@ class QLabChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=f"{codec.upper()} provides best performance in QLab",
+                        message=f"{codec.UPPER()} provides best performance in QLab",
                         reason="ProRes Proxy and LT optimize for playback",
                     )
                 )
@@ -556,7 +556,7 @@ class QLabChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=f"{codec.upper()} is compatible with QLab",
+                        message=f"{codec.UPPER()} is compatible with QLab",
                     )
                 )
         elif codec == "h264":
@@ -572,7 +572,7 @@ class QLabChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} may not perform well in QLab",
+                    message=f"{codec.UPPER()} may not perform well in QLab",
                     reason="QLab works best with ProRes codecs",
                     suggestion="Convert to ProRes 422 Proxy for optimal performance",
                 )
@@ -615,7 +615,7 @@ class ProPresenterChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.INCOMPATIBLE,
-                    message=f"ProPresenter does not support {codec.upper()} codec",
+                    message=f"ProPresenter does not support {codec.UPPER()} codec",
                     reason=f"Supported codecs: {supported}",
                     suggestion="Convert to H.264, ProRes, or HAP codec",
                 )
@@ -694,7 +694,7 @@ class WirecastChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} may not be supported by Wirecast",
+                    message=f"{codec.UPPER()} may not be supported by Wirecast",
                     reason=f"Wirecast officially supports: {supported}",
                     suggestion="Convert to H.264 or ProRes for best compatibility",
                 )
@@ -707,14 +707,14 @@ class WirecastChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message="H.264 is fully supported by Wirecast",
-                    reason="hardware acceleration available for smooth playback",
+                    reason="Hardware acceleration available for smooth playback",
                 )
             )
         elif "prores" in codec:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is well-supported by Wirecast",
+                    message=f"{codec.UPPER()} is well-supported by Wirecast",
                     reason="Professional codec with excellent quality",
                 )
             )
@@ -722,7 +722,7 @@ class WirecastChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is supported by Wirecast",
+                    message=f"{codec.UPPER()} is supported by Wirecast",
                     reason="Professional codec for broadcast workflows",
                 )
             )
@@ -738,7 +738,7 @@ class WirecastChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is supported by Wirecast",
+                    message=f"{codec.UPPER()} is supported by Wirecast",
                 )
             )
 
@@ -747,14 +747,14 @@ class WirecastChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is compatible with Wirecast",
+                    message=f"{container.UPPER()} container is compatible with Wirecast",
                 )
             )
         elif "wmv" in container or "avi" in container:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{container.upper()} is supported but MP4/MOV preferred",
+                    message=f"{container.UPPER()} is supported but MP4/MOV preferred",
                     suggestion="Use MP4 or MOV for best compatibility",
                 )
             )
@@ -810,7 +810,7 @@ class PlaybackProChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=f"{codec.upper()} is fully supported by Playback Pro",
+                        message=f"{codec.UPPER()} is fully supported by Playback Pro",
                         reason="ProRes variants work excellently for live playback",
                     )
                 )
@@ -852,7 +852,7 @@ class PlaybackProChecker(CompatibilityChecker):
                         issues.append(
                             CompatibilityIssue(
                                 level=CompatibilityLevel.COMPATIBLE,
-                                message=f"H.264 at {mbps}Mbps is optimal for Playback Pro",
+                                message=f"H.264 at {mbps}Mbps is suitable for Playback Pro",
                                 reason="Bitrate within recommended range for HD",
                             )
                         )
@@ -868,7 +868,7 @@ class PlaybackProChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} may not be optimal for Playback Pro",
+                    message=f"{codec.UPPER()} may not be optimal for Playback Pro",
                     reason="Playback Pro is optimized for ProRes 422 and H.264",
                     suggestion="Convert to ProRes 422 for best reliability",
                 )
@@ -936,7 +936,7 @@ class EasyWorshipChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is supported on Windows",
+                    message=f"{codec.UPPER()} is supported on Windows",
                     reason="Windows Media codecs built into Windows OS",
                 )
             )
@@ -945,7 +945,7 @@ class EasyWorshipChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} may require additional codecs",
+                    message=f"{codec.UPPER()} may require additional codecs",
                     reason="EasyWorship 7+ natively supports H.264 in MP4/MOV",
                     suggestion="Convert to H.264 in MP4 for guaranteed compatibility",
                 )
@@ -956,7 +956,7 @@ class EasyWorshipChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container has native support",
+                    message=f"{container.UPPER()} container has native support",
                     reason="MP4, MOV, and M4V work without additional software",
                 )
             )
@@ -964,7 +964,7 @@ class EasyWorshipChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} is supported on Windows",
+                    message=f"{container.UPPER()} is supported on Windows",
                     reason="Windows Media formats built into Windows",
                 )
             )
@@ -972,7 +972,7 @@ class EasyWorshipChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{container.upper()} may need additional codec support",
+                    message=f"{container.UPPER()} may need additional codec support",
                     suggestion="Use MP4 container for best compatibility",
                 )
             )
@@ -1001,7 +1001,7 @@ class VLCChecker(CompatibilityChecker):
         issues.append(
             CompatibilityIssue(
                 level=CompatibilityLevel.COMPATIBLE,
-                message=f"{codec.upper()} is supported by VLC media player",
+                message=f"{codec.UPPER()} is supported by VLC media player",
                 reason="VLC uses FFmpeg libraries for universal codec support",
             )
         )
@@ -1011,7 +1011,7 @@ class VLCChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} may benefit from hardware acceleration",
+                    message=f"{codec.UPPER()} may benefit from hardware acceleration",
                     reason="Enable hardware decoding in VLC preferences for better performance",
                 )
             )
@@ -1045,7 +1045,7 @@ class VLCChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is fully supported",
+                    message=f"{container.UPPER()} container is fully supported",
                     reason="VLC supports all major container formats",
                 )
             )
@@ -1094,7 +1094,7 @@ class ResolumeChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=f"{codec.upper()} provides GPU-accelerated playback with alpha",
+                        message=f"{codec.UPPER()} provides GPU-accelerated playback with alpha",
                         reason="HAP Alpha perfect for overlays and VJ graphics",
                     )
                 )
@@ -1168,7 +1168,7 @@ class ResolumeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} is not optimal for Resolume",
+                    message=f"{codec.UPPER()} is not optimal for Resolume",
                     reason="Resolume works best with GPU-accelerated codecs",
                     suggestion="Convert to DXV (Resolume only) or HAP (universal VJ)",
                 )
@@ -1224,7 +1224,7 @@ class MittiChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is optimal for Mitti",
+                    message=f"{codec.UPPER()} is optimal for Mitti",
                     reason="Hardware accelerated on Apple Silicon Macs (M1/M2/M3)",
                 )
             )
@@ -1260,7 +1260,7 @@ class MittiChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} should be transcoded for Mitti",
+                    message=f"{codec.UPPER()} should be transcoded for Mitti",
                     reason="Mitti recommends ProRes or HAP for reliable playback",
                     suggestion=(
                         "Use Mitti's built-in transcoding to ProRes (Apple Silicon) "
@@ -1335,7 +1335,7 @@ class MilluminChecker(CompatibilityChecker):
         issues.append(
             CompatibilityIssue(
                 level=CompatibilityLevel.COMPATIBLE,
-                message=f"{codec.upper()} is supported by Millumin",
+                message=f"{codec.UPPER()} is supported by Millumin",
                 reason="Millumin uses QuickTime and AVFoundation for codec support",
             )
         )
@@ -1491,7 +1491,7 @@ class ProVideoPlayerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"PVP may have limited support for {codec.upper()}",
+                    message=f"PVP may have limited support for {codec.UPPER()}",
                     reason="PVP works best with DXV, HAP, ProRes, or H.264",
                     suggestion=(
                         "Convert to DXV for optimal timecode and multi-screen performance"
@@ -1504,7 +1504,7 @@ class ProVideoPlayerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is supported by PVP",
+                    message=f"{container.UPPER()} container is supported by PVP",
                 )
             )
 
@@ -1538,7 +1538,7 @@ class SafariChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.INCOMPATIBLE,
-                    message=f"Safari does not support {codec.upper()} codec",
+                    message=f"Safari does not support {codec.UPPER()} codec",
                     reason="Safari only supports H.264 and HEVC (H.265)",
                     suggestion="Convert to H.264 for maximum browser compatibility",
                 )
@@ -1557,7 +1557,7 @@ class SafariChecker(CompatibilityChecker):
         issues.append(
             CompatibilityIssue(
                 level=CompatibilityLevel.COMPATIBLE,
-                message=f"{codec.upper()} is supported by Safari",
+                message=f"{codec.UPPER()} is supported by Safari",
             )
         )
 
@@ -1577,14 +1577,14 @@ class ChromeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is supported by Chrome",
+                    message=f"{codec.UPPER()} is supported by Chrome",
                 )
             )
         else:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} may not be supported by Chrome",
+                    message=f"{codec.UPPER()} may not be supported by Chrome",
                     reason="Chrome supports H.264, VP8, VP9, and AV1",
                     suggestion="Convert to H.264 or VP9 for web compatibility",
                 )
@@ -1610,7 +1610,7 @@ class FirefoxChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=f"{codec.upper()} in WebM is natively supported by Firefox",
+                        message=f"{codec.UPPER()} in WebM is natively supported by Firefox",
                         reason="WebM is Firefox's preferred format for VP8/VP9",
                     )
                 )
@@ -1634,14 +1634,14 @@ class FirefoxChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=f"{codec.upper()} is supported by Firefox",
+                        message=f"{codec.UPPER()} is supported by Firefox",
                     )
                 )
         elif codec in self.PARTIALLY_SUPPORTED:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} has limited support in Firefox",
+                    message=f"{codec.UPPER()} has limited support in Firefox",
                     reason="HEVC requires Windows 10+ with HEVC Video Extensions",
                     suggestion="Convert to H.264 or VP9 for broader compatibility",
                 )
@@ -1650,7 +1650,7 @@ class FirefoxChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.INCOMPATIBLE,
-                    message=f"Firefox does not support {codec.upper()} codec",
+                    message=f"Firefox does not support {codec.UPPER()} codec",
                     reason="Firefox supports H.264, VP8, VP9, and AV1",
                     suggestion="Convert to H.264 (MP4) or VP9 (WebM) for Firefox",
                 )
@@ -1680,7 +1680,7 @@ class InstagramChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
                     message=(
-                        f"Instagram will re-encode {codec.upper()} to H.264 " f"(quality loss)"
+                        f"Instagram will re-encode {codec.UPPER()} to H.264 " f"(quality loss)"
                     ),
                     reason="Instagram only accepts H.264 codec",
                     suggestion="Pre-encode to H.264 to maintain quality control",
@@ -1740,7 +1740,7 @@ class TwitterChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"Twitter recommends H.264, not {codec.upper()}",
+                    message=f"Twitter recommends H.264, not {codec.UPPER()}",
                     suggestion="Convert to H.264 High Profile for best quality",
                 )
             )
@@ -1801,7 +1801,7 @@ class YouTubeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"YouTube recommends H.264, not {codec.upper()} for uploads",
+                    message=f"YouTube recommends H.264, not {codec.UPPER()} for uploads",
                     reason="YouTube re-encodes all uploads to multiple formats",
                     suggestion="Upload as H.264 for best quality control and processing speed",
                 )
@@ -1846,7 +1846,7 @@ class YouTubeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{container.upper()} is accepted but MP4 is preferred",
+                    message=f"{container.UPPER()} is accepted but MP4 is preferred",
                     suggestion="Use MP4 for faster upload processing",
                 )
             )
@@ -1924,7 +1924,7 @@ class TikTokChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"TikTok recommends H.264, not {codec.upper()}",
+                    message=f"TikTok recommends H.264, not {codec.UPPER()}",
                     reason="TikTok re-encodes all uploads",
                     suggestion="Upload as H.264 to maintain quality control",
                 )
@@ -1935,7 +1935,7 @@ class TikTokChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is supported by TikTok",
+                    message=f"{container.UPPER()} container is supported by TikTok",
                     reason="Standard container formats for mobile video",
                 )
             )
@@ -2052,7 +2052,7 @@ class VimeoChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"Vimeo recommends H.264, not {codec.upper()}",
+                    message=f"Vimeo recommends H.264, not {codec.UPPER()}",
                     reason="Vimeo re-encodes all uploads for streaming",
                     suggestion="Upload as H.264 for best results",
                 )
@@ -2063,7 +2063,7 @@ class VimeoChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is compatible with Vimeo",
+                    message=f"{container.UPPER()} container is compatible with Vimeo",
                 )
             )
 
@@ -2155,7 +2155,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is supported for Facebook Reels",
+                    message=f"{codec.UPPER()} is supported for Facebook Reels",
                     reason="Newer codecs accepted but H.264 recommended for Feed",
                 )
             )
@@ -2163,7 +2163,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"Facebook recommends H.264, not {codec.upper()}",
+                    message=f"Facebook recommends H.264, not {codec.UPPER()}",
                     reason="Facebook will re-encode non-standard codecs",
                     suggestion="Convert to H.264 for best compatibility",
                 )
@@ -2174,7 +2174,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} is preferred by Facebook",
+                    message=f"{container.UPPER()} is preferred by Facebook",
                     reason="MP4 and MOV offer best compatibility",
                 )
             )
@@ -2182,7 +2182,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{container.upper()} is supported but not recommended",
+                    message=f"{container.UPPER()} is supported but not recommended",
                     suggestion="Use MP4 or MOV for better compatibility",
                 )
             )
