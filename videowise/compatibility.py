@@ -1401,6 +1401,117 @@ class MilluminChecker(CompatibilityChecker):
         return issues
 
 
+class ProVideoPlayerChecker(CompatibilityChecker):
+    """Compatibility checker for ProVideoPlayer (PVP) by Renewed Vision.
+
+    PVP is a professional multi-screen media server application designed for
+    live events, churches, and concerts with timecode sync capabilities.
+    """
+
+    SUPPORTED_CODECS = {
+        "dxv",  # Optimal with timecode
+        "hap",
+        "prores",
+        "h264",
+        "hevc",
+    }
+
+    GPU_CODECS = ["dxv", "hap"]  # Hardware accelerated
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        issues: List[CompatibilityIssue] = []
+        codec = video_info.get("codec", "").lower()
+        container = video_info.get("container", "").lower()
+
+        # Check for DXV (optimal for PVP)
+        if "dxv" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="DXV codec works perfectly with PVP timecode features",
+                    reason="GPU-accelerated with excellent timecode sync",
+                )
+            )
+        # Check for HAP
+        elif "hap" in codec:
+            if "alpha" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP Alpha provides GPU-accelerated playback with transparency",
+                        reason="Ideal for overlays and multi-layer compositions",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="HAP codec provides excellent performance in PVP",
+                        reason="GPU-accelerated for smooth multi-layer playback",
+                    )
+                )
+        # Check for ProRes
+        elif "prores" in codec:
+            if "4444" in codec:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="ProRes 4444 supports alpha channel for transparency",
+                        reason="Professional quality for multi-screen setups",
+                    )
+                )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message="ProRes is fully supported by PVP",
+                        reason="Professional codec for broadcast workflows",
+                    )
+                )
+        # Check for H.264/H.265
+        elif codec == "h264" or codec == "hevc":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{codec.upper()} is supported by PVP",
+                    reason="Hardware acceleration available",
+                    suggestion="Consider DXV or HAP for better multi-layer performance",
+                )
+            )
+        else:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.WARNING,
+                    message=f"PVP may have limited support for {codec.upper()}",
+                    reason="PVP works best with DXV, HAP, ProRes, or H.264",
+                    suggestion=(
+                        "Convert to DXV for optimal timecode and multi-screen performance"
+                    ),
+                )
+            )
+
+        # Check container
+        if "mov" in container or "mp4" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message=f"{container.upper()} container is supported by PVP",
+                )
+            )
+
+        # Note about timecode support
+        if "dxv" in codec or "hap" in codec:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="Timecode following and triggering fully supported",
+                    reason="GPU codecs work excellently with PVP's timecode features",
+                )
+            )
+
+        return issues
+
+
 # Browser Compatibility
 
 
@@ -2118,6 +2229,7 @@ def get_available_systems() -> List[str]:
             "resolume",
             "mitti",
             "millumin",
+            "provideoplayer",
             "safari",
             "chrome",
             "firefox",
@@ -2155,6 +2267,7 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
         "resolume": ResolumeChecker,
         "mitti": MittiChecker,
         "millumin": MilluminChecker,
+        "provideoplayer": ProVideoPlayerChecker,
         "safari": SafariChecker,
         "chrome": ChromeChecker,
         "firefox": FirefoxChecker,
