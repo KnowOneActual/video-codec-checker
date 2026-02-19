@@ -1,9 +1,9 @@
 """Advanced live production system compatibility checkers.
 
-Professional playout and media server software with detailed codec and performance analysis.
+Professional playout and media server software with detailed codec and
+performance analysis.
 """
 
-from dataclasses import dataclass
 from typing import Any, Dict, List
 
 from .compatibility import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel
@@ -59,7 +59,10 @@ class WirecastChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message=f"{codec.upper()} is recommended for Wirecast",
-                    reason="Hardware acceleration via Intel QuickSync or NVIDIA NVENC",
+                    reason=(
+                        "Hardware acceleration via Intel QuickSync or "
+                        "NVIDIA NVENC"
+                    ),
                 )
             )
         elif codec == "prores":
@@ -94,7 +97,9 @@ class WirecastChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message="4K streaming requires powerful hardware (i7 3.0GHz+)",
+                        message=(
+                            "4K streaming requires powerful hardware (i7 3.0GHz+)"
+                        ),
                         reason="4K encoding is CPU/GPU intensive",
                         suggestion="Use hardware encoding (QuickSync/NVENC) for 4K",
                     )
@@ -104,7 +109,9 @@ class WirecastChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.COMPATIBLE,
-                            message="1080p H.264 works well with hardware acceleration",
+                            message=(
+                                "1080p H.264 works well with hardware acceleration"
+                            ),
                             reason="Recommended configuration for live streaming",
                         )
                     )
@@ -112,26 +119,45 @@ class WirecastChecker(CompatibilityChecker):
         # Check bitrate recommendations
         if bitrate:
             mbps = bitrate // 1_000_000
-            
+
             # High bitrate warning (>100 Mbps for any resolution)
             if bitrate > 100_000_000:
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message=f"Very high bitrate ({mbps}Mbps) may stress system resources",
-                        reason="High bitrates require fast storage and powerful hardware",
-                        suggestion="Use SSD storage and ensure adequate CPU/GPU capacity",
+                        message=(
+                            f"Very high bitrate ({mbps}Mbps) may stress "
+                            "system resources"
+                        ),
+                        reason=(
+                            "High bitrates require fast storage and "
+                            "powerful hardware"
+                        ),
+                        suggestion=(
+                            "Use SSD storage and ensure adequate CPU/GPU capacity"
+                        ),
                     )
                 )
             elif resolution:
                 width, height = resolution
-                if width >= 1920 and height >= 1080 and bitrate < 4_500_000:  # 1080p < 4.5 Mbps
+                # 1080p < 4.5 Mbps
+                if (
+                    width >= 1920
+                    and height >= 1080
+                    and bitrate < 4_500_000
+                ):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.WARNING,
-                            message=f"Bitrate {mbps}Mbps may be low for 1080p streaming",
-                            reason="Wirecast recommends at least 4.5 Mbps for 1080p",
-                            suggestion="Increase bitrate to 4.5-8 Mbps for better quality",
+                            message=(
+                                f"Bitrate {mbps}Mbps may be low for 1080p streaming"
+                            ),
+                            reason=(
+                                "Wirecast recommends at least 4.5 Mbps for 1080p"
+                            ),
+                            suggestion=(
+                                "Increase bitrate to 4.5-8 Mbps for better quality"
+                            ),
                         )
                     )
 
@@ -147,7 +173,9 @@ class WirecastChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message="WMV container may have limited support, MP4/MOV preferred",
+                    message=(
+                        "WMV container may have limited support, MP4/MOV preferred"
+                    ),
                     suggestion="Use MP4 or MOV for better compatibility",
                 )
             )
@@ -210,7 +238,7 @@ class ResolumeChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message="DXV is the optimal codec for Resolume",
-                    reason="Hardware-accelerated with Resolume's own gpu decoder",
+                    reason="Hardware-accelerated with Resolume's own GPU decoder",
                 )
             )
             # Add 4K layer warning even for DXV
@@ -221,8 +249,13 @@ class ResolumeChecker(CompatibilityChecker):
                         CompatibilityIssue(
                             level=CompatibilityLevel.WARNING,
                             message="4K requires careful layer management",
-                            reason="Multiple 4K layers can stress even GPU-accelerated playback",
-                            suggestion="Limit layer count or use lower resolution for layers",
+                            reason=(
+                                "Multiple 4K layers can stress even "
+                                "GPU-accelerated playback"
+                            ),
+                            suggestion=(
+                                "Limit layer count or use lower resolution for layers"
+                            ),
                         )
                     )
         # Check for HAP (second best)
@@ -231,16 +264,26 @@ class ResolumeChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP Alpha is optimal for Resolume with transparency",
-                        reason="gpu-accelerated, second-best after DXV with alpha support",
+                        message=(
+                            "HAP Alpha is optimal for Resolume with transparency"
+                        ),
+                        reason=(
+                            "GPU-accelerated, second-best after DXV with "
+                            "alpha support"
+                        ),
                     )
                 )
             elif "hap_q" in codec or "hapq" in codec:
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP Q is optimal for high-quality Resolume playback",
-                        reason="gpu-accelerated with better color depth than standard HAP",
+                        message=(
+                            "HAP Q is optimal for high-quality Resolume playback"
+                        ),
+                        reason=(
+                            "GPU-accelerated with better color depth than "
+                            "standard HAP"
+                        ),
                     )
                 )
             else:
@@ -248,7 +291,7 @@ class ResolumeChecker(CompatibilityChecker):
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
                         message="HAP codec is optimal for Resolume",
-                        reason="gpu-accelerated, second only to DXV",
+                        reason="GPU-accelerated, second only to DXV",
                     )
                 )
             # Add 4K layer warning for HAP too
@@ -258,9 +301,13 @@ class ResolumeChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.WARNING,
-                            message="4K requires careful layer management even with HAP",
+                            message=(
+                                "4K requires careful layer management even with HAP"
+                            ),
                             reason="Multiple 4K layers can stress system resources",
-                            suggestion="Limit layer count or use lower resolution for layers",
+                            suggestion=(
+                                "Limit layer count or use lower resolution for layers"
+                            ),
                         )
                     )
         # Check for PhotoJPEG
@@ -278,18 +325,26 @@ class ResolumeChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="ProRes 4444 provides high quality with alpha support",
-                        reason="Good for quality, but more CPU intensive than HAP/DXV",
-                        suggestion="Consider converting to HAP Alpha for better performance",
+                        message=(
+                            "ProRes 4444 provides high quality with alpha support"
+                        ),
+                        reason=(
+                            "Good for quality, but more CPU intensive than HAP/DXV"
+                        ),
+                        suggestion=(
+                            "Consider converting to HAP Alpha for better performance"
+                        ),
                     )
                 )
             else:
                 # ProRes is always CPU intensive in Resolume (even on Mac)
+                platform_suffix = " on Mac" if self.platform == "mac" else " on Windows"
+                no_hw_reason = " in Resolume" if self.platform == "mac" else " on Windows"
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message="ProRes is CPU-based" + (" on Mac" if self.platform == "mac" else " on Windows"),
-                        reason="No hardware acceleration" + (" in Resolume" if self.platform == "mac" else " on Windows"),
+                        message="ProRes is CPU-based" + platform_suffix,
+                        reason="No hardware acceleration" + no_hw_reason,
                         suggestion="Convert to DXV or HAP for better performance",
                     )
                 )
@@ -298,7 +353,9 @@ class ResolumeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message="H.264 is CPU playback via system codecs (not optimal)",
+                    message=(
+                        "H.264 is CPU playback via system codecs (not optimal)"
+                    ),
                     reason="Relies on MediaFoundation/AVFoundation, less efficient",
                     suggestion="Convert to DXV or HAP for optimal live performance",
                 )
@@ -325,11 +382,18 @@ class ResolumeChecker(CompatibilityChecker):
         # Check for 4K multi-layer warning (for non-GPU codecs)
         if resolution:
             width, height = resolution
-            if width >= 3840 and height >= 2160 and "dxv" not in codec and "hap" not in codec:
+            if (
+                width >= 3840
+                and height >= 2160
+                and "dxv" not in codec
+                and "hap" not in codec
+            ):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message="4K playback without GPU codec may struggle with layers",
+                        message=(
+                            "4K playback without GPU codec may struggle with layers"
+                        ),
                         reason="Multiple 4K layers require GPU-accelerated codecs",
                         suggestion="Use DXV or HAP for multi-layer 4K performance",
                     )
@@ -352,7 +416,7 @@ class ResolumeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is supported by Resolume",
+                    message=f"{container.UPPER()} container is supported by Resolume",
                 )
             )
         elif "gif" in container:
@@ -370,8 +434,8 @@ class ResolumeChecker(CompatibilityChecker):
 class PlaybackProChecker(CompatibilityChecker):
     """Compatibility checker for PlaybackPro professional playback software.
 
-    PlaybackPro is a macOS-only professional non-linear media playback application
-    designed for reliable HD and 4K playback in live events.
+    PlaybackPro is a macOS-only professional non-linear media playback
+    application designed for reliable HD and 4K playback in live events.
     """
 
     RECOMMENDED_CODECS = ["prores", "h264"]  # ProRes 422 preferred
@@ -406,7 +470,9 @@ class PlaybackProChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="ProRes 422 is the recommended codec for PlaybackPro",
+                        message=(
+                            "ProRes 422 is the recommended codec for PlaybackPro"
+                        ),
                         reason="Optimal for reliable playback in live events",
                     )
                 )
@@ -470,9 +536,14 @@ class PlaybackProChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.WARNING,
-                            message=f"4K bitrate ({mbps}Mbps) is outside recommended range",
+                            message=(
+                                f"4K bitrate ({mbps}Mbps) is outside "
+                                "recommended range"
+                            ),
                             reason="PlaybackPro recommends 30-40 Mbps for 4K",
-                            suggestion="Increase bitrate to 30-40 Mbps for 4K playback",
+                            suggestion=(
+                                "Increase bitrate to 30-40 Mbps for 4K playback"
+                            ),
                         )
                     )
                 elif bitrate >= 30_000_000 and bitrate <= 40_000_000:
@@ -487,16 +558,24 @@ class PlaybackProChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.WARNING,
-                            message=f"HD bitrate ({mbps}Mbps) is outside recommended range",
+                            message=(
+                                f"HD bitrate ({mbps}Mbps) is outside "
+                                "recommended range"
+                            ),
                             reason="PlaybackPro recommends 15-30 Mbps for HD",
-                            suggestion="Increase bitrate to 15-30 Mbps for HD playback",
+                            suggestion=(
+                                "Increase bitrate to 15-30 Mbps for HD playback"
+                            ),
                         )
                     )
                 elif bitrate >= 15_000_000 and bitrate <= 30_000_000:
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.COMPATIBLE,
-                            message=f"HD bitrate ({mbps}Mbps) is suitable within recommended range",
+                            message=(
+                                f"HD bitrate ({mbps}Mbps) is suitable within "
+                                "recommended range"
+                            ),
                         )
                     )
 
@@ -575,7 +654,10 @@ class ProVideoPlayerChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP Alpha provides GPU-accelerated playback with transparency for overlays",
+                        message=(
+                            "HAP Alpha provides GPU-accelerated playback with "
+                            "transparency for overlays"
+                        ),
                         reason="Ideal for overlays and multi-layer compositions",
                     )
                 )
@@ -593,7 +675,9 @@ class ProVideoPlayerChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="ProRes 4444 supports alpha channel for transparency",
+                        message=(
+                            "ProRes 4444 supports alpha channel for transparency"
+                        ),
                         reason="Professional quality for multi-screen setups",
                     )
                 )
@@ -612,7 +696,9 @@ class ProVideoPlayerChecker(CompatibilityChecker):
                     level=CompatibilityLevel.COMPATIBLE,
                     message="H.264 is supported by PVP",
                     reason="Hardware acceleration available",
-                    suggestion="Consider DXV or HAP for better multi-layer performance",
+                    suggestion=(
+                        "Consider DXV or HAP for better multi-layer performance"
+                    ),
                 )
             )
         elif codec == "hevc":
@@ -621,16 +707,21 @@ class ProVideoPlayerChecker(CompatibilityChecker):
                     level=CompatibilityLevel.COMPATIBLE,
                     message="HEVC is supported by PVP",
                     reason="Hardware acceleration available",
-                    suggestion="Consider DXV or HAP for better multi-layer performance",
+                    suggestion=(
+                        "Consider DXV or HAP for better multi-layer performance"
+                    ),
                 )
             )
         else:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"PVP may have limited support for {codec.upper()}",
+                    message=f"PVP may have limited support for {codec.UPPER()}",
                     reason="PVP works best with DXV, HAP, ProRes, or H.264",
-                    suggestion="Convert to DXV for optimal timecode and multi-screen performance",
+                    suggestion=(
+                        "Convert to DXV for optimal timecode and "
+                        "multi-screen performance"
+                    ),
                 )
             )
 
@@ -639,7 +730,7 @@ class ProVideoPlayerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is supported by PVP",
+                    message=f"{container.UPPER()} container is supported by PVP",
                 )
             )
 
@@ -649,7 +740,9 @@ class ProVideoPlayerChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message="Timecode following and triggering fully supported",
-                    reason="GPU codecs work excellently with PVP's timecode features",
+                    reason=(
+                        "GPU codecs work excellently with PVP's timecode features"
+                    ),
                 )
             )
 
