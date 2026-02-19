@@ -292,7 +292,9 @@ class YouTubeLiveChecker(CompatibilityChecker):
                     pass
 
             if width >= 3840 and height >= 2160:  # 4K
-                max_bitrate = self.MAX_BITRATE_4K if is_60fps else 51_000_000
+                # Precompute max bitrate based on frame rate
+                max_4k_30fps = 51_000_000  # 51 Mbps for 4K30
+                max_bitrate = self.MAX_BITRATE_4K if is_60fps else max_4k_30fps
                 max_mbps = max_bitrate // 1_000_000
                 if bitrate > max_bitrate:
                     issues.append(
