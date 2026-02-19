@@ -58,8 +58,8 @@ class WirecastChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} supports hardware acceleration in Wirecast",
-                    reason="Intel QuickSync or NVIDIA NVENC offload encoding to GPU",
+                    message=f"{codec.upper()} is recommended for Wirecast",
+                    reason="Hardware acceleration via Intel QuickSync or NVIDIA NVENC",
                 )
             )
         elif codec == "prores":
@@ -594,11 +594,20 @@ class ProVideoPlayerChecker(CompatibilityChecker):
                     )
                 )
         # Check for H.264/H.265
-        elif codec == "h264" or codec == "hevc":
+        elif codec == "h264":
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is supported by PVP",
+                    message="H.264 is supported by PVP",
+                    reason="Hardware acceleration available",
+                    suggestion="Consider DXV or HAP for better multi-layer performance",
+                )
+            )
+        elif codec == "hevc":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="HEVC is supported by PVP",
                     reason="Hardware acceleration available",
                     suggestion="Consider DXV or HAP for better multi-layer performance",
                 )
