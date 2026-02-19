@@ -49,7 +49,7 @@ class WirecastChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"Wirecast may have limited support for {codec.upper()}",
+                    message=f"Wirecast may not be supported for {codec.upper()}",
                     reason=f"Wirecast supports: {supported}",
                     suggestion="Convert to H.264 or ProRes for best compatibility",
                 )
@@ -147,7 +147,7 @@ class WirecastChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message="WMV container may have limited support",
+                    message="WMV container may have limited support, MP4/MOV preferred",
                     suggestion="Use MP4 or MOV for better compatibility",
                 )
             )
@@ -210,7 +210,7 @@ class ResolumeChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message="DXV is the optimal codec for Resolume",
-                    reason="Hardware-accelerated with Resolume's own decoder",
+                    reason="Hardware-accelerated with Resolume's own gpu decoder",
                 )
             )
             # Add 4K layer warning even for DXV
@@ -231,26 +231,38 @@ class ResolumeChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP Alpha provides GPU-accelerated playback with transparency",
-                        reason="Second-best performance after DXV, with alpha support",
+                        message="HAP Alpha is optimal for Resolume with transparency",
+                        reason="gpu-accelerated, second-best after DXV with alpha support",
                     )
                 )
             elif "hap_q" in codec or "hapq" in codec:
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP Q provides high-quality GPU-accelerated playback",
-                        reason="Better color depth than standard HAP",
+                        message="HAP Q is optimal for high-quality Resolume playback",
+                        reason="gpu-accelerated with better color depth than standard HAP",
                     )
                 )
             else:
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP codec provides excellent performance in Resolume",
-                        reason="GPU-accelerated, second only to DXV",
+                        message="HAP codec is optimal for Resolume",
+                        reason="gpu-accelerated, second only to DXV",
                     )
                 )
+            # Add 4K layer warning for HAP too
+            if resolution:
+                width, height = resolution
+                if width >= 3840 and height >= 2160:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message="4K requires careful layer management even with HAP",
+                            reason="Multiple 4K layers can stress system resources",
+                            suggestion="Limit layer count or use lower resolution for layers",
+                        )
+                    )
         # Check for PhotoJPEG
         elif "photojpeg" in codec or ("mjpeg" in codec and "photo" in codec):
             issues.append(
@@ -276,7 +288,7 @@ class ResolumeChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message="ProRes is CPU intensive" + (" on Mac" if self.platform == "mac" else " on Windows"),
+                        message="ProRes is cpu-based" + (" on Mac" if self.platform == "mac" else " on Windows"),
                         reason="No hardware acceleration" + (" in Resolume" if self.platform == "mac" else " on Windows"),
                         suggestion="Convert to DXV or HAP for better performance",
                     )
@@ -286,7 +298,7 @@ class ResolumeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message="H.264 relies on CPU playback via system codecs (not optimal)",
+                    message="H.264 is cpu playback via system codecs (not optimal)",
                     reason="Relies on MediaFoundation/AVFoundation, less efficient",
                     suggestion="Convert to DXV or HAP for optimal live performance",
                 )
@@ -443,7 +455,7 @@ class PlaybackProChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"PlaybackPro recommends ProRes or H.264, not {codec.upper()}",
+                    message=f"{codec.upper()} may not be optimal for PlaybackPro",
                     suggestion="Convert to ProRes 422 for best reliability",
                 )
             )
@@ -458,7 +470,7 @@ class PlaybackProChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.WARNING,
-                            message=f"4K bitrate ({mbps}Mbps) may be too low",
+                            message=f"4K bitrate ({mbps}Mbps) is outside recommended range",
                             reason="PlaybackPro recommends 30-40 Mbps for 4K",
                             suggestion="Increase bitrate to 30-40 Mbps for 4K playback",
                         )
@@ -467,7 +479,7 @@ class PlaybackProChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.COMPATIBLE,
-                            message=f"4K bitrate ({mbps}Mbps) is optimal for PlaybackPro",
+                            message=f"4K bitrate ({mbps}Mbps) is within recommended range",
                         )
                     )
             elif width >= 1920 and height >= 1080:  # 1080p/HD
@@ -475,7 +487,7 @@ class PlaybackProChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.WARNING,
-                            message=f"HD bitrate ({mbps}Mbps) may be too low",
+                            message=f"HD bitrate ({mbps}Mbps) is outside recommended range",
                             reason="PlaybackPro recommends 15-30 Mbps for HD",
                             suggestion="Increase bitrate to 15-30 Mbps for HD playback",
                         )
@@ -484,7 +496,7 @@ class PlaybackProChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.COMPATIBLE,
-                            message=f"HD bitrate ({mbps}Mbps) is suitable for PlaybackPro",
+                            message=f"HD bitrate ({mbps}Mbps) is suitable within recommended range",
                         )
                     )
 
@@ -493,14 +505,14 @@ class PlaybackProChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message="MOV container is recommended for PlaybackPro",
+                    message="MOV container is required for PlaybackPro",
                 )
             )
         elif "mp4" in container:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.INCOMPATIBLE,
-                    message="MOV container is required for PlaybackPro",
+                    message="PlaybackPro requires MOV container",
                     reason="PlaybackPro requires MOV, not MP4",
                     suggestion="Remux to MOV container",
                 )
@@ -509,7 +521,7 @@ class PlaybackProChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.INCOMPATIBLE,
-                    message="MOV container is required for PlaybackPro",
+                    message="PlaybackPro requires MOV container",
                     reason="PlaybackPro only supports MOV container",
                     suggestion="Remux to MOV container",
                 )
