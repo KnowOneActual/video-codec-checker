@@ -152,22 +152,31 @@ class DaVinciResolveChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message=f"{codec.upper()} requires CPU decode in Resolve Free (consider re-encoding)",
+                        message=(
+                            f"{codec.upper()} requires CPU decode in Resolve Free "
+                            "(consider re-encoding / transcoding)"
+                        ),
                         reason="Free version lacks GPU decode, causing timeline stuttering",
-                        suggestion="Transcode to DNxHR or ProRes, or upgrade to Studio",
+                        suggestion="Transcode / re-encode to DNxHR or ProRes, or upgrade to Studio",
                     )
                 )
 
-            # Additional H.264/H.265 warning for heavy editing
+            # Additional H.264/H.265 warning for heavy editing (re-encode / transcode wording)
             if resolution:
                 width, height = resolution
                 if width >= 1920 and height >= 1080:
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.WARNING,
-                            message=f"{codec.upper()} may require transcoding for intensive editing/grading",
+                            message=(
+                                f"{codec.upper()} may require transcoding / re-encoding "
+                                "for intensive editing/grading"
+                            ),
                             reason="Long-GOP compression makes frame-accurate work slower",
-                            suggestion="Consider generating optimized media (DNxHR/ProRes)",
+                            suggestion=(
+                                "Consider generating optimized media (DNxHR/ProRes) or "
+                                "re-encode to an intraframe codec"
+                            ),
                         )
                     )
 
@@ -333,7 +342,7 @@ class AdobePremiereProChecker(CompatibilityChecker):
                             )
                         )
 
-            # High bitrate warning for 4K
+            # High bitrate warning for 4K (must mention bitrate/performance)
             if bitrate and resolution:
                 width, height = resolution
                 if (width >= 3840 or height >= 2160) and bitrate > 100_000_000:
@@ -341,9 +350,12 @@ class AdobePremiereProChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.WARNING,
-                            message=f"High bitrate 4K {codec.upper()} ({mbps}Mbps) may impact timeline performance",
+                            message=(
+                                f"High bitrate 4K {codec.upper()} ({mbps}Mbps) "
+                                "may impact timeline performance"
+                            ),
                             reason="Very high bitrate can cause stuttering during playback",
-                            suggestion="Consider creating proxies or using intraframe codec",
+                            suggestion="Consider creating proxies or using an intraframe codec",
                         )
                     )
 
@@ -420,6 +432,14 @@ class FinalCutProChecker(CompatibilityChecker):
         "av1",
     }
 
+    def __init__(self, platform: str = "mac_apple_silicon"):
+        """Initialize Final Cut Pro checker.
+
+        Args:
+            platform: 'mac_intel' or 'mac_apple_silicon'
+        """
+        self.platform = platform
+
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
         """Check video compatibility for Final Cut Pro.
 
@@ -448,13 +468,25 @@ class FinalCutProChecker(CompatibilityChecker):
 
         # Check for ProRes (native codec)
         if "prores" in codec:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is the native codec for Final Cut Pro",
-                    reason="Hardware acceleration on Apple Silicon provides excellent performance",
+            if self.platform == "mac_apple_silicon":
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=(
+                            f"{codec.upper()} is the native codec for Final Cut Pro "
+                            "with Apple Silicon hardware acceleration"
+                        ),
+                        reason="Hardware acceleration on M-series chips provides excellent performance",
+                    )
                 )
-            )
+            else:
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.COMPATIBLE,
+                        message=f"{codec.upper()} is the native codec for Final Cut Pro",
+                        reason="Hardware acceleration on Apple Silicon provides excellent performance",
+                    )
+                )
 
             if "proxy" in codec:
                 issues.append(
@@ -482,7 +514,7 @@ class FinalCutProChecker(CompatibilityChecker):
                 )
 
         # Check for H.264/H.265 - triggers Optimized Media
-        elif codec in ["h264", "hevc"]:
+        elif codec in ["h264", "hevc", "h265"]:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
@@ -491,8 +523,8 @@ class FinalCutProChecker(CompatibilityChecker):
                 )
             )
 
-            # Optimized Media workflow for HEVC
-            if codec == "hevc" or (bitrate and bitrate > 50_000_000):
+            # Optimized Media workflow for HEVC / H.265 or very high bitrate
+            if codec in ["hevc", "h265"] or (bitrate and bitrate > 50_000_000):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
@@ -511,7 +543,9 @@ class FinalCutProChecker(CompatibilityChecker):
                             level=CompatibilityLevel.WARNING,
                             message="Enable Background Rendering for smooth playback of complex footage",
                             reason="4K or high-bitrate footage benefits from pre-rendering",
-                            suggestion="Final Cut Pro > Preferences > Playback > Background render",
+                            suggestion=(
+                                "Final Cut Pro > Preferences > Playback > Background render"
+                            ),
                         )
                     )
 
@@ -857,7 +891,7 @@ class AfterEffectsChecker(CompatibilityChecker):
                         level=CompatibilityLevel.COMPATIBLE,
                         message="4K compositions: ensure GPU acceleration is enabled for better performance",
                         reason="GPU effects and renders significantly speed up workflows",
-                        suggestion="Project Settings > Video Rendering and Effects > Mercury GPU",
+                        suggestion=("Project Settings > Video Rendering and Effects > Mercury GPU"),
                     )
                 )
 

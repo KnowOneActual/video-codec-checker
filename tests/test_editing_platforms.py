@@ -19,7 +19,6 @@ from videowise.editing_platforms import (
     FinalCutProChecker,
 )
 
-
 # =============================================================================
 # DaVinci Resolve Tests (10 tests)
 # =============================================================================
@@ -34,7 +33,7 @@ def test_davinci_dnxhd_optimal():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     assert any("optimal" in issue.message.lower() for issue in issues)
     assert any("dnxhd" in issue.message.lower() for issue in issues)
@@ -49,9 +48,11 @@ def test_davinci_dnxhr_4k_optimal():
         "resolution": (3840, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("optimal" in issue.message.lower() or "4k" in issue.message.lower() for issue in issues)
+    assert any(
+        "optimal" in issue.message.lower() or "4k" in issue.message.lower() for issue in issues
+    )
 
 
 def test_davinci_prores_apple_silicon():
@@ -63,10 +64,12 @@ def test_davinci_prores_apple_silicon():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("apple silicon" in issue.message.lower() or "hardware" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "apple silicon" in issue.message.lower() or "hardware" in issue.message.lower()
+        for issue in issues
+    )
 
 
 def test_davinci_prores_intel_mac():
@@ -78,7 +81,7 @@ def test_davinci_prores_intel_mac():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # Should still be compatible, just without Apple Silicon acceleration
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
@@ -93,11 +96,13 @@ def test_davinci_h264_warning():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
-    assert any("re-encod" in issue.message.lower() or "transcode" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "re-encod" in issue.message.lower() or "transcode" in issue.message.lower()
+        for issue in issues
+    )
 
 
 def test_davinci_braw_raw_format():
@@ -109,9 +114,11 @@ def test_davinci_braw_raw_format():
         "resolution": (3840, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("raw" in issue.message.lower() or "braw" in issue.message.lower() for issue in issues)
+    assert any(
+        "raw" in issue.message.lower() or "braw" in issue.message.lower() for issue in issues
+    )
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
 
@@ -125,10 +132,11 @@ def test_davinci_10bit_color_depth():
         "bit_depth": 10,
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("10-bit" in issue.message.lower() or "color" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "10-bit" in issue.message.lower() or "color" in issue.message.lower() for issue in issues
+    )
 
 
 def test_davinci_mxf_container():
@@ -140,7 +148,7 @@ def test_davinci_mxf_container():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
@@ -154,26 +162,27 @@ def test_davinci_h265_4k_decode():
         "resolution": (3840, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("decode" in issue.message.lower() or "4k" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "decode" in issue.message.lower() or "4k" in issue.message.lower() for issue in issues
+    )
 
 
 def test_davinci_free_vs_studio():
     """Test Free version limitations vs Studio."""
     checker_free = DaVinciResolveChecker(version="free")
     checker_studio = DaVinciResolveChecker(version="studio")
-    
+
     video_info = {
         "codec": "h264",
         "container": "mp4",
         "resolution": (3840, 2160),
     }
-    
+
     issues_free = checker_free.check(video_info)
     issues_studio = checker_studio.check(video_info)
-    
+
     # Both should work but free might have warnings
     assert len(issues_free) >= 1
     assert len(issues_studio) >= 1
@@ -193,10 +202,11 @@ def test_premiere_prores_native():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("native" in issue.message.lower() or "prores" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "native" in issue.message.lower() or "prores" in issue.message.lower() for issue in issues
+    )
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
 
@@ -209,10 +219,11 @@ def test_premiere_dnxhd_native():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("native" in issue.message.lower() or "dnxhd" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "native" in issue.message.lower() or "dnxhd" in issue.message.lower() for issue in issues
+    )
 
 
 def test_premiere_h264_level_51_4k():
@@ -226,10 +237,11 @@ def test_premiere_h264_level_51_4k():
         "resolution": (3840, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("level" in issue.message.lower() or "4k" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "level" in issue.message.lower() or "4k" in issue.message.lower() for issue in issues
+    )
 
 
 def test_premiere_mercury_engine():
@@ -241,10 +253,14 @@ def test_premiere_mercury_engine():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("mercury" in issue.message.lower() or "gpu" in issue.message.lower() 
-               or "hardware" in issue.message.lower() for issue in issues)
+    assert any(
+        "mercury" in issue.message.lower()
+        or "gpu" in issue.message.lower()
+        or "hardware" in issue.message.lower()
+        for issue in issues
+    )
 
 
 def test_premiere_vfr_warning():
@@ -257,11 +273,12 @@ def test_premiere_vfr_warning():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
-    assert any("vfr" in issue.message.lower() or "variable" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "vfr" in issue.message.lower() or "variable" in issue.message.lower() for issue in issues
+    )
 
 
 def test_premiere_high_bitrate_4k():
@@ -274,11 +291,13 @@ def test_premiere_high_bitrate_4k():
         "bitrate": 150_000_000,  # 150 Mbps
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # High bitrate should trigger performance warning
-    assert any("bitrate" in issue.message.lower() or "performance" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "bitrate" in issue.message.lower() or "performance" in issue.message.lower()
+        for issue in issues
+    )
 
 
 def test_premiere_proxy_workflow_8k():
@@ -290,10 +309,11 @@ def test_premiere_proxy_workflow_8k():
         "resolution": (7680, 4320),  # 8K
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("proxy" in issue.message.lower() or "8k" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "proxy" in issue.message.lower() or "8k" in issue.message.lower() for issue in issues
+    )
 
 
 def test_premiere_red_raw():
@@ -305,10 +325,9 @@ def test_premiere_red_raw():
         "resolution": (4096, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("red" in issue.message.lower() or "raw" in issue.message.lower() 
-               for issue in issues)
+    assert any("red" in issue.message.lower() or "raw" in issue.message.lower() for issue in issues)
 
 
 def test_premiere_multicam_codec():
@@ -320,7 +339,7 @@ def test_premiere_multicam_codec():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # DNxHD should be recommended for multi-cam
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
@@ -335,10 +354,11 @@ def test_premiere_xavc_native():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("native" in issue.message.lower() or "xavc" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "native" in issue.message.lower() or "xavc" in issue.message.lower() for issue in issues
+    )
 
 
 # =============================================================================
@@ -355,7 +375,7 @@ def test_finalcut_prores_optimal():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     assert any("prores" in issue.message.lower() for issue in issues)
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
@@ -370,10 +390,12 @@ def test_finalcut_prores_apple_silicon():
         "resolution": (3840, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("apple silicon" in issue.message.lower() or "hardware" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "apple silicon" in issue.message.lower() or "hardware" in issue.message.lower()
+        for issue in issues
+    )
 
 
 def test_finalcut_prores_raw():
@@ -385,7 +407,7 @@ def test_finalcut_prores_raw():
         "resolution": (4096, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     assert any("raw" in issue.message.lower() for issue in issues)
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
@@ -400,10 +422,11 @@ def test_finalcut_h264_hardware_decode():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("hardware" in issue.message.lower() or "decode" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "hardware" in issue.message.lower() or "decode" in issue.message.lower() for issue in issues
+    )
 
 
 def test_finalcut_hevc_hardware_decode():
@@ -415,10 +438,11 @@ def test_finalcut_hevc_hardware_decode():
         "resolution": (3840, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("hardware" in issue.message.lower() or "hevc" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "hardware" in issue.message.lower() or "hevc" in issue.message.lower() for issue in issues
+    )
 
 
 def test_finalcut_mov_container_native():
@@ -430,10 +454,11 @@ def test_finalcut_mov_container_native():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("mov" in issue.message.lower() or "quicktime" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "mov" in issue.message.lower() or "quicktime" in issue.message.lower() for issue in issues
+    )
 
 
 def test_finalcut_optimized_media():
@@ -445,7 +470,7 @@ def test_finalcut_optimized_media():
         "resolution": (3840, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # HEVC should suggest Optimized Media workflow
     assert any("optimized" in issue.message.lower() for issue in issues)
@@ -460,7 +485,7 @@ def test_finalcut_magnetic_timeline():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
@@ -475,11 +500,13 @@ def test_finalcut_background_rendering():
         "bitrate": 100_000_000,
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # High complexity should mention background rendering
-    assert any("render" in issue.message.lower() or "background" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "render" in issue.message.lower() or "background" in issue.message.lower()
+        for issue in issues
+    )
 
 
 def test_finalcut_iphone_footage():
@@ -491,7 +518,7 @@ def test_finalcut_iphone_footage():
         "resolution": (3840, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # HEVC in MOV (typical iPhone format) should be well supported
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
@@ -511,10 +538,11 @@ def test_avid_dnxhd_native():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("native" in issue.message.lower() or "optimal" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "native" in issue.message.lower() or "optimal" in issue.message.lower() for issue in issues
+    )
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
 
@@ -527,10 +555,11 @@ def test_avid_dnxhr_4k():
         "resolution": (3840, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("dnxhr" in issue.message.lower() or "4k" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "dnxhr" in issue.message.lower() or "4k" in issue.message.lower() for issue in issues
+    )
 
 
 def test_avid_mxf_container_required():
@@ -542,7 +571,7 @@ def test_avid_mxf_container_required():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # MOV with DNxHD should warn about MXF preference
     assert any("mxf" in issue.message.lower() for issue in issues)
@@ -558,10 +587,11 @@ def test_avid_op1a_structure():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("op1a" in issue.message.lower() or "mxf" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "op1a" in issue.message.lower() or "mxf" in issue.message.lower() for issue in issues
+    )
 
 
 def test_avid_prores_collaboration():
@@ -573,12 +603,14 @@ def test_avid_prores_collaboration():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     assert any("prores" in issue.message.lower() for issue in issues)
     # Should mention collaboration or compatibility
-    assert any("collaboration" in issue.message.lower() or "compatible" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "collaboration" in issue.message.lower() or "compatible" in issue.message.lower()
+        for issue in issues
+    )
 
 
 def test_avid_h264_ama_linking():
@@ -590,10 +622,11 @@ def test_avid_h264_ama_linking():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("ama" in issue.message.lower() or "transcode" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "ama" in issue.message.lower() or "transcode" in issue.message.lower() for issue in issues
+    )
 
 
 def test_avid_codec_pack_requirement():
@@ -605,11 +638,12 @@ def test_avid_codec_pack_requirement():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # Third-party codec should mention codec pack or AMA
-    assert any("codec" in issue.message.lower() or "ama" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "codec" in issue.message.lower() or "ama" in issue.message.lower() for issue in issues
+    )
 
 
 def test_avid_mediacentral_cloud():
@@ -621,7 +655,7 @@ def test_avid_mediacentral_cloud():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # DNxHD in MXF is ideal for MediaCentral
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
@@ -637,11 +671,12 @@ def test_avid_broadcast_audio():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # PCM audio should be mentioned as broadcast-compliant
-    assert any("audio" in issue.message.lower() or "pcm" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "audio" in issue.message.lower() or "pcm" in issue.message.lower() for issue in issues
+    )
 
 
 def test_avid_aaf_export():
@@ -653,7 +688,7 @@ def test_avid_aaf_export():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # DNxHD in MXF is perfect for AAF workflows
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
@@ -673,10 +708,11 @@ def test_aftereffects_prores4444_alpha():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("alpha" in issue.message.lower() or "4444" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "alpha" in issue.message.lower() or "4444" in issue.message.lower() for issue in issues
+    )
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
 
@@ -689,10 +725,12 @@ def test_aftereffects_animation_codec():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
-    assert any("animation" in issue.message.lower() or "lossless" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "animation" in issue.message.lower() or "lossless" in issue.message.lower()
+        for issue in issues
+    )
 
 
 def test_aftereffects_png_sequence_recommended():
@@ -704,11 +742,12 @@ def test_aftereffects_png_sequence_recommended():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # Should suggest PNG/TIFF sequence for motion graphics work
-    assert any("sequence" in issue.message.lower() or "png" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "sequence" in issue.message.lower() or "png" in issue.message.lower() for issue in issues
+    )
 
 
 def test_aftereffects_h264_warning():
@@ -720,11 +759,12 @@ def test_aftereffects_h264_warning():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     assert any(issue.level == CompatibilityLevel.WARNING for issue in issues)
-    assert any("h.264" in issue.message.lower() or "avoid" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "h.264" in issue.message.lower() or "avoid" in issue.message.lower() for issue in issues
+    )
 
 
 def test_aftereffects_ram_preview():
@@ -736,7 +776,7 @@ def test_aftereffects_ram_preview():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # ProRes should be good for RAM preview
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
@@ -751,11 +791,13 @@ def test_aftereffects_dynamic_link():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # Should mention Dynamic Link or Premiere compatibility
-    assert any("dynamic link" in issue.message.lower() or "premiere" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "dynamic link" in issue.message.lower() or "premiere" in issue.message.lower()
+        for issue in issues
+    )
 
 
 def test_aftereffects_gpu_acceleration():
@@ -767,11 +809,12 @@ def test_aftereffects_gpu_acceleration():
         "resolution": (3840, 2160),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # Should mention GPU or performance
-    assert any("gpu" in issue.message.lower() or "performance" in issue.message.lower() 
-               for issue in issues)
+    assert any(
+        "gpu" in issue.message.lower() or "performance" in issue.message.lower() for issue in issues
+    )
 
 
 def test_aftereffects_render_queue():
@@ -783,7 +826,7 @@ def test_aftereffects_render_queue():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # ProRes 4444 is perfect for Render Queue output
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
@@ -798,7 +841,7 @@ def test_aftereffects_multi_machine_rendering():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # ProRes should work well for multi-machine rendering
     assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
@@ -813,7 +856,7 @@ def test_aftereffects_alpha_preservation():
         "resolution": (1920, 1080),
     }
     issues = checker.check(video_info)
-    
+
     assert len(issues) >= 1
     # H.264 doesn't support alpha, should be warned
     assert any("alpha" in issue.message.lower() for issue in issues)
