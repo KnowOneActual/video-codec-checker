@@ -288,7 +288,7 @@ class ResolumeChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message="ProRes is cpu-based" + (" on Mac" if self.platform == "mac" else " on Windows"),
+                        message="ProRes is CPU-based" + (" on Mac" if self.platform == "mac" else " on Windows"),
                         reason="No hardware acceleration" + (" in Resolume" if self.platform == "mac" else " on Windows"),
                         suggestion="Convert to DXV or HAP for better performance",
                     )
@@ -298,7 +298,7 @@ class ResolumeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message="H.264 is cpu playback via system codecs (not optimal)",
+                    message="H.264 is CPU playback via system codecs (not optimal)",
                     reason="Relies on MediaFoundation/AVFoundation, less efficient",
                     suggestion="Convert to DXV or HAP for optimal live performance",
                 )
@@ -479,7 +479,7 @@ class PlaybackProChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.COMPATIBLE,
-                            message=f"4K bitrate ({mbps}Mbps) is within recommended range",
+                            message=f"4K bitrate ({mbps}Mbps) is optimal",
                         )
                     )
             elif width >= 1920 and height >= 1080:  # 1080p/HD
