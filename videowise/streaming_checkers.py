@@ -10,7 +10,7 @@ This module provides compatibility checkers for popular streaming platforms:
 
 Usage:
     from videowise.streaming_checkers import TwitchChecker
-    
+
     checker = TwitchChecker()
     issues = checker.check(video_info)
 """
@@ -293,12 +293,13 @@ class YouTubeLiveChecker(CompatibilityChecker):
 
             if width >= 3840 and height >= 2160:  # 4K
                 max_bitrate = self.MAX_BITRATE_4K if is_60fps else 51_000_000
+                max_mbps = max_bitrate // 1_000_000
                 if bitrate > max_bitrate:
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.WARNING,
                             message=f"4K bitrate {mbps:.1f}Mbps exceeds YouTube recommendation",
-                            reason=f"YouTube recommends up to {max_bitrate // 1_000_000} Mbps for 4K",
+                            reason=f"YouTube recommends up to {max_mbps} Mbps for 4K",
                             suggestion="Lower bitrate for reliable streaming",
                         )
                     )
@@ -311,7 +312,9 @@ class YouTubeLiveChecker(CompatibilityChecker):
                     )
             elif width >= 1920 and height >= 1080:  # 1080p
                 recommended = (
-                    self.RECOMMENDED_BITRATE_1080P60 if is_60fps else self.RECOMMENDED_BITRATE_1080P30
+                    self.RECOMMENDED_BITRATE_1080P60
+                    if is_60fps
+                    else self.RECOMMENDED_BITRATE_1080P30
                 )
                 recommended_mbps = recommended / 1_000_000
 
@@ -660,7 +663,9 @@ class DiscordChecker(CompatibilityChecker):
             )
 
         # Check file size for uploads
-        max_size = self.MAX_FILE_SIZE_NITRO if self.user_type == "nitro" else self.MAX_FILE_SIZE_FREE
+        max_size = (
+            self.MAX_FILE_SIZE_NITRO if self.user_type == "nitro" else self.MAX_FILE_SIZE_FREE
+        )
         if file_size > max_size:
             size_mb = file_size / (1024 * 1024)
             limit_mb = max_size / (1024 * 1024)
