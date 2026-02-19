@@ -2,17 +2,17 @@
 
 > ⚠️ **UNDER DEVELOPMENT**: Core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
 >
-> ✅ **What Works**: Full CLI, **23 system checkers**, Python API, preset commands, batch processing, enhanced explanations  
-> 🚧 **In Progress**: Additional platforms, advanced features
+> ✅ **What Works**: Full CLI, **28 system checkers** (includes 5 editing platforms!), Python API, preset commands, batch processing, enhanced explanations  
+> 🚧 **In Progress**: Testing editing platforms, streaming platforms, PyPI package
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A video codec compatibility checker that explains *why* your video won't work and how to fix it, for content creators, live production operators, and developers.
+A video codec compatibility checker that explains *why* your video won't work and how to fix it, for content creators, live production operators, video editors, and developers.
 
-> 💡 **February 2026 Update**: Based on user feedback, redesigned the CLI to be simpler and more intuitive! Commands like `videowise casparcg video.mp4` now replace verbose flag syntax. Your input matters. Please keep it coming!
+> 💡 **February 19, 2026 Update**: Just added professional editing platforms! Check your footage compatibility with DaVinci Resolve, Adobe Premiere Pro, Final Cut Pro, Avid Media Composer, and After Effects. More coming soon!
 
 ## The Problem Being Solved
 
@@ -23,6 +23,13 @@ You've spent hours creating the perfect video, but:
 - Your client says, "The video doesn't work."
 - The error message is useless: "Invalid format" or worse, nothing at all
 - **You want to understand WHY it doesn't work, not just that it doesn't**
+
+### For Video Editors & Post-Production
+You receive footage from clients or cameras and:
+- Your NLE (Premiere, DaVinci, Final Cut) stutters during playback
+- Multi-cam editing is dropping frames
+- You're not sure if you need to transcode or can edit natively
+- **You need to know which formats will edit smoothly before importing terabytes of footage**
 
 ### For Live Production Operators
 You're setting up for a show and:
@@ -45,7 +52,12 @@ videowise casparcg video.mp4
 videowise instagram video.mp4
 videowise resolume video.mp4
 
-# Check against ALL 23 systems
+# NEW: Check editing platforms (coming soon - CLI presets)
+videowise check video.mp4 --system davinci
+videowise check footage.mp4 --system premiere
+videowise check clip.mov --system finalcut
+
+# Check against ALL 28 systems
 videowise check video.mp4
 
 # Learn mode - understand why videos fail
@@ -67,10 +79,11 @@ VideoWise analyzes video files and provides:
 - **Human-readable explanations**: "This won't play in Safari because it uses VP9 codec - Safari only supports H.264 and HEVC."
 - **Actionable suggestions**: "Instagram will re-encode this (losing quality) because it's H.264 High Profile instead of Baseline."
 - **Live production warnings**: "This file will cause dropped frames in vMix - bitrate is 180Mbps, but your system can only handle 100Mbps smoothly."
+- **Editing workflow advice**: "DNxHD is optimal for DaVinci Resolve multi-layer timelines. H.264 will work but requires re-encoding."
 - **VJ/Performance advice**: "Convert to DXV or HAP for Resolume - H.264 is CPU-based and limits your layer count."
 - **Educational mode**: Use `videowise learn` to understand H.264 profiles, ProRes variants, HAP codec performance, and VFR issues
-- **Batch processing**: Check entire directories at once to find which videos need re-encoding before the show
-- **Multi-system validation**: Check against all 23 systems simultaneously (default behavior)
+- **Batch processing**: Check entire directories at once to find which videos need re-encoding before the show or edit session
+- **Multi-system validation**: Check against all 28 systems simultaneously (default behavior)
 
 **[See detailed examples and real-world scenarios →](docs/EXAMPLES.md)**
 
@@ -101,7 +114,7 @@ pip install -e .
 videowise --version
 ```
 
-## Supported Systems (23 Total)
+## Supported Systems (28 Total)
 
 | Category | Systems | Status |
 |----------|---------|--------|
@@ -110,6 +123,7 @@ videowise --version
 | **Media Players & VJ Software** | VLC, Resolume, Mitti, Millumin | ✅ Complete |
 | **Browsers** | Safari, Chrome, Firefox | ✅ Complete |
 | **Social Media** | Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook | ✅ Complete |
+| **Video Editing** | DaVinci Resolve, Adobe Premiere Pro, Final Cut Pro, Avid Media Composer, After Effects | 🚧 Testing in progress |
 
 **[View detailed compatibility matrix →](docs/COMPATIBILITY_MATRIX.md)**
 
@@ -138,8 +152,9 @@ make check         # Run all quality checks
 
 ## Roadmap
 
-### Current Status (Phase 2 Complete! 🎉)
-- ✅ **23 system compatibility checkers** with 314 passing tests (94% coverage)
+### Current Status (Phase 3.4 In Progress! 🎬)
+- ✅ **28 system compatibility checkers** (23 production-ready, 5 editing platforms in testing)
+- ✅ **314 passing tests** with 94% code coverage
 - ✅ **Preset commands** for instant checks (videowise casparcg, videowise instagram, etc.)
 - ✅ **Learn mode** with educational explanations
 - ✅ CLI with colored output, batch processing
@@ -149,11 +164,15 @@ make check         # Run all quality checks
 - ✅ Complete social media coverage (Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook)
 - ✅ VJ/media player support (QLab, VLC, Resolume, Mitti, Millumin)
 - ✅ Live presentation (Wirecast, Playback Pro, EasyWorship, PlayOutBee, ProVideoPlayer)
+- 🚧 **NEW: Professional editing platforms** (DaVinci Resolve, Premiere Pro, Final Cut Pro, Avid, After Effects)
 
 ### Coming Next (Phase 3)
-- [ ] Streaming platforms (Twitch, Restream, Zoom)
+- [x] Video editing software core checkers (DaVinci Resolve, Adobe Premiere, Final Cut Pro, Avid Media Composer, After Effects)
+- [ ] Video editing comprehensive test suite (50+ tests)
+- [ ] Video editing CLI preset commands
+- [ ] Video editing platform documentation
+- [ ] Streaming platforms (Twitch, Restream, Zoom, Discord)
 - [ ] Additional live production (Blackmagic ATEM, Roland V-Series)
-- [ ] Video editing software (DaVinci Resolve, Adobe Premiere)
 - [ ] Media servers (Catalyst, Disguise, Watchout)
 
 ### Future (Phase 4)
@@ -170,10 +189,10 @@ Contributions are welcome!:
 - **Bug reports** - Something broken? Let us know
 - **Feature ideas** - What would make this useful for you?
 - **Compatibility data** - Know the quirks of a platform or playback system?
-- **Real-world war stories** - "This codec broke my show" tales help build better checks
+- **Real-world war stories** - "This codec broke my show" or "This footage destroyed my edit" tales help build better checks
 - **Documentation improvements** - Clearer explanations always welcome
 
-**Special call for live production operators and VJs:** Your domain knowledge is invaluable.
+**Special call for live production operators, video editors, and VJs:** Your domain knowledge is invaluable.
 
 **[Read the full contributing guide →](CONTRIBUTING.md)**
 

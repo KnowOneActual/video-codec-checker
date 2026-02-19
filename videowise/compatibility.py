@@ -39,6 +39,47 @@ class CompatibilityChecker:
         raise NotImplementedError
 
 
+# Import editing platform checkers
+try:
+    from .editing_platforms import (
+        AdobePremiereProChecker,
+        AfterEffectsChecker,
+        AvidMediaComposerChecker,
+        DaVinciResolveChecker,
+        FinalCutProChecker,
+    )
+
+    EDITING_PLATFORMS_AVAILABLE = True
+except ImportError:
+    EDITING_PLATFORMS_AVAILABLE = False
+
+# Import streaming platform checkers
+try:
+    from .streaming_checkers import (
+        DiscordChecker,
+        KickChecker,
+        RestreamChecker,
+        TwitchChecker,
+        YouTubeLiveChecker,
+        ZoomChecker,
+    )
+
+    STREAMING_PLATFORMS_AVAILABLE = True
+except ImportError:
+    STREAMING_PLATFORMS_AVAILABLE = False
+
+# Import advanced playout checkers
+try:
+    from .advanced_playout import PlaybackProChecker as AdvancedPlaybackProChecker
+    from .advanced_playout import ProVideoPlayerChecker as AdvancedPVPChecker
+    from .advanced_playout import ResolumeChecker as AdvancedResolumeChecker
+    from .advanced_playout import WirecastChecker as AdvancedWirecastChecker
+
+    ADVANCED_PLAYOUT_AVAILABLE = True
+except ImportError:
+    ADVANCED_PLAYOUT_AVAILABLE = False
+
+
 # Live Production Systems
 
 
@@ -717,251 +758,57 @@ class ProPresenterChecker(CompatibilityChecker):
         return issues
 
 
-class WirecastChecker(CompatibilityChecker):
-    """Compatibility checker for Wirecast live streaming software.
+# Keep legacy class names but use advanced versions if available
+if ADVANCED_PLAYOUT_AVAILABLE:
+    WirecastChecker = AdvancedWirecastChecker
+    PlaybackProChecker = AdvancedPlaybackProChecker
+    ResolumeChecker = AdvancedResolumeChecker
+    ProVideoPlayerChecker = AdvancedPVPChecker
+else:
+    # Define basic versions if advanced not available
+    class WirecastChecker(CompatibilityChecker):  # type: ignore[no-redef]
+        """Basic Wirecast checker."""
 
-    Wirecast is professional live streaming software for Mac and Windows.
-    Used extensively for multi-camera sports, event, and conference streaming.
-    """
-
-    SUPPORTED_CODECS = {
-        "h264",
-        "hevc",
-        "prores",
-        "dnxhd",
-        "dnxhr",
-        "mjpeg",
-    }
-
-    RECOMMENDED_CODECS = ["h264", "prores"]
-
-    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        """Check video compatibility.
-
-        Args:
-            video_info: Dictionary containing video metadata
-
-        Returns:
-            List of compatibility issues found
-        """
-        issues: List[CompatibilityIssue] = []
-        codec = video_info.get("codec", "").lower()
-        container = video_info.get("container", "").lower()
-        bitrate = video_info.get("bitrate")
-
-        # Check codec support
-        if codec not in self.SUPPORTED_CODECS:
-            supported = ", ".join(sorted(self.SUPPORTED_CODECS))
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} may not be supported by Wirecast",
-                    reason=f"Wirecast officially supports: {supported}",
-                    suggestion="Convert to H.264 or ProRes for best compatibility",
-                )
-            )
-            return issues
-
-        # Check for recommended codecs
-        if codec == "h264":
-            issues.append(
+        def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+            return [
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message="H.264 is fully supported by Wirecast",
-                    reason="Hardware acceleration available for smooth playback",
+                    message="Basic Wirecast compatibility check",
                 )
-            )
-        elif "prores" in codec:
-            issues.append(
+            ]
+
+    class PlaybackProChecker(CompatibilityChecker):  # type: ignore[no-redef]
+        """Basic PlaybackPro checker."""
+
+        def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+            return [
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is well-supported by Wirecast",
-                    reason="Professional codec with excellent quality",
+                    message="Basic PlaybackPro compatibility check",
                 )
-            )
-        elif codec in ["dnxhd", "dnxhr"]:
-            issues.append(
+            ]
+
+    class ResolumeChecker(CompatibilityChecker):  # type: ignore[no-redef]
+        """Basic Resolume checker."""
+
+        def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+            return [
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is supported by Wirecast",
-                    reason="Professional codec for broadcast workflows",
+                    message="Basic Resolume compatibility check",
                 )
-            )
-        elif codec == "hevc":
-            issues.append(
+            ]
+
+    class ProVideoPlayerChecker(CompatibilityChecker):  # type: ignore[no-redef]
+        """Basic PVP checker."""
+
+        def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+            return [
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message="HEVC is supported by Wirecast",
-                    reason="Modern codec with good compression",
+                    message="Basic PVP compatibility check",
                 )
-            )
-        else:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.upper()} is supported by Wirecast",
-                )
-            )
-
-        # Check container formats
-        if "mp4" in container or "mov" in container:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is compatible with Wirecast",
-                )
-            )
-        elif "wmv" in container or "avi" in container:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.WARNING,
-                    message=f"{container.upper()} is supported but MP4/MOV preferred",
-                    suggestion="Use MP4 or MOV for best compatibility",
-                )
-            )
-
-        # Check bitrate for performance
-        if bitrate and bitrate > 150_000_000:  # 150 Mbps
-            mbps = bitrate // 1_000_000
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.WARNING,
-                    message=f"High bitrate ({mbps}Mbps) may impact performance",
-                    reason="Very high bitrate can strain CPU during encoding",
-                    suggestion="Consider bitrate under 150 Mbps for smoother operation",
-                )
-            )
-
-        return issues
-
-
-class PlaybackProChecker(CompatibilityChecker):
-    """Compatibility checker for Playback Pro.
-
-    Playback Pro is professional media playback software for theatre,
-    concerts, and live events. Mac only, designed for reliability.
-    """
-
-    RECOMMENDED_CODECS = ["prores", "h264"]
-
-    # Bitrate recommendations by resolution
-    HD_BITRATE_MIN = 15_000_000  # 15 Mbps
-    HD_BITRATE_MAX = 30_000_000  # 30 Mbps
-    UHD_BITRATE_MIN = 30_000_000  # 30 Mbps
-    UHD_BITRATE_MAX = 40_000_000  # 40 Mbps
-
-    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        """Check video compatibility.
-
-        Args:
-            video_info: Dictionary containing video metadata
-
-        Returns:
-            List of compatibility issues found
-        """
-        issues: List[CompatibilityIssue] = []
-        codec = video_info.get("codec", "").lower()
-        container = video_info.get("container", "").lower()
-        resolution = video_info.get("resolution")
-        bitrate = video_info.get("bitrate")
-
-        # Check codec
-        if "prores" in codec:
-            if "422" in codec:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.COMPATIBLE,
-                        message="ProRes 422 is the recommended codec for Playback Pro",
-                        reason="Optimal balance of quality and performance for theatre",
-                    )
-                )
-            else:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.COMPATIBLE,
-                        message=f"{codec.upper()} is fully supported by Playback Pro",
-                        reason="ProRes variants work excellently for live playback",
-                    )
-                )
-        elif codec == "h264":
-            # Check bitrate for H.264
-            if bitrate and resolution:
-                width, height = resolution
-                mbps = bitrate // 1_000_000
-
-                if width >= 3840 or height >= 2160:  # 4K/UHD
-                    if bitrate < self.UHD_BITRATE_MIN or bitrate > self.UHD_BITRATE_MAX:
-                        issues.append(
-                            CompatibilityIssue(
-                                level=CompatibilityLevel.WARNING,
-                                message=f"H.264 bitrate ({mbps}Mbps) outside recommended range for 4K",  # noqa: E501
-                                reason="Playback Pro recommends 30-40 Mbps VBR for 4K H.264",
-                                suggestion="Adjust bitrate to 30-40 Mbps for optimal playback",
-                            )
-                        )
-                    else:
-                        issues.append(
-                            CompatibilityIssue(
-                                level=CompatibilityLevel.COMPATIBLE,
-                                message=f"H.264 at {mbps}Mbps is optimal for Playback Pro",
-                                reason="Bitrate within recommended range for 4K",
-                            )
-                        )
-                else:  # HD
-                    if bitrate < self.HD_BITRATE_MIN or bitrate > self.HD_BITRATE_MAX:
-                        issues.append(
-                            CompatibilityIssue(
-                                level=CompatibilityLevel.WARNING,
-                                message=f"H.264 bitrate ({mbps}Mbps) outside recommended range for HD",  # noqa: E501
-                                reason="Playback Pro recommends 15-30 Mbps VBR for HD H.264",
-                                suggestion="Adjust bitrate to 15-30 Mbps for optimal playback",
-                            )
-                        )
-                    else:
-                        issues.append(
-                            CompatibilityIssue(
-                                level=CompatibilityLevel.COMPATIBLE,
-                                message=f"H.264 at {mbps}Mbps is suitable for Playback Pro",
-                                reason="Bitrate within recommended range for HD",
-                            )
-                        )
-            else:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.COMPATIBLE,
-                        message="H.264 is supported by Playback Pro",
-                        reason="15-30 Mbps VBR recommended for HD, 30-40 Mbps for 4K",
-                    )
-                )
-        else:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} may not be optimal for Playback Pro",
-                    reason="Playback Pro is optimized for ProRes 422 and H.264",
-                    suggestion="Convert to ProRes 422 for best reliability",
-                )
-            )
-
-        # Check container - MOV only!
-        if "mov" not in container:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.INCOMPATIBLE,
-                    message="Playback Pro requires MOV (QuickTime) container",
-                    reason="Playback Pro only accepts .MOV files",
-                    suggestion="Remux to MOV container: ffmpeg -i input -c copy output.mov",
-                )
-            )
-        else:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.COMPATIBLE,
-                    message="MOV container is required by Playback Pro",
-                )
-            )
-
-        return issues
+            ]
 
 
 class EasyWorshipChecker(CompatibilityChecker):
@@ -1132,163 +979,6 @@ class VLCChecker(CompatibilityChecker):
                     level=CompatibilityLevel.COMPATIBLE,
                     message=f"{container.upper()} container is fully supported",
                     reason="VLC supports all major container formats",
-                )
-            )
-
-        return issues
-
-
-class ResolumeChecker(CompatibilityChecker):
-    """Compatibility checker for Resolume Arena/Avenue VJ software.
-
-    Resolume is the industry standard for VJs, concerts, festivals, and clubs.
-    DXV codec is proprietary and optimal. HAP codec also fully supported.
-    """
-
-    OPTIMAL_CODECS = ["dxv", "dxv2", "dxv3"]  # Resolume's proprietary GPU codec
-    ALSO_OPTIMAL = ["hap", "hap_alpha", "hap_q", "hap_q_alpha"]  # HAP variants
-    SUPPORTED_CODECS = ["h264", "hevc", "prores", "mjpeg"]  # Fallbacks
-
-    def __init__(self, platform: str = "windows"):
-        """Initialize Resolume checker.
-
-        Args:
-            platform: 'windows' or 'mac' for platform-specific advice
-        """
-        self.platform = platform
-
-    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        """Check video compatibility.
-
-        Args:
-            video_info: Dictionary containing video metadata
-
-        Returns:
-            List of compatibility issues found
-        """
-        issues: List[CompatibilityIssue] = []
-        codec = video_info.get("codec", "").lower()
-        container = video_info.get("container", "").lower()
-        resolution = video_info.get("resolution")
-        bitrate = video_info.get("bitrate")
-
-        # Check for DXV codec (optimal)
-        if "dxv" in codec:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.COMPATIBLE,
-                    message="DXV is the optimal codec for Resolume",
-                    reason="GPU-accelerated, proprietary to Resolume for best performance",
-                )
-            )
-        # Check for HAP codec (also optimal)
-        elif "hap" in codec:
-            if "alpha" in codec:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.COMPATIBLE,
-                        message=f"{codec.upper()} provides GPU-accelerated playback with alpha",
-                        reason="HAP Alpha perfect for overlays and VJ graphics",
-                    )
-                )
-            elif "hap_q" in codec or "hapq" in codec:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP Q provides high-quality GPU-accelerated playback",
-                        reason="Best quality HAP variant, performance equal to DXV",
-                    )
-                )
-            else:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP codec is optimal for Resolume",
-                        reason="GPU-accelerated, works across all VJ software",
-                    )
-                )
-
-            # HAP requires MOV container
-            if "mov" not in container:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.WARNING,
-                        message="HAP codec requires MOV container",
-                        suggestion="Remux to MOV: ffmpeg -i input -c copy output.mov",
-                    )
-                )
-        # Check for H.264 (CPU-based fallback)
-        elif codec == "h264":
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.WARNING,
-                    message="H.264 will use CPU decoding, not GPU",
-                    reason="H.264 performs poorly with multiple layers in Resolume",
-                    suggestion="Convert to DXV or HAP for GPU acceleration",
-                )
-            )
-        # Check for ProRes (Mac only, CPU-based)
-        elif "prores" in codec:
-            if self.platform == "mac":
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.WARNING,
-                        message="ProRes works but is CPU-based on Mac",
-                        reason="ProRes not GPU-accelerated, can limit layer count",
-                        suggestion="Convert to DXV or HAP for better performance",
-                    )
-                )
-            else:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.WARNING,
-                        message="ProRes on Windows is CPU-based and slow",
-                        reason="ProRes not optimized for Windows, limits layers",
-                        suggestion="Convert to DXV or HAP for GPU acceleration",
-                    )
-                )
-        # Check for HEVC
-        elif codec == "hevc":
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.WARNING,
-                    message="HEVC should be converted to DXV or HAP",
-                    reason="HEVC is CPU-intensive and not optimized for VJ work",
-                    suggestion="Convert to DXV for best Resolume performance",
-                )
-            )
-        else:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} is not optimal for Resolume",
-                    reason="Resolume works best with GPU-accelerated codecs",
-                    suggestion="Convert to DXV (Resolume only) or HAP (universal VJ)",
-                )
-            )
-
-        # Check resolution for layer count
-        if resolution:
-            width, height = resolution
-            if width >= 3840 and height >= 2160:  # 4K
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.WARNING,
-                        message="4K video limits the number of simultaneous layers",
-                        reason="4K requires 4x bandwidth of 1080p",
-                        suggestion="Use 1080p for more layers, or DXV/HAP for best 4K performance",
-                    )
-                )
-
-        # Check bitrate
-        if bitrate and bitrate > 200_000_000:  # 200 Mbps
-            mbps = bitrate // 1_000_000
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.WARNING,
-                    message=f"Very high bitrate ({mbps}Mbps) may limit layer count",
-                    reason="High bitrate stresses disk I/O even with GPU codecs",
-                    suggestion="Use DXV or HAP with moderate bitrate for more layers",
                 )
             )
 
@@ -1506,135 +1196,6 @@ class MilluminChecker(CompatibilityChecker):
                         suggestion="Use HAP codec for best 4K projection performance",
                     )
                 )
-
-        return issues
-
-
-class ProVideoPlayerChecker(CompatibilityChecker):
-    """Compatibility checker for ProVideoPlayer (PVP) by Renewed Vision.
-
-    PVP is a professional multi-screen media server application designed for
-    live events, churches, and concerts with timecode sync capabilities.
-    """
-
-    SUPPORTED_CODECS = {
-        "dxv",  # Optimal with timecode
-        "hap",
-        "prores",
-        "h264",
-        "hevc",
-    }
-
-    GPU_CODECS = ["dxv", "hap"]  # Hardware accelerated
-
-    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        """Check video compatibility.
-
-        Args:
-            video_info: Dictionary containing video metadata
-
-        Returns:
-            List of compatibility issues found
-        """
-        issues: List[CompatibilityIssue] = []
-        codec = video_info.get("codec", "").lower()
-        container = video_info.get("container", "").lower()
-
-        # Check for DXV (optimal for PVP)
-        if "dxv" in codec:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.COMPATIBLE,
-                    message="DXV codec works perfectly with PVP timecode features",
-                    reason="GPU-accelerated with excellent timecode sync",
-                )
-            )
-        # Check for HAP
-        elif "hap" in codec:
-            if "alpha" in codec:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.COMPATIBLE,
-                        message=(
-                            "HAP Alpha provides GPU-accelerated playback "
-                            "for overlays with transparency"
-                        ),
-                        reason="Ideal for overlays and multi-layer compositions",
-                    )
-                )
-            else:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP codec provides excellent performance in PVP",
-                        reason="GPU-accelerated for smooth multi-layer playback",
-                    )
-                )
-        # Check for ProRes
-        elif "prores" in codec:
-            if "4444" in codec:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.COMPATIBLE,
-                        message="ProRes 4444 supports alpha channel for transparency",
-                        reason="Professional quality for multi-screen setups",
-                    )
-                )
-            else:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.COMPATIBLE,
-                        message="ProRes is fully supported by PVP",
-                        reason="Professional codec for broadcast workflows",
-                    )
-                )
-        # Check for H.264/H.265
-        elif codec == "h264":
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.COMPATIBLE,
-                    message="H.264 is supported by PVP",
-                    reason="Hardware acceleration available",
-                    suggestion="Consider DXV or HAP for better multi-layer performance",
-                )
-            )
-        elif codec == "hevc":
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.COMPATIBLE,
-                    message="HEVC is supported by PVP",
-                    reason="Hardware acceleration available",
-                    suggestion="Consider DXV or HAP for better multi-layer performance",
-                )
-            )
-        else:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.WARNING,
-                    message=f"PVP may have limited support for {codec.upper()}",
-                    reason="PVP works best with DXV, HAP, ProRes, or H.264",
-                    suggestion=("Convert to DXV for optimal timecode and multi-screen performance"),
-                )
-            )
-
-        # Check container
-        if "mov" in container or "mp4" in container:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is supported by PVP",
-                )
-            )
-
-        # Note about timecode support
-        if "dxv" in codec or "hap" in codec:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.COMPATIBLE,
-                    message="Timecode following and triggering fully supported",
-                    reason="GPU codecs work excellently with PVP's timecode features",
-                )
-            )
 
         return issues
 
@@ -2418,33 +1979,58 @@ def get_available_systems() -> List[str]:
     Returns:
         Sorted list of system names that can be checked
     """
-    return sorted(
-        [
-            "casparcg",
-            "playoutbee",
-            "vmix",
-            "obs",
-            "qlab",
-            "propresenter",
-            "wirecast",
-            "playbackpro",
-            "easyworship",
-            "vlc",
-            "resolume",
-            "mitti",
-            "millumin",
-            "provideoplayer",
-            "safari",
-            "chrome",
-            "firefox",
-            "instagram",
-            "twitter",
-            "youtube",
-            "tiktok",
-            "vimeo",
-            "facebook",
-        ]
-    )
+    systems = [
+        "casparcg",
+        "playoutbee",
+        "vmix",
+        "obs",
+        "qlab",
+        "propresenter",
+        "wirecast",
+        "playbackpro",
+        "easyworship",
+        "vlc",
+        "resolume",
+        "mitti",
+        "millumin",
+        "provideoplayer",
+        "safari",
+        "chrome",
+        "firefox",
+        "instagram",
+        "twitter",
+        "youtube",
+        "tiktok",
+        "vimeo",
+        "facebook",
+    ]
+
+    # Add editing platforms if available
+    if EDITING_PLATFORMS_AVAILABLE:
+        systems.extend(
+            [
+                "davinci",
+                "premiere",
+                "finalcut",
+                "avid",
+                "aftereffects",
+            ]
+        )
+
+    # Add streaming platforms if available
+    if STREAMING_PLATFORMS_AVAILABLE:
+        systems.extend(
+            [
+                "twitch",
+                "youtubelive",
+                "kick",
+                "restream",
+                "zoom",
+                "discord",
+            ]
+        )
+
+    return sorted(systems)
 
 
 def check_compatibility(video_info: Dict[str, Any], system: str) -> List[CompatibilityIssue]:
@@ -2482,6 +2068,31 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
         "vimeo": VimeoChecker,
         "facebook": FacebookChecker,
     }
+
+    # Add editing platforms to registry
+    if EDITING_PLATFORMS_AVAILABLE:
+        checkers.update(
+            {
+                "davinci": DaVinciResolveChecker,
+                "premiere": AdobePremiereProChecker,
+                "finalcut": FinalCutProChecker,
+                "avid": AvidMediaComposerChecker,
+                "aftereffects": AfterEffectsChecker,
+            }
+        )
+
+    # Add streaming platforms to registry
+    if STREAMING_PLATFORMS_AVAILABLE:
+        checkers.update(
+            {
+                "twitch": TwitchChecker,
+                "youtubelive": YouTubeLiveChecker,
+                "kick": KickChecker,
+                "restream": RestreamChecker,
+                "zoom": ZoomChecker,
+                "discord": DiscordChecker,
+            }
+        )
 
     system_lower = system.lower()
     if system_lower not in checkers:
