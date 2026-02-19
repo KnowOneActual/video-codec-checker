@@ -8,8 +8,6 @@ This module tests compatibility checkers for professional video editing software
 - After Effects
 """
 
-import pytest
-
 from videowise.compatibility import CompatibilityLevel
 from videowise.editing_platforms import (
     AdobePremiereProChecker,
