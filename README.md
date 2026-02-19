@@ -2,8 +2,8 @@
 
 > ⚠️ **UNDER DEVELOPMENT**: Core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
 >
-> ✅ **What Works**: Full CLI, **28 system checkers** (includes 5 editing platforms!), Python API, preset commands, batch processing, enhanced explanations  
-> 🚧 **In Progress**: Testing editing platforms, streaming platforms, PyPI package
+> ✅ **What Works**: Full CLI, **31 system checkers**, Python API, preset commands, batch processing, enhanced explanations  
+> 🚧 **In Progress**: Additional features, PyPI package
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -12,13 +12,13 @@
 
 A video codec compatibility checker that explains *why* your video won't work and how to fix it, for content creators, live production operators, video editors, and developers.
 
-> 💡 **February 19, 2026 Update**: Just added professional editing platforms! Check your footage compatibility with DaVinci Resolve, Adobe Premiere Pro, Final Cut Pro, Avid Media Composer, and After Effects. More coming soon!
+> 💡 **v0.5.0 Released (Feb 19, 2026)**: Professional editing platforms + streaming platforms! Check compatibility with DaVinci Resolve, Premiere Pro, Final Cut Pro, Avid, After Effects, Twitch, YouTube Live, and more. **31 systems now supported!**
 
 ## The Problem Being Solved
 
 ### For Content Creators & Editors
 You've spent hours creating the perfect video, but:
-- It won't upload to Instagram
+- It won't upload to Instagram or stream to Twitch
 - Safari refuses to play it
 - Your client says, "The video doesn't work."
 - The error message is useless: "Invalid format" or worse, nothing at all
@@ -32,7 +32,7 @@ You receive footage from clients or cameras and:
 - **You need to know which formats will edit smoothly before importing terabytes of footage**
 
 ### For Live Production Operators
-You're setting up for a show and:
+You're setting up for a show or stream and:
 - Your playback software (CasparCG, vMix, Resolume) refuses to load the video or stutters during live playback
 - You're 10 minutes from showtime with last-minute content and need instant compatibility verification
 - **You have 50 videos to check before the show starts and need to train your team on what codecs work and why**
@@ -51,13 +51,18 @@ pip install -e .
 videowise casparcg video.mp4
 videowise instagram video.mp4
 videowise resolume video.mp4
+videowise twitch stream.mp4
 
-# NEW: Check editing platforms (coming soon - CLI presets)
-videowise check video.mp4 --system davinci
+# Check editing platforms
+videowise check video.mp4 --system davinciresolve
 videowise check footage.mp4 --system premiere
 videowise check clip.mov --system finalcut
 
-# Check against ALL 28 systems
+# Check streaming platforms
+videowise check stream.mp4 --system twitch
+videowise check video.mp4 --system youtube-live
+
+# Check against ALL 31 systems
 videowise check video.mp4
 
 # Learn mode - understand why videos fail
@@ -80,10 +85,11 @@ VideoWise analyzes video files and provides:
 - **Actionable suggestions**: "Instagram will re-encode this (losing quality) because it's H.264 High Profile instead of Baseline."
 - **Live production warnings**: "This file will cause dropped frames in vMix - bitrate is 180Mbps, but your system can only handle 100Mbps smoothly."
 - **Editing workflow advice**: "DNxHD is optimal for DaVinci Resolve multi-layer timelines. H.264 will work but requires re-encoding."
+- **Streaming platform guidance**: "Twitch recommends 6Mbps for 1080p60 - this file's 3Mbps may result in quality loss."
 - **VJ/Performance advice**: "Convert to DXV or HAP for Resolume - H.264 is CPU-based and limits your layer count."
 - **Educational mode**: Use `videowise learn` to understand H.264 profiles, ProRes variants, HAP codec performance, and VFR issues
 - **Batch processing**: Check entire directories at once to find which videos need re-encoding before the show or edit session
-- **Multi-system validation**: Check against all 28 systems simultaneously (default behavior)
+- **Multi-system validation**: Check against all 31 systems simultaneously (default behavior)
 
 **[See detailed examples and real-world scenarios →](docs/EXAMPLES.md)**
 
@@ -114,7 +120,7 @@ pip install -e .
 videowise --version
 ```
 
-## Supported Systems (28 Total)
+## Supported Systems (31 Total)
 
 | Category | Systems | Status |
 |----------|---------|--------|
@@ -123,7 +129,8 @@ videowise --version
 | **Media Players & VJ Software** | VLC, Resolume, Mitti, Millumin | ✅ Complete |
 | **Browsers** | Safari, Chrome, Firefox | ✅ Complete |
 | **Social Media** | Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook | ✅ Complete |
-| **Video Editing** | DaVinci Resolve, Adobe Premiere Pro, Final Cut Pro, Avid Media Composer, After Effects | 🚧 Testing in progress |
+| **Video Editing** | DaVinci Resolve, Adobe Premiere Pro, Final Cut Pro, Avid Media Composer, After Effects | ✅ Complete |
+| **Streaming Platforms** | Twitch, YouTube Live, Kick, Restream, Zoom, Discord | ✅ Complete |
 
 **[View detailed compatibility matrix →](docs/COMPATIBILITY_MATRIX.md)**
 
@@ -134,6 +141,7 @@ videowise --version
 - **[Python API Reference](docs/API_REFERENCE.md)** - Using VideoWise in your Python code
 - **[Compatibility Matrix](docs/COMPATIBILITY_MATRIX.md)** - Detailed system compatibility features
 - **[Media Players & VJ Software](docs/MEDIA_PLAYERS_VJ.md)** - In-depth guide for VLC, Resolume, Mitti, Millumin
+- **[Editing Platforms](docs/EDITING_PLATFORMS.md)** - Comprehensive guide for DaVinci, Premiere, Final Cut, Avid, After Effects
 
 ## Development
 
@@ -152,9 +160,9 @@ make check         # Run all quality checks
 
 ## Roadmap
 
-### Current Status (Phase 3.4 In Progress! 🎬)
-- ✅ **28 system compatibility checkers** (23 production-ready, 5 editing platforms in testing)
-- ✅ **314 passing tests** with 94% code coverage
+### Current Status (v0.5.0 Released! 🎉)
+- ✅ **31 system compatibility checkers** (all production-ready)
+- ✅ **364 passing tests** with 100% pass rate
 - ✅ **Preset commands** for instant checks (videowise casparcg, videowise instagram, etc.)
 - ✅ **Learn mode** with educational explanations
 - ✅ CLI with colored output, batch processing
@@ -164,18 +172,12 @@ make check         # Run all quality checks
 - ✅ Complete social media coverage (Instagram, Twitter/X, YouTube, TikTok, Vimeo, Facebook)
 - ✅ VJ/media player support (QLab, VLC, Resolume, Mitti, Millumin)
 - ✅ Live presentation (Wirecast, Playback Pro, EasyWorship, PlayOutBee, ProVideoPlayer)
-- 🚧 **NEW: Professional editing platforms** (DaVinci Resolve, Premiere Pro, Final Cut Pro, Avid, After Effects)
+- ✅ **Professional editing platforms** (DaVinci Resolve, Premiere Pro, Final Cut Pro, Avid, After Effects)
+- ✅ **Streaming platforms** (Twitch, YouTube Live, Kick, Restream, Zoom, Discord)
 
-### Coming Next (Phase 3)
-- [x] Video editing software core checkers (DaVinci Resolve, Adobe Premiere, Final Cut Pro, Avid Media Composer, After Effects)
-- [ ] Video editing comprehensive test suite (50+ tests)
-- [ ] Video editing CLI preset commands
-- [ ] Video editing platform documentation
-- [ ] Streaming platforms (Twitch, Restream, Zoom, Discord)
-- [ ] Additional live production (Blackmagic ATEM, Roland V-Series)
+### Coming Next (Phase 4)
+- [ ] Additional live production systems (Blackmagic ATEM, Roland V-Series)
 - [ ] Media servers (Catalyst, Disguise, Watchout)
-
-### Future (Phase 4)
 - [ ] Auto-generate ffmpeg fix commands
 - [ ] Watch folder mode
 - [ ] Web interface
@@ -192,7 +194,7 @@ Contributions are welcome!:
 - **Real-world war stories** - "This codec broke my show" or "This footage destroyed my edit" tales help build better checks
 - **Documentation improvements** - Clearer explanations always welcome
 
-**Special call for live production operators, video editors, and VJs:** Your domain knowledge is invaluable.
+**Special call for live production operators, video editors, streamers, and VJs:** Your domain knowledge is invaluable.
 
 **[Read the full contributing guide →](CONTRIBUTING.md)**
 
