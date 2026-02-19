@@ -416,7 +416,7 @@ class ResolumeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.UPPER()} container is supported by Resolume",
+                    message=f"{container.upper()} container is supported by Resolume",
                 )
             )
         elif "gif" in container:
@@ -716,7 +716,7 @@ class ProVideoPlayerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"PVP may have limited support for {codec.UPPER()}",
+                    message=f"PVP may have limited support for {codec.upper()}",
                     reason="PVP works best with DXV, HAP, ProRes, or H.264",
                     suggestion=(
                         "Convert to DXV for optimal timecode and "
@@ -730,7 +730,7 @@ class ProVideoPlayerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.UPPER()} container is supported by PVP",
+                    message=f"{container.upper()} container is supported by PVP",
                 )
             )
 
