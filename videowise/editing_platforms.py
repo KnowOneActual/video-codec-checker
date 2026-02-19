@@ -16,11 +16,7 @@ Usage:
 
 from typing import Any, Dict, List
 
-from .compatibility import (
-    CompatibilityChecker,
-    CompatibilityIssue,
-    CompatibilityLevel,
-)
+from .compatibility import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel
 
 
 class DaVinciResolveChecker(CompatibilityChecker):
@@ -75,10 +71,7 @@ class DaVinciResolveChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        "BRAW (Blackmagic RAW) is natively supported "
-                        "in DaVinci Resolve"
-                    ),
+                    message=("BRAW (Blackmagic RAW) is natively supported " "in DaVinci Resolve"),
                     reason="RAW format with excellent color grading flexibility",
                 )
             )
@@ -90,23 +83,15 @@ class DaVinciResolveChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message="DNxHD is optimal for HD editing in DaVinci Resolve",
-                    reason=(
-                        "Intraframe codec with low CPU overhead "
-                        "for timeline playback"
-                    ),
+                    reason=("Intraframe codec with low CPU overhead " "for timeline playback"),
                 )
             )
         elif "dnxhr" in codec:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        "DNxHR is optimal for 4K and higher resolution editing"
-                    ),
-                    reason=(
-                        "Scalable intraframe codec ideal for "
-                        "color grading workflows"
-                    ),
+                    message=("DNxHR is optimal for 4K and higher resolution editing"),
+                    reason=("Scalable intraframe codec ideal for " "color grading workflows"),
                 )
             )
 
@@ -120,10 +105,7 @@ class DaVinciResolveChecker(CompatibilityChecker):
                             f"{codec.upper()} benefits from hardware "
                             "acceleration on Apple Silicon"
                         ),
-                        reason=(
-                            "M-series chips have dedicated ProRes "
-                            "encode/decode hardware"
-                        ),
+                        reason=("M-series chips have dedicated ProRes " "encode/decode hardware"),
                     )
                 )
             elif self.platform == "mac_intel":
@@ -131,20 +113,14 @@ class DaVinciResolveChecker(CompatibilityChecker):
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
                         message=f"{codec.upper()} is well-supported on Intel Mac",
-                        reason=(
-                            "Native ProRes support on macOS for "
-                            "editing workflows"
-                        ),
+                        reason=("Native ProRes support on macOS for " "editing workflows"),
                     )
                 )
             else:  # Windows
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=(
-                            f"{codec.upper()} is well-supported "
-                            "in DaVinci Resolve"
-                        ),
+                        message=(f"{codec.upper()} is well-supported " "in DaVinci Resolve"),
                         reason="Professional codec for editing and grading",
                     )
                 )
@@ -155,14 +131,8 @@ class DaVinciResolveChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.COMPATIBLE,
-                            message=(
-                                "10-bit color depth provides excellent "
-                                "grading headroom"
-                            ),
-                            reason=(
-                                "Essential for professional color correction "
-                                "in Resolve"
-                            ),
+                            message=("10-bit color depth provides excellent " "grading headroom"),
+                            reason=("Essential for professional color correction " "in Resolve"),
                         )
                     )
 
@@ -172,14 +142,8 @@ class DaVinciResolveChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=(
-                            f"{codec.upper()} has GPU hardware decode "
-                            "in Resolve Studio"
-                        ),
-                        reason=(
-                            "Hardware acceleration available with "
-                            "Studio license"
-                        ),
+                        message=(f"{codec.upper()} has GPU hardware decode " "in Resolve Studio"),
+                        reason=("Hardware acceleration available with " "Studio license"),
                     )
                 )
             else:
@@ -190,13 +154,9 @@ class DaVinciResolveChecker(CompatibilityChecker):
                             f"{codec.upper()} requires CPU decode in Resolve Free "
                             "(consider re-encoding / transcoding)"
                         ),
-                        reason=(
-                            "Free version lacks GPU decode, causing "
-                            "timeline stuttering"
-                        ),
+                        reason=("Free version lacks GPU decode, causing " "timeline stuttering"),
                         suggestion=(
-                            "Transcode / re-encode to DNxHR or ProRes, "
-                            "or upgrade to Studio"
+                            "Transcode / re-encode to DNxHR or ProRes, " "or upgrade to Studio"
                         ),
                     )
                 )
@@ -212,10 +172,7 @@ class DaVinciResolveChecker(CompatibilityChecker):
                                 f"{codec.upper()} may require transcoding / "
                                 "re-encoding for intensive editing/grading"
                             ),
-                            reason=(
-                                "Long-GOP compression makes frame-accurate "
-                                "work slower"
-                            ),
+                            reason=("Long-GOP compression makes frame-accurate " "work slower"),
                             suggestion=(
                                 "Consider generating optimized media "
                                 "(DNxHR/ProRes) or re-encode to an "
@@ -250,10 +207,7 @@ class DaVinciResolveChecker(CompatibilityChecker):
                     level=CompatibilityLevel.WARNING,
                     message=f"{codec.upper()} may have limited support in Resolve",
                     reason="Resolve works best with intraframe codecs",
-                    suggestion=(
-                        "Transcode to DNxHR SQ for balanced "
-                        "quality/performance"
-                    ),
+                    suggestion=("Transcode to DNxHR SQ for balanced " "quality/performance"),
                 )
             )
 
@@ -262,10 +216,7 @@ class DaVinciResolveChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        f"{container.upper()} container is well-supported "
-                        "by Resolve"
-                    ),
+                    message=(f"{container.upper()} container is well-supported " "by Resolve"),
                 )
             )
         elif "mp4" in container:
@@ -354,10 +305,7 @@ class AdobePremiereProChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        f"{codec.upper()} is native in Premiere Pro "
-                        "for smooth editing"
-                    ),
+                    message=(f"{codec.upper()} is native in Premiere Pro " "for smooth editing"),
                     reason="Intraframe codec enables frame-accurate scrubbing",
                 )
             )
@@ -376,8 +324,7 @@ class AdobePremiereProChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message=(
-                        f"{codec.upper()} benefits from Mercury Playback "
-                        "Engine GPU acceleration"
+                        f"{codec.upper()} benefits from Mercury Playback " "Engine GPU acceleration"
                     ),
                     reason="Hardware decode available with compatible GPU",
                     suggestion="Enable GPU acceleration in Project Settings",
@@ -392,10 +339,7 @@ class AdobePremiereProChecker(CompatibilityChecker):
                         issues.append(
                             CompatibilityIssue(
                                 level=CompatibilityLevel.COMPATIBLE,
-                                message=(
-                                    f"H.264 Level {level} is appropriate "
-                                    "for 4K delivery"
-                                ),
+                                message=(f"H.264 Level {level} is appropriate " "for 4K delivery"),
                                 reason="Level 5.1+ required for UHD resolution",
                             )
                         )
@@ -412,30 +356,19 @@ class AdobePremiereProChecker(CompatibilityChecker):
                             f"High bitrate 4K ({mbps}Mbps) may impact "
                             "timeline performance during editing"
                         ),
-                        reason=(
-                            "Very high bitrate can cause stuttering "
-                            "during playback"
-                        ),
+                        reason=("Very high bitrate can cause stuttering " "during playback"),
                         suggestion=(
-                            "Consider creating proxies or using intraframe "
-                            "codec (DNxHR/ProRes)"
+                            "Consider creating proxies or using intraframe " "codec (DNxHR/ProRes)"
                         ),
                     )
                 )
 
         # Check for Variable Frame Rate (VFR)
-        if (
-            frame_rate
-            and isinstance(frame_rate, str)
-            and "variable" in frame_rate.lower()
-        ):
+        if frame_rate and isinstance(frame_rate, str) and "variable" in frame_rate.lower():
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=(
-                        "Variable Frame Rate (VFR) can cause sync "
-                        "issues in Premiere"
-                    ),
+                    message=("Variable Frame Rate (VFR) can cause sync " "issues in Premiere"),
                     reason="VFR footage may drift out of sync on timeline",
                     suggestion="Conform to CFR (Constant Frame Rate) before editing",
                 )
@@ -448,14 +381,9 @@ class AdobePremiereProChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message=(
-                            "8K footage requires proxy workflow "
-                            "for smooth editing"
-                        ),
+                        message=("8K footage requires proxy workflow " "for smooth editing"),
                         reason="Full-res 8K playback is extremely demanding",
-                        suggestion=(
-                            "Create proxies via Ingest Settings or Proxy menu"
-                        ),
+                        suggestion=("Create proxies via Ingest Settings or Proxy menu"),
                     )
                 )
 
@@ -464,10 +392,7 @@ class AdobePremiereProChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        f"{container.upper()} container is well-supported "
-                        "by Premiere"
-                    ),
+                    message=(f"{container.upper()} container is well-supported " "by Premiere"),
                 )
             )
         elif "mp4" in container:
@@ -484,8 +409,7 @@ class AdobePremiereProChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message=(
-                        "Intraframe codec works seamlessly with "
-                        "Dynamic Link to After Effects"
+                        "Intraframe codec works seamlessly with " "Dynamic Link to After Effects"
                     ),
                     reason="No transcoding needed when round-tripping to AE",
                 )
@@ -543,10 +467,7 @@ class FinalCutProChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message="ProRes RAW is natively supported in Final Cut Pro",
-                    reason=(
-                        "Full RAW workflow with Apple Silicon "
-                        "hardware acceleration"
-                    ),
+                    reason=("Full RAW workflow with Apple Silicon " "hardware acceleration"),
                 )
             )
             return issues  # RAW is complete
@@ -572,10 +493,7 @@ class FinalCutProChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=(
-                            f"{codec.upper()} is the native codec "
-                            "for Final Cut Pro"
-                        ),
+                        message=(f"{codec.upper()} is the native codec " "for Final Cut Pro"),
                         reason=(
                             "Hardware acceleration on Apple Silicon "
                             "provides excellent performance"
@@ -588,10 +506,7 @@ class FinalCutProChecker(CompatibilityChecker):
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
                         message="ProRes Proxy is ideal for laptop editing",
-                        reason=(
-                            "Low bitrate enables smooth playback on "
-                            "MacBook Air/Pro"
-                        ),
+                        reason=("Low bitrate enables smooth playback on " "MacBook Air/Pro"),
                     )
                 )
             elif "4444" in codec:
@@ -616,10 +531,7 @@ class FinalCutProChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        f"{codec.upper()} benefits from hardware decode "
-                        "on Apple Silicon"
-                    ),
+                    message=(f"{codec.upper()} benefits from hardware decode " "on Apple Silicon"),
                     reason="M-series chips have dedicated video decode engines",
                 )
             )
@@ -629,26 +541,16 @@ class FinalCutProChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message=(
-                            f"{codec.upper()} will prompt for Optimized "
-                            "Media workflow"
-                        ),
-                        reason=(
-                            "FCP transcodes to ProRes for smoother "
-                            "timeline performance"
-                        ),
-                        suggestion=(
-                            "Allow FCP to create optimized media or pre-transcode"
-                        ),
+                        message=(f"{codec.upper()} will prompt for Optimized " "Media workflow"),
+                        reason=("FCP transcodes to ProRes for smoother " "timeline performance"),
+                        suggestion=("Allow FCP to create optimized media or pre-transcode"),
                     )
                 )
 
             # Background rendering for complex footage
             if resolution:
                 width, height = resolution
-                if (width >= 3840 or height >= 2160) or (
-                    bitrate and bitrate > 80_000_000
-                ):
+                if (width >= 3840 or height >= 2160) or (bitrate and bitrate > 80_000_000):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.WARNING,
@@ -656,13 +558,9 @@ class FinalCutProChecker(CompatibilityChecker):
                                 "Enable Background Rendering for smooth "
                                 "playback of complex footage"
                             ),
-                            reason=(
-                                "4K or high-bitrate footage benefits from "
-                                "pre-rendering"
-                            ),
+                            reason=("4K or high-bitrate footage benefits from " "pre-rendering"),
                             suggestion=(
-                                "Final Cut Pro > Preferences > Playback > "
-                                "Background render"
+                                "Final Cut Pro > Preferences > Playback > " "Background render"
                             ),
                         )
                     )
@@ -685,24 +583,16 @@ class FinalCutProChecker(CompatibilityChecker):
                     level=CompatibilityLevel.WARNING,
                     message="AV1 support is limited in Final Cut Pro",
                     reason="AV1 decode is CPU-intensive on Apple Silicon",
-                    suggestion=(
-                        "Transcode to ProRes 422 for smooth timeline playback"
-                    ),
+                    suggestion=("Transcode to ProRes 422 for smooth timeline playback"),
                 )
             )
         else:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=(
-                        f"{codec.upper()} may require optimization "
-                        "in Final Cut Pro"
-                    ),
+                    message=(f"{codec.upper()} may require optimization " "in Final Cut Pro"),
                     reason="FCP works best with ProRes codecs",
-                    suggestion=(
-                        "Transcode to ProRes 422 or let FCP create "
-                        "optimized media"
-                    ),
+                    suggestion=("Transcode to ProRes 422 or let FCP create " "optimized media"),
                 )
             )
 
@@ -711,10 +601,7 @@ class FinalCutProChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        "MOV (QuickTime) is the native container "
-                        "for Final Cut Pro"
-                    ),
+                    message=("MOV (QuickTime) is the native container " "for Final Cut Pro"),
                     reason="Seamless integration with macOS and ProRes",
                 )
             )
@@ -767,10 +654,7 @@ class AvidMediaComposerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        "DNxHD is Avid's native codec and optimal "
-                        "for HD editing"
-                    ),
+                    message=("DNxHD is Avid's native codec and optimal " "for HD editing"),
                     reason="Best performance and collaboration in Avid workflows",
                 )
             )
@@ -778,10 +662,7 @@ class AvidMediaComposerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        "DNxHR is Avid's native codec for all resolutions "
-                        "including 4K"
-                    ),
+                    message=("DNxHR is Avid's native codec for all resolutions " "including 4K"),
                     reason="Scalable codec for HD, UHD, 4K, and higher resolutions",
                 )
             )
@@ -792,13 +673,9 @@ class AvidMediaComposerChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message=(
-                        "ProRes is compatible via AMA for collaboration "
-                        "with Final Cut Pro"
+                        "ProRes is compatible via AMA for collaboration " "with Final Cut Pro"
                     ),
-                    reason=(
-                        "AMA linking allows ProRes import for "
-                        "cross-platform workflows"
-                    ),
+                    reason=("AMA linking allows ProRes import for " "cross-platform workflows"),
                     suggestion="For best performance, transcode to DNxHR on import",
                 )
             )
@@ -808,18 +685,9 @@ class AvidMediaComposerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=(
-                        "H.264 requires AMA (Avid Media Access) linking "
-                        "and transcoding"
-                    ),
-                    reason=(
-                        "AMA links to files without import; transcode "
-                        "for collaboration"
-                    ),
-                    suggestion=(
-                        "Transcode to DNxHR SQ during import for "
-                        "better performance"
-                    ),
+                    message=("H.264 requires AMA (Avid Media Access) linking " "and transcoding"),
+                    reason=("AMA links to files without import; transcode " "for collaboration"),
+                    suggestion=("Transcode to DNxHR SQ during import for " "better performance"),
                 )
             )
 
@@ -828,10 +696,7 @@ class AvidMediaComposerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        "XAVC requires Avid codec pack or AMA for "
-                        "Sony camera workflows"
-                    ),
+                    message=("XAVC requires Avid codec pack or AMA for " "Sony camera workflows"),
                     reason="Third-party format supported via AMA linking",
                     suggestion="Consider transcoding to DNxHR for native performance",
                 )
@@ -841,10 +706,7 @@ class AvidMediaComposerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.INCOMPATIBLE,
-                    message=(
-                        f"{codec.upper()} is not supported by "
-                        "Avid Media Composer"
-                    ),
+                    message=(f"{codec.upper()} is not supported by " "Avid Media Composer"),
                     reason="Avid requires DNxHD/DNxHR for native editing",
                     suggestion="Transcode to DNxHR SQ or HQ before importing",
                 )
@@ -855,10 +717,7 @@ class AvidMediaComposerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        "MXF is Avid's native container for "
-                        "broadcast workflows"
-                    ),
+                    message=("MXF is Avid's native container for " "broadcast workflows"),
                     reason="Material Exchange Format is industry standard",
                 )
             )
@@ -869,12 +728,9 @@ class AvidMediaComposerChecker(CompatibilityChecker):
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
                         message=(
-                            "OP1a MXF structure is optimal for Avid "
-                            "MediaCentral collaboration"
+                            "OP1a MXF structure is optimal for Avid " "MediaCentral collaboration"
                         ),
-                        reason=(
-                            "Operational Pattern 1a ensures maximum compatibility"
-                        ),
+                        reason=("Operational Pattern 1a ensures maximum compatibility"),
                     )
                 )
 
@@ -883,13 +739,9 @@ class AvidMediaComposerChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
                     message=(
-                        "DNxHD/DNxHR in MOV container: MXF is preferred "
-                        "for Avid workflows"
+                        "DNxHD/DNxHR in MOV container: MXF is preferred " "for Avid workflows"
                     ),
-                    reason=(
-                        "MOV with DNxHD works but MXF ensures full "
-                        "Avid compatibility"
-                    ),
+                    reason=("MOV with DNxHD works but MXF ensures full " "Avid compatibility"),
                     suggestion="Rewrap to MXF: ffmpeg -i input.mov -c copy output.mxf",
                 )
             )
@@ -899,13 +751,8 @@ class AvidMediaComposerChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        "PCM audio is broadcast-compliant and recommended "
-                        "for Avid"
-                    ),
-                    reason=(
-                        "Uncompressed audio ensures maximum quality and compatibility"
-                    ),
+                    message=("PCM audio is broadcast-compliant and recommended " "for Avid"),
+                    reason=("Uncompressed audio ensures maximum quality and compatibility"),
                 )
             )
 
@@ -960,8 +807,7 @@ class AfterEffectsChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message=(
-                        "ProRes 4444 is ideal for After Effects with "
-                        "alpha channel support"
+                        "ProRes 4444 is ideal for After Effects with " "alpha channel support"
                     ),
                     reason="Best quality for motion graphics with transparency",
                 )
@@ -972,14 +818,9 @@ class AfterEffectsChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        "Animation codec provides lossless output with "
-                        "alpha channel"
-                    ),
+                    message=("Animation codec provides lossless output with " "alpha channel"),
                     reason="QuickTime Animation is lossless with full alpha support",
-                    suggestion=(
-                        "Consider ProRes 4444 for smaller file sizes with alpha"
-                    ),
+                    suggestion=("Consider ProRes 4444 for smaller file sizes with alpha"),
                 )
             )
 
@@ -988,10 +829,7 @@ class AfterEffectsChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        f"{codec.upper()} provides excellent RAM preview "
-                        "performance"
-                    ),
+                    message=(f"{codec.upper()} provides excellent RAM preview " "performance"),
                     reason="Intraframe codec enables fast scrubbing in timeline",
                 )
             )
@@ -1011,10 +849,7 @@ class AfterEffectsChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=(
-                        "Image sequences are ideal for After Effects "
-                        "motion graphics"
-                    ),
+                    message=("Image sequences are ideal for After Effects " "motion graphics"),
                     reason="Frame-accurate scrubbing and no GOP issues",
                 )
             )
@@ -1029,9 +864,7 @@ class AfterEffectsChecker(CompatibilityChecker):
                         "renders in After Effects"
                     ),
                     reason="Interframe codecs cause slow RAM previews and scrubbing",
-                    suggestion=(
-                        "Use ProRes 422, PNG sequence, or Animation codec instead"
-                    ),
+                    suggestion=("Use ProRes 422, PNG sequence, or Animation codec instead"),
                 )
             )
 
@@ -1040,8 +873,7 @@ class AfterEffectsChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
                     message=(
-                        "For motion graphics work, PNG sequence is "
-                        "recommended over video files"
+                        "For motion graphics work, PNG sequence is " "recommended over video files"
                     ),
                     reason="Sequences provide frame-accurate editing and alpha support",
                     suggestion="Render as PNG sequence for maximum flexibility",
@@ -1052,17 +884,9 @@ class AfterEffectsChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=(
-                        f"{codec.upper()} does not support alpha channel "
-                        "(transparency)"
-                    ),
-                    reason=(
-                        "H.264/H.265 cannot preserve transparency for overlays"
-                    ),
-                    suggestion=(
-                        "Use ProRes 4444, Animation codec, or PNG sequence "
-                        "for alpha"
-                    ),
+                    message=(f"{codec.upper()} does not support alpha channel " "(transparency)"),
+                    reason=("H.264/H.265 cannot preserve transparency for overlays"),
+                    suggestion=("Use ProRes 4444, Animation codec, or PNG sequence " "for alpha"),
                 )
             )
 
@@ -1070,16 +894,9 @@ class AfterEffectsChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=(
-                        f"{codec.upper()} may have limited support "
-                        "in After Effects"
-                    ),
-                    reason=(
-                        "AE works best with intraframe codecs or image sequences"
-                    ),
-                    suggestion=(
-                        "Transcode to ProRes 422 or convert to PNG sequence"
-                    ),
+                    message=(f"{codec.upper()} may have limited support " "in After Effects"),
+                    reason=("AE works best with intraframe codecs or image sequences"),
+                    suggestion=("Transcode to ProRes 422 or convert to PNG sequence"),
                 )
             )
 
@@ -1089,8 +906,7 @@ class AfterEffectsChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
                     message=(
-                        "Intraframe codec works seamlessly with Dynamic Link "
-                        "to Premiere Pro"
+                        "Intraframe codec works seamlessly with Dynamic Link " "to Premiere Pro"
                     ),
                     reason="No transcoding needed when using Dynamic Link",
                 )
@@ -1107,12 +923,9 @@ class AfterEffectsChecker(CompatibilityChecker):
                             "4K compositions: ensure GPU acceleration is "
                             "enabled for better performance"
                         ),
-                        reason=(
-                            "GPU effects and renders significantly speed up workflows"
-                        ),
+                        reason=("GPU effects and renders significantly speed up workflows"),
                         suggestion=(
-                            "Project Settings > Video Rendering and Effects > "
-                            "Mercury GPU"
+                            "Project Settings > Video Rendering and Effects > " "Mercury GPU"
                         ),
                     )
                 )
