@@ -22,6 +22,7 @@ class WirecastChecker(CompatibilityChecker):
         "prores",
         "dnxhd",
         "mpeg2video",
+        "mjpeg",  # Add MJPEG support
     }
 
     # Hardware acceleration
@@ -69,6 +70,14 @@ class WirecastChecker(CompatibilityChecker):
                     reason="Professional codec for broadcast workflows",
                 )
             )
+        elif codec == "mjpeg":
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.COMPATIBLE,
+                    message="MJPEG is supported by Wirecast",
+                    reason="Intraframe codec with good compatibility",
+                )
+            )
         else:
             issues.append(
                 CompatibilityIssue(
@@ -101,19 +110,30 @@ class WirecastChecker(CompatibilityChecker):
                     )
 
         # Check bitrate recommendations
-        if bitrate and resolution:
-            width, height = resolution
+        if bitrate:
             mbps = bitrate // 1_000_000
-
-            if width >= 1920 and height >= 1080 and bitrate < 4_500_000:  # 1080p < 4.5 Mbps
+            
+            # High bitrate warning (>100 Mbps for any resolution)
+            if bitrate > 100_000_000:
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.WARNING,
-                        message=f"Bitrate {mbps}Mbps may be low for 1080p streaming",
-                        reason="Wirecast recommends at least 4.5 Mbps for 1080p",
-                        suggestion="Increase bitrate to 4.5-8 Mbps for better quality",
+                        message=f"Very high bitrate ({mbps}Mbps) may stress system resources",
+                        reason="High bitrates require fast storage and powerful hardware",
+                        suggestion="Use SSD storage and ensure adequate CPU/GPU capacity",
                     )
                 )
+            elif resolution:
+                width, height = resolution
+                if width >= 1920 and height >= 1080 and bitrate < 4_500_000:  # 1080p < 4.5 Mbps
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message=f"Bitrate {mbps}Mbps may be low for 1080p streaming",
+                            reason="Wirecast recommends at least 4.5 Mbps for 1080p",
+                            suggestion="Increase bitrate to 4.5-8 Mbps for better quality",
+                        )
+                    )
 
         # Check container format
         if "mp4" in container or "mov" in container:
@@ -193,6 +213,18 @@ class ResolumeChecker(CompatibilityChecker):
                     reason="Hardware-accelerated with Resolume's own decoder",
                 )
             )
+            # Add 4K layer warning even for DXV
+            if resolution:
+                width, height = resolution
+                if width >= 3840 and height >= 2160:
+                    issues.append(
+                        CompatibilityIssue(
+                            level=CompatibilityLevel.WARNING,
+                            message="4K requires careful layer management",
+                            reason="Multiple 4K layers can stress even GPU-accelerated playback",
+                            suggestion="Limit layer count or use lower resolution for layers",
+                        )
+                    )
         # Check for HAP (second best)
         elif "hap" in codec:
             if "alpha" in codec:
@@ -240,29 +272,21 @@ class ResolumeChecker(CompatibilityChecker):
                     )
                 )
             else:
-                if self.platform == "mac":
-                    issues.append(
-                        CompatibilityIssue(
-                            level=CompatibilityLevel.COMPATIBLE,
-                            message="ProRes works well on Mac with hardware acceleration",
-                            reason="Native Mac codec with system-level support",
-                        )
+                # ProRes is always CPU intensive in Resolume (even on Mac)
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message="ProRes is CPU intensive" + (" on Mac" if self.platform == "mac" else " on Windows"),
+                        reason="No hardware acceleration" + (" in Resolume" if self.platform == "mac" else " on Windows"),
+                        suggestion="Convert to DXV or HAP for better performance",
                     )
-                else:
-                    issues.append(
-                        CompatibilityIssue(
-                            level=CompatibilityLevel.WARNING,
-                            message="ProRes is CPU intensive on Windows",
-                            reason="No hardware acceleration on Windows",
-                            suggestion="Convert to DXV or HAP for better performance",
-                        )
-                    )
+                )
         # Check for H.264
         elif codec == "h264":
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message="H.264 playback via system codecs (not optimal)",
+                    message="H.264 relies on CPU playback via system codecs (not optimal)",
                     reason="Relies on MediaFoundation/AVFoundation, less efficient",
                     suggestion="Convert to DXV or HAP for optimal live performance",
                 )
@@ -286,7 +310,7 @@ class ResolumeChecker(CompatibilityChecker):
                 )
             )
 
-        # Check for 4K multi-layer warning
+        # Check for 4K multi-layer warning (for non-GPU codecs)
         if resolution:
             width, height = resolution
             if width >= 3840 and height >= 2160 and "dxv" not in codec and "hap" not in codec:
@@ -460,23 +484,33 @@ class PlaybackProChecker(CompatibilityChecker):
                     issues.append(
                         CompatibilityIssue(
                             level=CompatibilityLevel.COMPATIBLE,
-                            message=f"HD bitrate ({mbps}Mbps) is optimal for PlaybackPro",
+                            message=f"HD bitrate ({mbps}Mbps) is suitable for PlaybackPro",
                         )
                     )
 
-        # Check container
-        if "mov" in container or "mp4" in container:
+        # Check container - MOV is REQUIRED
+        if "mov" in container:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.upper()} container is recommended for PlaybackPro",
+                    message="MOV container is recommended for PlaybackPro",
+                )
+            )
+        elif "mp4" in container:
+            issues.append(
+                CompatibilityIssue(
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message="MOV container is required for PlaybackPro",
+                    reason="PlaybackPro requires MOV, not MP4",
+                    suggestion="Remux to MOV container",
                 )
             )
         else:
             issues.append(
                 CompatibilityIssue(
-                    level=CompatibilityLevel.WARNING,
-                    message="PlaybackPro works best with MOV or MP4 containers",
+                    level=CompatibilityLevel.INCOMPATIBLE,
+                    message="MOV container is required for PlaybackPro",
+                    reason="PlaybackPro only supports MOV container",
                     suggestion="Remux to MOV container",
                 )
             )
@@ -529,7 +563,7 @@ class ProVideoPlayerChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message="HAP Alpha provides GPU-accelerated playback with transparency",
+                        message="HAP Alpha provides GPU-accelerated playback with transparency for overlays",
                         reason="Ideal for overlays and multi-layer compositions",
                     )
                 )
