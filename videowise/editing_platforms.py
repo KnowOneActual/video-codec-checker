@@ -342,22 +342,22 @@ class AdobePremiereProChecker(CompatibilityChecker):
                             )
                         )
 
-            # High bitrate warning for 4K (must mention bitrate/performance)
-            if bitrate and resolution:
-                width, height = resolution
-                if (width >= 3840 or height >= 2160) and bitrate > 100_000_000:
-                    mbps = bitrate // 1_000_000
-                    issues.append(
-                        CompatibilityIssue(
-                            level=CompatibilityLevel.WARNING,
-                            message=(
-                                f"High bitrate 4K {codec.upper()} ({mbps}Mbps) "
-                                "may impact timeline performance"
-                            ),
-                            reason="Very high bitrate can cause stuttering during playback",
-                            suggestion="Consider creating proxies or using an intraframe codec",
-                        )
+        # High bitrate warning for 4K (standalone - applies to ANY codec)
+        if bitrate and resolution:
+            width, height = resolution
+            if (width >= 3840 or height >= 2160) and bitrate > 100_000_000:
+                mbps = bitrate // 1_000_000
+                issues.append(
+                    CompatibilityIssue(
+                        level=CompatibilityLevel.WARNING,
+                        message=(
+                            f"High bitrate 4K ({mbps}Mbps) may impact timeline "
+                            "performance during editing"
+                        ),
+                        reason="Very high bitrate can cause stuttering during playback",
+                        suggestion="Consider creating proxies or using intraframe codec (DNxHR/ProRes)",
                     )
+                )
 
         # Check for Variable Frame Rate (VFR)
         if frame_rate and isinstance(frame_rate, str) and "variable" in frame_rate.lower():
