@@ -1,5 +1,6 @@
 # Core dependencies
 click>=8.1.0
+PyYAML>=6.0.0
 
 # Testing dependencies
 pytest>=8.0.0
