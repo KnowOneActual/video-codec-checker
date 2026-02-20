@@ -1,7 +1,5 @@
 """Tests for rule-based compatibility engine."""
 
-import pytest
-
 from videowise.compatibility import CompatibilityLevel
 from videowise.rule_engine import RuleBasedChecker, RuleEngine
 
