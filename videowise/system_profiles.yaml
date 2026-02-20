@@ -1,0 +1,305 @@
+# System Profiles - Rule-Based Compatibility Configuration
+# Each system defines its compatibility rules declaratively
+
+# PROFILES GROUP SYSTEMS BY WORKFLOW
+profiles:
+  live_production:
+    systems:
+      - casparcg
+      - playoutbee
+      - vmix
+      - obs
+      - qlab
+      - propresenter
+      - wirecast
+      - playbackpro
+      - easyworship
+      - provideoplayer
+  
+  editing:
+    systems:
+      - davinci
+      - premiere
+      - finalcut
+      - avid
+      - aftereffects
+  
+  social_media:
+    systems:
+      - instagram
+      - twitter
+      - youtube
+      - tiktok
+      - vimeo
+      - facebook
+  
+  streaming:
+    systems:
+      - twitch
+      - youtubelive
+      - kick
+      - restream
+      - zoom
+      - discord
+  
+  browsers:
+    systems:
+      - safari
+      - chrome
+      - firefox
+  
+  media_players:
+    systems:
+      - vlc
+      - resolume
+      - mitti
+      - millumin
+
+# SYSTEM DEFINITIONS
+systems:
+  # === LIVE PRODUCTION ===
+  casparcg:
+    name: "CasparCG Server"
+    category: live_production
+    codecs:
+      supported: [h264, prores, dnxhd, dnxhr, mpeg2video, mjpeg, hap, notchlc]
+      optimal: [hap, prores, dnxhd]
+      gpu_accelerated: [hap, notchlc]
+      alpha_support: [prores4444, hap_alpha, hap_q_alpha]
+    containers:
+      preferred:
+        h264: [mp4, mov]
+        prores: [mov]
+        dnxhd: [mov, mxf]
+        dnxhr: [mov, mxf]
+        hap: [mov]
+    rules:
+      - condition: {codec_contains: "hap"}
+        level: compatible
+        message: "HAP codec provides GPU-accelerated playback"
+        reason: "Optimal for real-time playback in CasparCG"
+      
+      - condition: {codec_eq: "prores", profile_contains: "4444"}
+        level: compatible
+        message: "ProRes 4444 supports alpha channel for transparency"
+        reason: "Professional quality with transparency support"
+      
+      - condition: {codec_not_in: [h264, prores, dnxhd, dnxhr, hap, notchlc]}
+        level: incompatible
+        message: "CasparCG does not support {codec} codec"
+        suggestion: "Convert to HAP (GPU-accelerated), ProRes, DNxHD, or H.264"
+      
+      - condition: {resolution_gte: [3840, 2160], bitrate_gt: 200000000}
+        level: warning
+        message: "4K at {bitrate_mbps}Mbps may stress system bandwidth"
+        suggestion: "Consider HAP codec for GPU-accelerated 4K playback"
+  
+  playoutbee:
+    name: "PlayoutBee"
+    category: live_production
+    codecs:
+      supported: [h264, prores, hap]
+      optimal: [hap]
+      alpha_support: [prores4444, hap_alpha, hap_q_alpha]
+    containers:
+      preferred:
+        hap: [mov]
+        h264: [mp4, mov]
+        prores: [mov]
+    rules:
+      - condition: {codec_contains: "hap"}
+        level: compatible
+        message: "HAP codec is optimal for PlayoutBee"
+        reason: "GPU-accelerated real-time playback with low CPU usage"
+      
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is compatible with PlayoutBee"
+        reason: "Hardware acceleration available, good compatibility"
+  
+  vmix:
+    name: "vMix"
+    category: live_production
+    rules:
+      - condition: {bitrate_gt: 200000000}
+        level: warning
+        message: "Very high bitrate ({bitrate_mbps}Mbps) may cause dropped frames"
+        suggestion: "Consider transcoding to 100-150Mbps"
+      
+      - condition: {bitrate_gt: 100000000}
+        level: warning
+        message: "High bitrate ({bitrate_mbps}Mbps) - monitor for performance issues"
+        suggestion: "Test playback before going live"
+      
+      - condition: {codec_in: [prores, dnxhd, dnxhr]}
+        level: compatible
+        message: "{codec} is well-supported by vMix"
+  
+  obs:
+    name: "OBS Studio"
+    category: live_production
+    codecs:
+      supported: [h264, hevc, av1, vp8, vp9, prores, dnxhd]
+      recommended: [h264, hevc, av1]
+    rules:
+      - condition: {codec_in: [h264, hevc, av1]}
+        level: compatible
+        message: "{codec} is fully supported by OBS Studio"
+        reason: "Hardware acceleration may be available"
+      
+      - condition: {codec_not_in: [h264, hevc, av1, vp8, vp9, prores, dnxhd]}
+        level: warning
+        message: "{codec} may have limited support in OBS"
+        suggestion: "Consider converting to H.264 for compatibility"
+  
+  # === BROWSERS ===
+  safari:
+    name: "Safari Browser"
+    category: browsers
+    codecs:
+      supported: [h264, hevc]
+    containers:
+      preferred: [mp4]
+    rules:
+      - condition: {codec_not_in: [h264, hevc]}
+        level: incompatible
+        message: "Safari does not support {codec} codec"
+        reason: "Safari only supports H.264 and HEVC (H.265)"
+        suggestion: "Convert to H.264 for maximum browser compatibility"
+      
+      - condition: {container_not_contains: "mp4"}
+        level: warning
+        message: "Safari works best with MP4 container format"
+        suggestion: "Remux to MP4 container"
+  
+  chrome:
+    name: "Chrome Browser"
+    category: browsers
+    codecs:
+      supported: [h264, vp8, vp9, av1]
+    rules:
+      - condition: {codec_in: [h264, vp8, vp9, av1]}
+        level: compatible
+        message: "{codec} is supported by Chrome"
+      
+      - condition: {codec_not_in: [h264, vp8, vp9, av1]}
+        level: warning
+        message: "{codec} may not be supported by Chrome"
+        suggestion: "Convert to H.264 or VP9 for web compatibility"
+  
+  # === SOCIAL MEDIA ===
+  instagram:
+    name: "Instagram"
+    category: social_media
+    codecs:
+      required: [h264]
+      profiles:
+        preferred: [baseline]
+    rules:
+      - condition: {codec_ne: "h264"}
+        level: warning
+        message: "Instagram will re-encode {codec} to H.264 (quality loss)"
+        suggestion: "Pre-encode to H.264 to maintain quality control"
+      
+      - condition: {codec_eq: "h264", profile_not_contains: "baseline"}
+        level: warning
+        message: "Instagram prefers H.264 Baseline, not {profile}"
+        suggestion: "Convert to Baseline: ffmpeg -profile:v baseline"
+      
+      - condition: {resolution_gt: [1080, 1920]}
+        level: warning
+        message: "Resolution {width}x{height} will be downscaled"
+        suggestion: "Downscale to 1080p before upload"
+  
+  youtube:
+    name: "YouTube"
+    category: social_media
+    codecs:
+      recommended: [h264]
+      profiles:
+        preferred: [high]
+    containers:
+      preferred: [mp4]
+    rules:
+      - condition: {codec_ne: "h264"}
+        level: warning
+        message: "YouTube recommends H.264, not {codec} for uploads"
+        suggestion: "Upload as H.264 for best quality control and processing speed"
+      
+      - condition: {codec_eq: "h264", profile_contains: "high"}
+        level: compatible
+        message: "H.264 High Profile is optimal for YouTube"
+      
+      - condition: {container_contains: "mp4"}
+        level: compatible
+        message: "MP4 is YouTube's preferred container format"
+  
+  # === EDITING PLATFORMS ===
+  davinci:
+    name: "DaVinci Resolve"
+    category: editing
+    codecs:
+      optimal: [dnxhd, dnxhr, prores]
+      gpu_accelerated: [h264, hevc]  # Studio only
+      supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg, av1, braw]
+    rules:
+      - condition: {codec_contains: "dnx"}
+        level: compatible
+        message: "{codec} is optimal for DaVinci Resolve editing"
+        reason: "Intraframe codec with low CPU overhead for timeline playback"
+      
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "{codec} is well-supported in DaVinci Resolve"
+        reason: "Professional codec for editing and grading"
+      
+      - condition: {codec_in: [h264, hevc]}
+        level: warning
+        message: "{codec} may require transcoding for intensive editing/grading"
+        suggestion: "Consider generating optimized media (DNxHR/ProRes)"
+  
+  premiere:
+    name: "Adobe Premiere Pro"
+    category: editing
+    codecs:
+      optimal: [dnxhd, dnxhr, prores]
+      hardware_accelerated: [h264, hevc]
+      supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg, av1, vp9]
+    rules:
+      - condition: {codec_in: [dnxhd, dnxhr, prores]}
+        level: compatible
+        message: "{codec} is native in Premiere Pro for smooth editing"
+      
+      - condition: {codec_in: [h264, hevc]}
+        level: compatible
+        message: "{codec} benefits from Mercury Playback Engine GPU acceleration"
+        suggestion: "Enable GPU acceleration in Project Settings"
+  
+  finalcut:
+    name: "Final Cut Pro"
+    category: editing
+    codecs:
+      native: [prores]
+      supported: [h264, hevc, prores, dnxhd, dnxhr, av1]
+    rules:
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "{codec} is the native codec for Final Cut Pro"
+        reason: "Hardware acceleration on Apple Silicon provides excellent performance"
+      
+      - condition: {codec_in: [h264, hevc]}
+        level: warning
+        message: "{codec} will prompt for Optimized Media workflow"
+        suggestion: "Allow FCP to create optimized media or pre-transcode"
+
+# RULE EVALUATION CONDITIONS
+# Supported operators:
+# - codec_eq, codec_ne, codec_in, codec_not_in, codec_contains
+# - resolution_gt, resolution_gte, resolution_lt, resolution_lte
+# - bitrate_gt, bitrate_gte, bitrate_lt, bitrate_lte
+# - profile_contains, profile_not_contains
+# - container_contains, container_not_contains
+# - file_size_gt, duration_gt
+
+# MESSAGE TEMPLATES
+# Variables available: {codec}, {profile}, {width}, {height}, {bitrate_mbps}, {container}
