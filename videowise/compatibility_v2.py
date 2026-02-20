@@ -49,9 +49,7 @@ class CompatibilityChecker:
         Returns:
             List of compatibility issues
         """
-        return self._engine.check_compatibility(
-            video_info, self.system_name, self.variant
-        )
+        return self._engine.check_compatibility(video_info, self.system_name, self.variant)
 
 
 # ============================================================================
@@ -249,9 +247,7 @@ def get_available_systems() -> List[str]:
     return engine.list_systems()
 
 
-def check_compatibility(
-    video_info: Dict[str, Any], system: str
-) -> List[CompatibilityIssue]:
+def check_compatibility(video_info: Dict[str, Any], system: str) -> List[CompatibilityIssue]:
     """Check video compatibility for a specific system.
 
     Args:
