@@ -43,7 +43,7 @@ class TestRuleEngine:
             "bitrate": 50_000_000,
         }
         issues = self.engine.check_compatibility(video_info, "casparcg")
-        
+
         assert len(issues) > 0
         # Should have compatible issue for HAP
         hap_issues = [i for i in issues if "HAP" in i.message]
@@ -57,7 +57,7 @@ class TestRuleEngine:
             "container": "webm",
         }
         issues = self.engine.check_compatibility(video_info, "casparcg")
-        
+
         # Should have incompatible issue
         incompatible_issues = [i for i in issues if i.level == CompatibilityLevel.INCOMPATIBLE]
         assert len(incompatible_issues) > 0
@@ -70,7 +70,7 @@ class TestRuleEngine:
             "resolution": (1080, 1920),
         }
         issues = self.engine.check_compatibility(video_info, "instagram")
-        
+
         # Should NOT have warnings about re-encoding
         warning_issues = [i for i in issues if i.level == CompatibilityLevel.WARNING]
         # May have resolution warnings, but not codec warnings
@@ -84,7 +84,7 @@ class TestRuleEngine:
             "resolution": (1080, 1080),
         }
         issues = self.engine.check_compatibility(video_info, "instagram")
-        
+
         # Should have warning about re-encoding
         warning_issues = [i for i in issues if i.level == CompatibilityLevel.WARNING]
         assert len(warning_issues) > 0
@@ -97,7 +97,7 @@ class TestRuleEngine:
             "container": "webm",
         }
         issues = self.engine.check_compatibility(video_info, "safari")
-        
+
         # Should be incompatible
         incompatible_issues = [i for i in issues if i.level == CompatibilityLevel.INCOMPATIBLE]
         assert len(incompatible_issues) > 0
@@ -108,7 +108,7 @@ class TestRuleEngine:
         for codec in ["h264", "vp8", "vp9", "av1"]:
             video_info = {"codec": codec}
             issues = self.engine.check_compatibility(video_info, "chrome")
-            
+
             # Should have at least one compatible issue
             compatible_issues = [i for i in issues if i.level == CompatibilityLevel.COMPATIBLE]
             assert len(compatible_issues) > 0, f"{codec} should be compatible with Chrome"
@@ -121,7 +121,7 @@ class TestRuleEngine:
             "bitrate": 250_000_000,  # 250 Mbps
         }
         issues = self.engine.check_compatibility(video_info, "vmix")
-        
+
         # Should have warning about high bitrate
         warning_issues = [i for i in issues if i.level == CompatibilityLevel.WARNING]
         assert len(warning_issues) > 0
@@ -136,7 +136,7 @@ class TestRuleEngine:
             "resolution": (3840, 2160),  # 4K
         }
         issues = self.engine.check_compatibility(video_info, "instagram")
-        
+
         # Should have warning about downscaling
         warning_issues = [i for i in issues if i.level == CompatibilityLevel.WARNING]
         downscale_warnings = [i for i in warning_issues if "downscale" in i.message.lower()]
@@ -150,7 +150,7 @@ class TestRuleEngine:
             "resolution": (1920, 1080),
         }
         issues = self.engine.check_compatibility(video_info, "vmix")
-        
+
         # Check that bitrate is properly formatted in message
         for issue in issues:
             if "Mbps" in issue.message:
@@ -162,7 +162,7 @@ class TestRuleEngine:
         """Test checking against unknown system."""
         video_info = {"codec": "h264"}
         issues = self.engine.check_compatibility(video_info, "nonexistent_system")
-        
+
         assert len(issues) == 1
         assert issues[0].level == CompatibilityLevel.UNKNOWN
         assert "Unknown system" in issues[0].message
@@ -175,7 +175,7 @@ class TestRuleEngine:
             "bitrate": 250_000_000,
         }
         issues = self.engine.check_compatibility(video_info, "vmix")
-        
+
         # Should trigger multiple rules (4K + high bitrate)
         assert len(issues) >= 2
 
@@ -187,7 +187,7 @@ class TestRuleBasedChecker:
         """Test that RuleBasedChecker implements CompatibilityChecker interface."""
         checker = RuleBasedChecker("casparcg")
         video_info = {"codec": "h264", "container": "mp4"}
-        
+
         issues = checker.check(video_info)
         assert isinstance(issues, list)
         assert len(issues) > 0
@@ -196,7 +196,7 @@ class TestRuleBasedChecker:
         """Test creating checkers for different systems."""
         systems = ["casparcg", "instagram", "safari", "davinci"]
         video_info = {"codec": "h264"}
-        
+
         for system in systems:
             checker = RuleBasedChecker(system)
             issues = checker.check(video_info)
@@ -215,44 +215,44 @@ class TestConditionEvaluation:
         condition = {"codec_eq": "h264"}
         video_info = {"codec": "h264"}
         assert self.engine._evaluate_condition(condition, video_info) is True
-        
+
         video_info = {"codec": "prores"}
         assert self.engine._evaluate_condition(condition, video_info) is False
 
     def test_codec_in(self):
         """Test codec in list condition."""
         condition = {"codec_in": ["h264", "prores", "dnxhd"]}
-        
+
         for codec in ["h264", "prores", "dnxhd"]:
             video_info = {"codec": codec}
             assert self.engine._evaluate_condition(condition, video_info) is True
-        
+
         video_info = {"codec": "vp9"}
         assert self.engine._evaluate_condition(condition, video_info) is False
 
     def test_codec_contains(self):
         """Test codec substring match."""
         condition = {"codec_contains": "prores"}
-        
+
         for codec in ["prores", "prores422", "prores4444", "prores_proxy"]:
             video_info = {"codec": codec}
             assert self.engine._evaluate_condition(condition, video_info) is True
-        
+
         video_info = {"codec": "h264"}
         assert self.engine._evaluate_condition(condition, video_info) is False
 
     def test_resolution_gte(self):
         """Test resolution greater than or equal condition."""
         condition = {"resolution_gte": [1920, 1080]}
-        
+
         # Exactly 1080p
         video_info = {"resolution": (1920, 1080)}
         assert self.engine._evaluate_condition(condition, video_info) is True
-        
+
         # 4K
         video_info = {"resolution": (3840, 2160)}
         assert self.engine._evaluate_condition(condition, video_info) is True
-        
+
         # 720p
         video_info = {"resolution": (1280, 720)}
         assert self.engine._evaluate_condition(condition, video_info) is False
@@ -260,20 +260,20 @@ class TestConditionEvaluation:
     def test_bitrate_gt(self):
         """Test bitrate greater than condition."""
         condition = {"bitrate_gt": 100_000_000}  # 100 Mbps
-        
+
         video_info = {"bitrate": 150_000_000}
         assert self.engine._evaluate_condition(condition, video_info) is True
-        
+
         video_info = {"bitrate": 50_000_000}
         assert self.engine._evaluate_condition(condition, video_info) is False
 
     def test_profile_contains(self):
         """Test profile substring condition."""
         condition = {"profile_contains": "baseline"}
-        
+
         video_info = {"profile": "baseline"}
         assert self.engine._evaluate_condition(condition, video_info) is True
-        
+
         video_info = {"profile": "high"}
         assert self.engine._evaluate_condition(condition, video_info) is False
 
@@ -284,12 +284,12 @@ class TestBackwardCompatibility:
     def test_module_level_functions(self):
         """Test that module-level functions still work."""
         from videowise.rule_engine import check_compatibility, get_available_systems
-        
+
         # Test get_available_systems
         systems = get_available_systems()
         assert isinstance(systems, list)
         assert len(systems) > 0
-        
+
         # Test check_compatibility
         video_info = {"codec": "h264"}
         issues = check_compatibility(video_info, "casparcg")
