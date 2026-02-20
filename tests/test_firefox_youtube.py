@@ -226,7 +226,6 @@ class TestYouTubeChecker:
         issues = check_compatibility(video_info, "youtube")
 
         # Should not have file size incompatibility
-        incompatible_issues = [i for i in issues if i.level == CompatibilityLevel.INCOMPATIBLE]
         # Large files may still be compatible
         assert len(issues) > 0
 
