@@ -125,9 +125,9 @@ jobs:
 
       - name: Generate test video
         run: |
-          ffmpeg -f lavfi -i color=c=blue:s=320x240:d=1 \
-            -c:v libx264 -profile:v baseline -pix_fmt yuv420p \
-            testvideo.mp4
+          ffmpeg -f lavfi -i color=c=blue:s=1920x1080:d=1 \
+            -c:v libx264 -profile:v high -level 4.0 -pix_fmt yuv420p \
+            -r 25 testvideo.mp4
 
       - name: Test check command (CasparCG)
         run: |
