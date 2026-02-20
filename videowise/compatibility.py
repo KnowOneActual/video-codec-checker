@@ -1257,7 +1257,7 @@ class SafariChecker(CompatibilityChecker):
         issues.append(
             CompatibilityIssue(
                 level=CompatibilityLevel.COMPATIBLE,
-                message=f"{codec.UPPER()} is supported by Safari",
+                message=f"{codec.upper()} is supported by Safari",
             )
         )
 
@@ -1285,14 +1285,14 @@ class ChromeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.UPPER()} is supported by Chrome",
+                    message=f"{codec.upper()} is supported by Chrome",
                 )
             )
         else:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{codec.UPPER()} may not be supported by Chrome",
+                    message=f"{codec.upper()} may not be supported by Chrome",
                     reason="Chrome supports H.264, VP8, VP9, and AV1",
                     suggestion="Convert to H.264 or VP9 for web compatibility",
                 )
@@ -1326,7 +1326,7 @@ class FirefoxChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=f"{codec.UPPER()} in WebM is natively supported by Firefox",
+                        message=f"{codec.upper()} in WebM is natively supported by Firefox",
                         reason="WebM is Firefox's preferred format for VP8/VP9",
                     )
                 )
@@ -1350,14 +1350,14 @@ class FirefoxChecker(CompatibilityChecker):
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=f"{codec.UPPER()} is supported by Firefox",
+                        message=f"{codec.upper()} is supported by Firefox",
                     )
                 )
         elif codec in self.PARTIALLY_SUPPORTED:
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{codec.UPPER()} has limited support in Firefox",
+                    message=f"{codec.upper()} has limited support in Firefox",
                     reason="HEVC requires Windows 10+ with HEVC Video Extensions",
                     suggestion="Convert to H.264 or VP9 for broader compatibility",
                 )
@@ -1366,7 +1366,7 @@ class FirefoxChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.INCOMPATIBLE,
-                    message=f"Firefox does not support {codec.UPPER()} codec",
+                    message=f"Firefox does not support {codec.upper()} codec",
                     reason="Firefox supports H.264, VP8, VP9, and AV1",
                     suggestion="Convert to H.264 (MP4) or VP9 (WebM) for Firefox",
                 )
@@ -1404,7 +1404,7 @@ class InstagramChecker(CompatibilityChecker):
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
                     message=(
-                        f"Instagram will re-encode {codec.UPPER()} to H.264 " f"(quality loss)"
+                        f"Instagram will re-encode {codec.upper()} to H.264 " f"(quality loss)"
                     ),
                     reason="Instagram only accepts H.264 codec",
                     suggestion="Pre-encode to H.264 to maintain quality control",
@@ -1477,7 +1477,7 @@ class TwitterChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"Twitter recommends H.264, not {codec.UPPER()}",
+                    message=f"Twitter recommends H.264, not {codec.upper()}",
                     suggestion="Convert to H.264 High Profile for best quality",
                 )
             )
@@ -1546,7 +1546,7 @@ class YouTubeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"YouTube recommends H.264, not {codec.UPPER()} for uploads",
+                    message=f"YouTube recommends H.264, not {codec.upper()} for uploads",
                     reason="YouTube re-encodes all uploads to multiple formats",
                     suggestion="Upload as H.264 for best quality control and processing speed",
                 )
@@ -1591,7 +1591,7 @@ class YouTubeChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{container.UPPER()} is accepted but MP4 is preferred",
+                    message=f"{container.upper()} is accepted but MP4 is preferred",
                     suggestion="Use MP4 for faster upload processing",
                 )
             )
@@ -1677,7 +1677,7 @@ class TikTokChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"TikTok recommends H.264, not {codec.UPPER()}",
+                    message=f"TikTok recommends H.264, not {codec.upper()}",
                     reason="TikTok re-encodes all uploads",
                     suggestion="Upload as H.264 to maintain quality control",
                 )
@@ -1688,7 +1688,7 @@ class TikTokChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.UPPER()} container is supported by TikTok",
+                    message=f"{container.upper()} container is supported by TikTok",
                     reason="Standard container formats for mobile video",
                 )
             )
@@ -1813,7 +1813,7 @@ class VimeoChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"Vimeo recommends H.264, not {codec.UPPER()}",
+                    message=f"Vimeo recommends H.264, not {codec.upper()}",
                     reason="Vimeo re-encodes all uploads for streaming",
                     suggestion="Upload as H.264 for best results",
                 )
@@ -1824,7 +1824,7 @@ class VimeoChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.UPPER()} container is compatible with Vimeo",
+                    message=f"{container.upper()} container is compatible with Vimeo",
                 )
             )
 
@@ -1924,7 +1924,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{codec.UPPER()} is supported for Facebook Reels",
+                    message=f"{codec.upper()} is supported for Facebook Reels",
                     reason="Newer codecs accepted but H.264 recommended for Feed",
                 )
             )
@@ -1932,7 +1932,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"Facebook recommends H.264, not {codec.UPPER()}",
+                    message=f"Facebook recommends H.264, not {codec.upper()}",
                     reason="Facebook will re-encode non-standard codecs",
                     suggestion="Convert to H.264 for best compatibility",
                 )
@@ -1943,7 +1943,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
-                    message=f"{container.UPPER()} is preferred by Facebook",
+                    message=f"{container.upper()} is preferred by Facebook",
                     reason="MP4 and MOV offer best compatibility",
                 )
             )
@@ -1951,7 +1951,7 @@ class FacebookChecker(CompatibilityChecker):
             issues.append(
                 CompatibilityIssue(
                     level=CompatibilityLevel.WARNING,
-                    message=f"{container.UPPER()} is supported but not recommended",
+                    message=f"{container.upper()} is supported but not recommended",
                     suggestion="Use MP4 or MOV for better compatibility",
                 )
             )
