@@ -6,7 +6,7 @@ Reduces codebase from ~150KB to ~30KB while making system addition trivial.
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import yaml
 
@@ -16,7 +16,7 @@ from .compatibility import CompatibilityChecker, CompatibilityIssue, Compatibili
 class RuleEngine:
     """Evaluates compatibility rules defined in YAML configuration."""
 
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: Optional[Union[str, Path]] = None):
         """Initialize rule engine with system profiles.
 
         Args:
@@ -24,21 +24,23 @@ class RuleEngine:
         """
         if config_path is None:
             config_path = Path(__file__).parent / "system_profiles.yaml"
+        elif isinstance(config_path, str):
+            config_path = Path(config_path)
 
         with open(config_path, "r") as f:
-            self.config = yaml.safe_load(f)
+            self.config: Dict[str, Any] = yaml.safe_load(f)
 
-        self.systems = self.config.get("systems", {})
-        self.profiles = self.config.get("profiles", {})
+        self.systems: Dict[str, Any] = self.config.get("systems", {})
+        self.profiles: Dict[str, Any] = self.config.get("profiles", {})
 
     def get_available_systems(self) -> List[str]:
         """Return list of all available system names."""
-        return sorted(self.systems.keys())
+        return sorted(list(self.systems.keys()))
 
     def get_profile_systems(self, profile: str) -> List[str]:
         """Get all systems in a profile (e.g., 'editing', 'live_production')."""
         profile_data = self.profiles.get(profile, {})
-        return profile_data.get("systems", [])
+        return list(profile_data.get("systems", []))
 
     def check_compatibility(
         self, video_info: Dict[str, Any], system: str
@@ -63,7 +65,7 @@ class RuleEngine:
             ]
 
         issues: List[CompatibilityIssue] = []
-        rules = system_config.get("rules", [])
+        rules: List[Dict[str, Any]] = system_config.get("rules", [])
 
         # Evaluate each rule
         for rule in rules:
@@ -74,7 +76,8 @@ class RuleEngine:
         # If no rules matched and codec is in supported list, add compatible issue
         if not issues:
             codec = video_info.get("codec", "").lower()
-            supported_codecs = system_config.get("codecs", {}).get("supported", [])
+            codecs_config = system_config.get("codecs", {})
+            supported_codecs: List[str] = codecs_config.get("supported", [])
             if codec in supported_codecs or not supported_codecs:
                 issues.append(
                     CompatibilityIssue(
@@ -105,55 +108,55 @@ class RuleEngine:
 
         # Codec conditions
         if "codec_eq" in condition:
-            return codec == condition["codec_eq"]
+            return bool(codec == condition["codec_eq"])
         if "codec_ne" in condition:
-            return codec != condition["codec_ne"]
+            return bool(codec != condition["codec_ne"])
         if "codec_in" in condition:
-            return codec in condition["codec_in"]
+            return bool(codec in condition["codec_in"])
         if "codec_not_in" in condition:
-            return codec not in condition["codec_not_in"]
+            return bool(codec not in condition["codec_not_in"])
         if "codec_contains" in condition:
-            return condition["codec_contains"] in codec
+            return bool(condition["codec_contains"] in codec)
 
         # Profile conditions
         if "profile_contains" in condition:
-            return condition["profile_contains"] in profile
+            return bool(condition["profile_contains"] in profile)
         if "profile_not_contains" in condition:
-            return condition["profile_not_contains"] not in profile
+            return bool(condition["profile_not_contains"] not in profile)
 
         # Container conditions
         if "container_contains" in condition:
-            return condition["container_contains"] in container
+            return bool(condition["container_contains"] in container)
         if "container_not_contains" in condition:
-            return condition["container_not_contains"] not in container
+            return bool(condition["container_not_contains"] not in container)
 
         # Resolution conditions
         if "resolution_gt" in condition:
             target_width, target_height = condition["resolution_gt"]
             width, height = resolution
-            return width > target_width or height > target_height
+            return bool(width > target_width or height > target_height)
         if "resolution_gte" in condition:
             target_width, target_height = condition["resolution_gte"]
             width, height = resolution
-            return width >= target_width and height >= target_height
+            return bool(width >= target_width and height >= target_height)
 
         # Bitrate conditions
         if "bitrate_gt" in condition:
-            return bitrate > condition["bitrate_gt"]
+            return bool(bitrate > condition["bitrate_gt"])
         if "bitrate_gte" in condition:
-            return bitrate >= condition["bitrate_gte"]
+            return bool(bitrate >= condition["bitrate_gte"])
         if "bitrate_lt" in condition:
-            return bitrate < condition["bitrate_lt"]
+            return bool(bitrate < condition["bitrate_lt"])
         if "bitrate_lte" in condition:
-            return bitrate <= condition["bitrate_lte"]
+            return bool(bitrate <= condition["bitrate_lte"])
 
         # File size conditions
         if "file_size_gt" in condition:
-            return file_size > condition["file_size_gt"]
+            return bool(file_size > condition["file_size_gt"])
 
         # Duration conditions
         if "duration_gt" in condition:
-            return duration > condition["duration_gt"]
+            return bool(duration > condition["duration_gt"])
 
         # If no condition matched, return False
         return False
@@ -233,7 +236,7 @@ class RuleBasedChecker(CompatibilityChecker):
     with a single rule-based checker.
     """
 
-    def __init__(self, system: str, config_path: Optional[str] = None):
+    def __init__(self, system: str, config_path: Optional[Union[str, Path]] = None):
         """Initialize rule-based checker.
 
         Args:
