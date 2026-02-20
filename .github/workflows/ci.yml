@@ -131,6 +131,25 @@ jobs:
             -c:a aac -b:a 192k \
             -r 25 -shortest testvideo.mp4
 
+      - name: Debug test video (FFmpeg version check)
+        run: |
+          echo "=== FFmpeg version ==="
+          ffmpeg -version
+          echo ""
+          echo "=== FFprobe version ==="
+          ffprobe -version
+          echo ""
+          echo "=== Test video file info ==="
+          ls -lh testvideo.mp4
+          echo ""
+          echo "=== FFprobe output ==="
+          ffprobe -v error -show_format -show_streams testvideo.mp4
+          echo ""
+          echo "=== Videowise check (verbose) ==="
+          videowise check testvideo.mp4 --system casparcg -v || true
+          echo ""
+          echo "=== Exit code was: $? ==="
+
       - name: Test check command (CasparCG)
         run: |
           set +e
