@@ -11,26 +11,25 @@ import yaml
 
 from .compatibility import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel
 
-
 # Module-level cache for RuleEngine instances
 _ENGINE_CACHE: Dict[Optional[str], "RuleEngine"] = {}
 
 
 def _get_cached_engine(config_path: Optional[Union[str, Path]] = None) -> "RuleEngine":
     """Get or create a cached RuleEngine instance.
-    
+
     Args:
         config_path: Path to system_profiles.yaml (defaults to bundled file)
-        
+
     Returns:
         Cached RuleEngine instance
     """
     # Convert Path to string for cache key, or use None
     cache_key = str(config_path) if config_path is not None else None
-    
+
     if cache_key not in _ENGINE_CACHE:
         _ENGINE_CACHE[cache_key] = RuleEngine(config_path)
-    
+
     return _ENGINE_CACHE[cache_key]
 
 

@@ -135,8 +135,8 @@ def find_video_files(
 
 
 def check_single_file(
-    file_path: Path, 
-    systems_to_check: List[str], 
+    file_path: Path,
+    systems_to_check: List[str],
     verbose: bool = False,
     show_progress: bool = False,
 ) -> Tuple[Dict[str, Any], int, Optional[VideoAnalyzer]]:
@@ -156,11 +156,15 @@ def check_single_file(
         metadata = analyzer.get_metadata()
 
         if not metadata:
-            return {
-                "file": str(file_path),
-                "error": "Unable to extract video metadata",
-                "results": [],
-            }, 2, None
+            return (
+                {
+                    "file": str(file_path),
+                    "error": "Unable to extract video metadata",
+                    "results": [],
+                },
+                2,
+                None,
+            )
 
         codec = analyzer.get_codec_name() or "unknown"
         codec_profile = analyzer.get_codec_profile()
@@ -184,7 +188,7 @@ def check_single_file(
 
         # Check all systems with optional progress bar
         all_results: List[Dict[str, Any]] = []
-        
+
         # Show progress bar if checking multiple systems and not in quiet mode
         if show_progress and len(systems_to_check) > 5:
             with click.progressbar(
@@ -239,11 +243,15 @@ def check_single_file(
         return result, exit_code, analyzer
 
     except Exception as e:
-        return {
-            "file": str(file_path),
-            "error": str(e),
-            "results": [],
-        }, 2, None
+        return (
+            {
+                "file": str(file_path),
+                "error": str(e),
+                "results": [],
+            },
+            2,
+            None,
+        )
 
 
 def run_compatibility_check(
@@ -342,9 +350,7 @@ def run_compatibility_check(
 
             check_all = len(systems_to_check) > 1
             if check_all:
-                click.secho(
-                    f"\n🔍 Checked against {len(systems_to_check)} systems\n", bold=True
-                )
+                click.secho(f"\n🔍 Checked against {len(systems_to_check)} systems\n", bold=True)
 
             # Show severity guide in explain mode
             if explain and not check_all:
