@@ -371,12 +371,11 @@ This roadmap outlines the development plan for VideoWise from initial concept th
 - [ ] 100+ PyPI downloads per month
 - [ ] 5+ community contributions
 - [ ] FFmpeg fix generation
-- [ ] 1000+ total users
+- [ ] 100+ total users
 
 **Phase 5 Goals:**
 - Integration into production workflows
 - Featured in industry publications/forums
-- 10,000+ users
 
 ---
 
