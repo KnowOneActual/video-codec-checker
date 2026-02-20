@@ -135,17 +135,21 @@ def find_video_files(
 
 
 def check_single_file(
-    file_path: Path, systems_to_check: List[str], verbose: bool = False
-) -> Tuple[Dict[str, Any], int]:
+    file_path: Path, 
+    systems_to_check: List[str], 
+    verbose: bool = False,
+    show_progress: bool = False,
+) -> Tuple[Dict[str, Any], int, Optional[VideoAnalyzer]]:
     """Check a single video file against specified systems.
 
     Args:
         file_path: Path to video file
         systems_to_check: List of system names to check
         verbose: Show detailed information
+        show_progress: Show progress bar for multi-system checks
 
     Returns:
-        Tuple of (result_dict, exit_code)
+        Tuple of (result_dict, exit_code, analyzer_instance)
     """
     try:
         analyzer = VideoAnalyzer(str(file_path))
@@ -156,7 +160,7 @@ def check_single_file(
                 "file": str(file_path),
                 "error": "Unable to extract video metadata",
                 "results": [],
-            }, 2
+            }, 2, None
 
         codec = analyzer.get_codec_name() or "unknown"
         codec_profile = analyzer.get_codec_profile()
@@ -178,24 +182,49 @@ def check_single_file(
             "file_size": file_size,
         }
 
-        # Check all systems
+        # Check all systems with optional progress bar
         all_results: List[Dict[str, Any]] = []
-        for sys_name in systems_to_check:
-            issues = check_compatibility(video_info, sys_name)
-            all_results.append(
-                {
-                    "system": sys_name,
-                    "issues": [
+        
+        # Show progress bar if checking multiple systems and not in quiet mode
+        if show_progress and len(systems_to_check) > 5:
+            with click.progressbar(
+                systems_to_check,
+                label=f"Checking {len(systems_to_check)} systems",
+                show_eta=False,
+            ) as bar:
+                for sys_name in bar:
+                    issues = check_compatibility(video_info, sys_name)
+                    all_results.append(
                         {
-                            "level": issue.level.value,
-                            "message": issue.message,
-                            "reason": issue.reason,
-                            "suggestion": issue.suggestion,
+                            "system": sys_name,
+                            "issues": [
+                                {
+                                    "level": issue.level.value,
+                                    "message": issue.message,
+                                    "reason": issue.reason,
+                                    "suggestion": issue.suggestion,
+                                }
+                                for issue in issues
+                            ],
                         }
-                        for issue in issues
-                    ],
-                }
-            )
+                    )
+        else:
+            for sys_name in systems_to_check:
+                issues = check_compatibility(video_info, sys_name)
+                all_results.append(
+                    {
+                        "system": sys_name,
+                        "issues": [
+                            {
+                                "level": issue.level.value,
+                                "message": issue.message,
+                                "reason": issue.reason,
+                                "suggestion": issue.suggestion,
+                            }
+                            for issue in issues
+                        ],
+                    }
+                )
 
         exit_code = determine_worst_level(all_results)
 
@@ -207,14 +236,14 @@ def check_single_file(
             "exit_code": exit_code,
         }
 
-        return result, exit_code
+        return result, exit_code, analyzer
 
     except Exception as e:
         return {
             "file": str(file_path),
             "error": str(e),
             "results": [],
-        }, 2
+        }, 2, None
 
 
 def run_compatibility_check(
@@ -262,7 +291,11 @@ def run_compatibility_check(
         if not output_json and verbose and is_batch:
             click.secho(f"\nProcessing: {file_path}", fg="cyan")
 
-        result, exit_code = check_single_file(file_path, systems_to_check, verbose)
+        # Check file with progress indicator for multi-system checks
+        show_progress = not output_json and not is_batch and len(systems_to_check) > 5
+        result, exit_code, analyzer = check_single_file(
+            file_path, systems_to_check, verbose, show_progress
+        )
 
         batch_results.append(result)
         worst_exit_code = max(worst_exit_code, exit_code)
@@ -272,21 +305,29 @@ def run_compatibility_check(
 
         # For single file, show detailed output
         if not is_batch and not output_json:
-            path = Path(file_path)
-            analyzer = VideoAnalyzer(str(path))
-
-            codec = analyzer.get_codec_name() or "unknown"
-            codec_profile = analyzer.get_codec_profile()
-            container = analyzer.get_container_format() or "unknown"
-            resolution = analyzer.get_resolution()
-            framerate = analyzer.get_frame_rate()
-            bitrate = analyzer.get_bitrate()
+            # Reuse the analyzer from check_single_file instead of creating a new one
+            if analyzer is not None:
+                codec = analyzer.get_codec_name() or "unknown"
+                codec_profile = analyzer.get_codec_profile()
+                container = analyzer.get_container_format() or "unknown"
+                resolution = analyzer.get_resolution()
+                framerate = analyzer.get_frame_rate()
+                bitrate = analyzer.get_bitrate()
+            else:
+                # Fallback if analyzer is None (error case)
+                codec = "unknown"
+                codec_profile = None
+                container = "unknown"
+                resolution = None
+                framerate = None
+                bitrate = None
 
             if codec_profile:
                 codec_display = f"{codec} ({codec_profile})"
             else:
                 codec_display = codec
 
+            path = Path(file_path)
             click.secho(f"\n📹 Video: {path.name}", bold=True)
 
             if verbose:
@@ -302,7 +343,7 @@ def run_compatibility_check(
             check_all = len(systems_to_check) > 1
             if check_all:
                 click.secho(
-                    f"\n🔍 Checking against all {len(systems_to_check)} systems\n", bold=True
+                    f"\n🔍 Checked against {len(systems_to_check)} systems\n", bold=True
                 )
 
             # Show severity guide in explain mode
