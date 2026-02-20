@@ -4,7 +4,6 @@ Replaces hardcoded checker classes with declarative YAML rules.
 Reduces codebase from ~150KB to ~30KB while making system addition trivial.
 """
 
-import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -60,7 +59,10 @@ class RuleEngine:
                 CompatibilityIssue(
                     level=CompatibilityLevel.UNKNOWN,
                     message=f"Unknown system: {system}",
-                    reason=f"Available systems: {', '.join(self.get_available_systems())}",
+                    reason=(
+                        f"Available systems: "
+                        f"{', '.join(self.get_available_systems())}"
+                    ),
                 )
             ]
 
@@ -82,13 +84,18 @@ class RuleEngine:
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=f"Video should be compatible with {system_config.get('name', system)}",
+                        message=(
+                            f"Video should be compatible with "
+                            f"{system_config.get('name', system)}"
+                        ),
                     )
                 )
 
         return issues
 
-    def _evaluate_condition(self, condition: Dict[str, Any], video_info: Dict[str, Any]) -> bool:
+    def _evaluate_condition(
+        self, condition: Dict[str, Any], video_info: Dict[str, Any]
+    ) -> bool:
         """Evaluate a rule condition against video metadata.
 
         Args:
@@ -203,8 +210,13 @@ class RuleEngine:
 
         # Template substitution
         message = self._substitute_template(rule.get("message", ""), template_vars)
-        reason = self._substitute_template(rule.get("reason", ""), template_vars) or None
-        suggestion = self._substitute_template(rule.get("suggestion", ""), template_vars) or None
+        reason = (
+            self._substitute_template(rule.get("reason", ""), template_vars) or None
+        )
+        suggestion = (
+            self._substitute_template(rule.get("suggestion", ""), template_vars)
+            or None
+        )
 
         return CompatibilityIssue(
             level=level,
@@ -259,7 +271,9 @@ class RuleBasedChecker(CompatibilityChecker):
 
 
 # Convenience function for backward compatibility
-def check_compatibility(video_info: Dict[str, Any], system: str) -> List[CompatibilityIssue]:
+def check_compatibility(
+    video_info: Dict[str, Any], system: str
+) -> List[CompatibilityIssue]:
     """Check video compatibility for a specific system.
 
     This function maintains backward compatibility with existing code.
