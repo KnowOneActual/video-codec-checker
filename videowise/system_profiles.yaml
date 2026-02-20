@@ -80,7 +80,6 @@ systems:
         message: "{codec} is supported by CasparCG Server"
         reason: "CasparCG supports this codec for reliable playback"
       
-      # GPU-accelerated codecs get special messaging
       - condition: {codec_contains: "hap"}
         level: compatible
         message: "HAP codec provides GPU-accelerated playback"
@@ -91,14 +90,980 @@ systems:
         message: "ProRes 4444 supports alpha channel for transparency"
         reason: "Professional quality with transparency support"
       
-      # Unsupported codecs
       - condition: {codec_not_in: [h264, prores, dnxhd, dnxhr, mpeg2video, mjpeg, hap, notchlc]}
         level: incompatible
         message: "CasparCG does not support {codec} codec"
         suggestion: "Convert to HAP (GPU-accelerated), ProRes, DNxHD, or H.264"
       
-      # Performance warnings
       - condition: {resolution_gte: [3840, 2160], bitrate_gt: 200000000}
         level: warning
         message: "4K at {bitrate_mbps}Mbps may stress system bandwidth"
         suggestion: "Consider HAP codec for GPU-accelerated 4K playback"
+  
+  playoutbee:
+    name: "PlayoutBee"
+    category: live_production
+    codecs:
+      supported: [h264, prores, hap]
+      optimal: [hap]
+      alpha_support: [prores4444, hap_alpha, hap_q_alpha]
+    containers:
+      preferred:
+        hap: [mov]
+        h264: [mp4, mov]
+        prores: [mov]
+    rules:
+      - condition: {codec_contains: "hap"}
+        level: compatible
+        message: "HAP codec is optimal for PlayoutBee"
+        reason: "GPU-accelerated real-time playback with low CPU usage"
+      
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is compatible with PlayoutBee"
+        reason: "Hardware acceleration available, good compatibility"
+  
+  vmix:
+    name: "vMix"
+    category: live_production
+    rules:
+      - condition: {bitrate_gt: 200000000}
+        level: warning
+        message: "Very high bitrate ({bitrate_mbps}Mbps) may cause dropped frames"
+        suggestion: "Consider transcoding to 100-150Mbps"
+      
+      - condition: {bitrate_gt: 100000000}
+        level: warning
+        message: "High bitrate ({bitrate_mbps}Mbps) - monitor for performance issues"
+        suggestion: "Test playback before going live"
+      
+      - condition: {codec_in: [prores, dnxhd, dnxhr]}
+        level: compatible
+        message: "{codec} is well-supported by vMix"
+  
+  obs:
+    name: "OBS Studio"
+    category: live_production
+    codecs:
+      supported: [h264, hevc, av1, vp8, vp9, prores, dnxhd]
+      recommended: [h264, hevc, av1]
+    rules:
+      - condition: {codec_in: [h264, hevc, av1]}
+        level: compatible
+        message: "{codec} is fully supported by OBS Studio"
+        reason: "Hardware acceleration may be available"
+      
+      - condition: {codec_not_in: [h264, hevc, av1, vp8, vp9, prores, dnxhd]}
+        level: warning
+        message: "{codec} may have limited support in OBS"
+        suggestion: "Consider converting to H.264 for compatibility"
+  
+  qlab:
+    name: "QLab"
+    category: live_production
+    codecs:
+      optimal: [prores_proxy, prores_lt, prores]
+      supported: [h264, prores, prores4444]
+      alpha_support: [prores4444]
+    containers:
+      preferred: [mov, mp4]
+    rules:
+      - condition: {codec_contains: "prores", codec_contains: "proxy"}
+        level: compatible
+        message: "ProRes Proxy provides best performance in QLab"
+        reason: "ProRes Proxy and LT optimize for playback"
+      
+      - condition: {codec_contains: "prores", codec_contains: "lt"}
+        level: compatible
+        message: "ProRes LT provides best performance in QLab"
+        reason: "ProRes Proxy and LT optimize for playback"
+      
+      - condition: {codec_contains: "prores", profile_contains: "4444"}
+        level: compatible
+        message: "ProRes 4444 supports alpha channel (transparency)"
+        reason: "Required for videos with transparency"
+      
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "{codec} is compatible with QLab"
+        reason: "QLab works best with ProRes codecs"
+      
+      - condition: {codec_eq: "h264"}
+        level: warning
+        message: "H.264 performs poorly when scrubbing or changing speed"
+        reason: "H.264 is not optimized for variable-speed playback"
+        suggestion: "Convert to ProRes 422 Proxy or LT"
+      
+      - condition: {container_not_contains: "mov", container_not_contains: "mp4"}
+        level: warning
+        message: "QLab works best with MOV or MP4 containers"
+        suggestion: "Remux to MOV container"
+  
+  propresenter:
+    name: "ProPresenter"
+    category: live_production
+    codecs:
+      supported: [h264, hevc, prores, prores4444, hap]
+      optimal: [hap]
+      alpha_support: [prores4444, hap_alpha]
+    containers:
+      preferred: [mov, mp4]
+    rules:
+      - condition: {codec_contains: "hap"}
+        level: compatible
+        message: "HAP codec provides best performance in ProPresenter"
+        reason: "HAP is GPU-accelerated for real-time playback"
+      
+      - condition: {codec_contains: "prores", profile_contains: "4444"}
+        level: compatible
+        message: "ProRes 4444 supports alpha channel"
+        reason: "Transparency support for overlays"
+      
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "ProRes is fully supported by ProPresenter"
+        reason: "Professional codec with good quality"
+      
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is compatible with ProPresenter"
+        reason: "Hardware acceleration available"
+      
+      - condition: {codec_not_in: [h264, hevc, prores, hap]}
+        level: incompatible
+        message: "ProPresenter does not support {codec} codec"
+        suggestion: "Convert to H.264, ProRes, or HAP codec"
+      
+      - condition: {container_not_contains: "mov", container_not_contains: "mp4"}
+        level: warning
+        message: "ProPresenter works best with MOV or MP4 containers"
+        suggestion: "Remux to MOV or MP4 container"
+  
+  wirecast:
+    name: "Wirecast"
+    category: live_production
+    codecs:
+      optimal: [prores, h264]
+      supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg]
+    containers:
+      preferred: [mov, mp4]
+    rules:
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "{codec} is optimal for Wirecast"
+        reason: "ProRes provides excellent real-time performance"
+      
+      - condition: {codec_in: [h264, hevc]}
+        level: compatible
+        message: "{codec} is supported by Wirecast"
+        reason: "Hardware acceleration available for live streaming"
+      
+      - condition: {codec_in: [dnxhd, dnxhr]}
+        level: compatible
+        message: "{codec} is well-supported by Wirecast"
+        reason: "Professional codec for broadcast workflows"
+      
+      - condition: {bitrate_gt: 150000000}
+        level: warning
+        message: "High bitrate ({bitrate_mbps}Mbps) may impact live streaming performance"
+        suggestion: "Consider 50-100Mbps for optimal live production"
+      
+      - condition: {container_not_contains: "mov", container_not_contains: "mp4"}
+        level: warning
+        message: "Wirecast works best with MOV or MP4 containers"
+        suggestion: "Use MOV or MP4 for best compatibility"
+  
+  playbackpro:
+    name: "PlaybackPro"
+    category: live_production
+    codecs:
+      optimal: [hap, prores]
+      supported: [h264, prores, hap]
+      alpha_support: [prores4444, hap_alpha, hap_q_alpha]
+    containers:
+      preferred:
+        hap: [mov]
+        prores: [mov]
+        h264: [mov, mp4]
+    rules:
+      - condition: {codec_contains: "hap"}
+        level: compatible
+        message: "HAP codec is optimal for PlaybackPro"
+        reason: "GPU-accelerated for multiple simultaneous video layers"
+      
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "{codec} is well-supported in PlaybackPro"
+        reason: "Professional quality for live production"
+      
+      - condition: {codec_eq: "h264"}
+        level: warning
+        message: "H.264 may have performance issues with multiple layers"
+        reason: "H.264 decoding is CPU-intensive"
+        suggestion: "Use HAP for multi-layer playback or ProRes for quality"
+      
+      - condition: {resolution_gte: [3840, 2160]}
+        level: warning
+        message: "4K playback requires powerful GPU for smooth performance"
+        suggestion: "Use HAP codec for 4K multi-layer playback"
+  
+  easyworship:
+    name: "EasyWorship"
+    category: live_production
+    codecs:
+      native: [h264]
+      supported: [h264, wmv, mpeg2video]
+    containers:
+      preferred: [mp4, mov, m4v]
+      windows_native: [wmv, avi]
+    rules:
+      - condition: {codec_eq: "h264", container_contains: "mp4"}
+        level: compatible
+        message: "H.264 in MP4 has native support in EasyWorship 7+"
+        reason: "No additional codecs required"
+      
+      - condition: {codec_eq: "h264", container_contains: "mov"}
+        level: compatible
+        message: "H.264 in MOV has native support in EasyWorship 7+"
+        reason: "No additional codecs required"
+      
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is supported by EasyWorship"
+        reason: "H.264 works in most containers"
+      
+      - condition: {codec_in: [wmv, mpeg2video]}
+        level: compatible
+        message: "{codec} is supported on Windows"
+        reason: "Windows Media codecs built into Windows OS"
+      
+      - condition: {codec_not_in: [h264, wmv, mpeg2video]}
+        level: warning
+        message: "{codec} may require additional codecs"
+        reason: "EasyWorship 7+ natively supports H.264 in MP4/MOV"
+        suggestion: "Convert to H.264 in MP4 for guaranteed compatibility"
+      
+      - condition: {container_in: [wmv, avi]}
+        level: compatible
+        message: "{container} is supported on Windows"
+        reason: "Windows Media formats built into Windows"
+  
+  provideoplayer:
+    name: "ProVideoPlayer"
+    category: live_production
+    codecs:
+      optimal: [hap, prores]
+      supported: [h264, hevc, prores, hap]
+      alpha_support: [prores4444, hap_alpha, hap_q_alpha]
+    containers:
+      preferred:
+        hap: [mov]
+        prores: [mov]
+        h264: [mov, mp4]
+    rules:
+      - condition: {codec_contains: "hap"}
+        level: compatible
+        message: "HAP codec is optimal for ProVideoPlayer"
+        reason: "GPU-accelerated for real-time multi-output playback"
+      
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "{codec} is well-supported in ProVideoPlayer"
+        reason: "Hardware acceleration on Apple Silicon"
+      
+      - condition: {codec_in: [h264, hevc]}
+        level: compatible
+        message: "{codec} is supported by ProVideoPlayer"
+        reason: "Hardware decoding available on Mac"
+      
+      - condition: {resolution_gte: [3840, 2160]}
+        level: warning
+        message: "4K requires HAP codec for multi-output performance"
+        suggestion: "Use HAP for 4K multi-projector setups"
+  
+  # === MEDIA PLAYERS / VJ SOFTWARE ===
+  vlc:
+    name: "VLC Media Player"
+    category: media_players
+    codecs:
+      supported: [h264, hevc, vp8, vp9, av1, prores, dnxhd, dnxhr, mjpeg, mpeg2video]
+      hardware_accelerated: [h264, hevc, vp9, av1]
+    rules:
+      - condition: {codec_in: [h264, hevc, vp9, av1]}
+        level: compatible
+        message: "{codec} may benefit from hardware acceleration"
+        reason: "Enable hardware decoding in VLC preferences for better performance"
+      
+      - condition: {bitrate_gt: 300000000}
+        level: warning
+        message: "Very high bitrate ({bitrate_mbps}Mbps) may cause stuttering"
+        reason: "Extreme bitrates can exceed disk I/O capabilities"
+        suggestion: "Ensure fast storage (NVMe SSD) for smooth playback"
+      
+      - condition: {resolution_gte: [7680, 4320]}
+        level: warning
+        message: "8K video requires powerful hardware"
+        reason: "8K playback needs modern CPU/GPU and fast storage"
+        suggestion: "Enable hardware decoding and use VLC 3.0+"
+  
+  resolume:
+    name: "Resolume"
+    category: media_players
+    codecs:
+      optimal: [hap, dxv]
+      supported: [h264, hevc, prores, hap, dxv]
+      alpha_support: [hap_alpha, hap_q_alpha, dxv_alpha]
+      gpu_accelerated: [hap, dxv]
+    containers:
+      preferred:
+        hap: [mov]
+        dxv: [mov, avi]
+    rules:
+      - condition: {codec_contains: "hap"}
+        level: compatible
+        message: "HAP is optimal for Resolume VJ performance"
+        reason: "GPU-accelerated for real-time effects and compositing"
+      
+      - condition: {codec_contains: "dxv"}
+        level: compatible
+        message: "DXV is optimal for Resolume on Windows"
+        reason: "DirectX GPU-accelerated codec for VJ workflows"
+      
+      - condition: {codec_contains: "prores"}
+        level: warning
+        message: "ProRes works but HAP/DXV recommended for VJ performance"
+        reason: "ProRes is CPU-based, can limit real-time effects"
+        suggestion: "Convert to HAP (Mac/Windows) or DXV (Windows) for GPU acceleration"
+      
+      - condition: {codec_in: [h264, hevc]}
+        level: warning
+        message: "{codec} not ideal for real-time VJ performance"
+        reason: "Compressed codecs cause lag with effects and layers"
+        suggestion: "Convert to HAP or DXV for optimal Resolume performance"
+      
+      - condition: {resolution_gte: [3840, 2160]}
+        level: warning
+        message: "4K requires HAP/DXV codec for smooth VJ performance"
+        suggestion: "Use HAP or DXV for 4K content with real-time effects"
+  
+  mitti:
+    name: "Mitti"
+    category: media_players
+    codecs:
+      optimal: [prores, hap]
+      supported: [h264, hevc, prores, hap]
+      alpha_support: [prores4444, hap_alpha, hap_q_alpha]
+    containers:
+      preferred: [mov]
+      supported: [mp4]
+    rules:
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "{codec} is optimal for Mitti"
+        reason: "Hardware accelerated on Apple Silicon Macs (M1/M2/M3)"
+      
+      - condition: {codec_contains: "hap", codec_contains: "alpha"}
+        level: compatible
+        message: "HAP Alpha is optimal for Mitti with transparency"
+        reason: "GPU-accelerated playback with alpha channel"
+      
+      - condition: {codec_contains: "hap"}
+        level: compatible
+        message: "HAP is optimal for Mitti"
+        reason: "GPU-accelerated, especially for 4K and multi-output"
+      
+      - condition: {codec_not_in: [prores, hap]}
+        level: warning
+        message: "{codec} should be transcoded for Mitti"
+        reason: "Mitti recommends ProRes or HAP for reliable playback"
+        suggestion: "Use Mitti's built-in transcoding to ProRes (Apple Silicon) or HAP (multi-output)"
+      
+      - condition: {container_not_contains: "mov"}
+        level: warning
+        message: "MOV container is preferred by Mitti"
+        suggestion: "Use MOV container for best compatibility"
+      
+      - condition: {resolution_gte: [3840, 2160]}
+        level: warning
+        message: "4K video: use HAP for multi-output, ProRes for single output"
+        reason: "4K ProRes great on Apple Silicon; 4K HAP better for HDMI/DisplayPort multi-output"
+        suggestion: "HAP for GPU path (external displays), ProRes for SDI"
+      
+      - condition: {bitrate_gt: 250000000}
+        level: warning
+        message: "High bitrate ({bitrate_mbps}Mbps) may stress playback"
+        reason: "Very high bitrate can cause dropped frames"
+        suggestion: "Use ProRes 422 or HAP with moderate bitrate"
+  
+  millumin:
+    name: "Millumin"
+    category: media_players
+    codecs:
+      optimal: [prores, hap]
+      supported: [h264, hevc, prores, hap]
+      alpha_support: [prores4444, hap_alpha, hap_q_alpha]
+    containers:
+      preferred: [mov]
+      supported: [mp4]
+    rules:
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "ProRes is excellent for Millumin"
+        reason: "Native Mac codec with hardware acceleration on Apple Silicon"
+      
+      - condition: {codec_contains: "hap"}
+        level: compatible
+        message: "HAP is optimal for Millumin projection mapping"
+        reason: "GPU-accelerated, ideal for multi-projector setups"
+      
+      - condition: {codec_eq: "h264"}
+        level: warning
+        message: "H.264 works but ProRes/HAP recommended for projection"
+        reason: "H.264 is CPU-based, can limit real-time performance"
+        suggestion: "Use ProRes or HAP for better projection mapping performance"
+      
+      - condition: {container_not_contains: "mov"}
+        level: warning
+        message: "MOV is the preferred container for Millumin"
+        reason: "QuickTime MOV native to macOS"
+        suggestion: "Use MOV container for best compatibility"
+      
+      - condition: {resolution_gte: [3840, 2160]}
+        level: warning
+        message: "4K video requires powerful Mac for smooth projection"
+        reason: "4K projection mapping is GPU-intensive"
+        suggestion: "Use HAP codec for best 4K projection performance"
+  
+  # === BROWSERS ===
+  safari:
+    name: "Safari Browser"
+    category: browsers
+    codecs:
+      supported: [h264, hevc]
+    containers:
+      preferred: [mp4]
+    rules:
+      - condition: {codec_not_in: [h264, hevc]}
+        level: incompatible
+        message: "Safari does not support {codec} codec"
+        reason: "Safari only supports H.264 and HEVC (H.265)"
+        suggestion: "Convert to H.264 for maximum browser compatibility"
+      
+      - condition: {container_not_contains: "mp4"}
+        level: warning
+        message: "Safari works best with MP4 container format"
+        suggestion: "Remux to MP4 container"
+  
+  chrome:
+    name: "Chrome Browser"
+    category: browsers
+    codecs:
+      supported: [h264, vp8, vp9, av1]
+    rules:
+      - condition: {codec_in: [h264, vp8, vp9, av1]}
+        level: compatible
+        message: "{codec} is supported by Chrome"
+      
+      - condition: {codec_not_in: [h264, vp8, vp9, av1]}
+        level: warning
+        message: "{codec} may not be supported by Chrome"
+        suggestion: "Convert to H.264 or VP9 for web compatibility"
+  
+  firefox:
+    name: "Firefox Browser"
+    category: browsers
+    codecs:
+      supported: [h264, vp8, vp9, av1]
+      partially_supported: [hevc]
+    rules:
+      - condition: {codec_in: [vp8, vp9], container_contains: "webm"}
+        level: compatible
+        message: "{codec} in WebM is natively supported by Firefox"
+        reason: "WebM is Firefox's preferred format for VP8/VP9"
+      
+      - condition: {codec_eq: "h264", container_contains: "mp4"}
+        level: compatible
+        message: "H.264 in MP4 is fully supported by Firefox"
+        reason: "Universal browser compatibility"
+      
+      - condition: {codec_eq: "av1"}
+        level: compatible
+        message: "AV1 is supported by Firefox"
+        reason: "Modern codec with good efficiency"
+      
+      - condition: {codec_in: [h264, vp8, vp9]}
+        level: compatible
+        message: "{codec} is supported by Firefox"
+      
+      - condition: {codec_eq: "hevc"}
+        level: warning
+        message: "HEVC has limited support in Firefox"
+        reason: "HEVC requires Windows 10+ with HEVC Video Extensions"
+        suggestion: "Convert to H.264 or VP9 for broader compatibility"
+      
+      - condition: {codec_not_in: [h264, vp8, vp9, av1, hevc]}
+        level: incompatible
+        message: "Firefox does not support {codec} codec"
+        reason: "Firefox supports H.264, VP8, VP9, and AV1"
+        suggestion: "Convert to H.264 (MP4) or VP9 (WebM) for Firefox"
+  
+  # === SOCIAL MEDIA ===
+  instagram:
+    name: "Instagram"
+    category: social_media
+    codecs:
+      required: [h264]
+      profiles:
+        preferred: [baseline]
+    rules:
+      - condition: {codec_ne: "h264"}
+        level: warning
+        message: "Instagram will re-encode {codec} to H.264 (quality loss)"
+        suggestion: "Pre-encode to H.264 to maintain quality control"
+      
+      - condition: {codec_eq: "h264", profile_not_contains: "baseline"}
+        level: warning
+        message: "Instagram prefers H.264 Baseline, not {profile}"
+        suggestion: "Convert to Baseline: ffmpeg -profile:v baseline"
+      
+      - condition: {resolution_gt: [1080, 1920]}
+        level: warning
+        message: "Resolution {width}x{height} will be downscaled"
+        suggestion: "Downscale to 1080p before upload"
+  
+  twitter:
+    name: "Twitter/X"
+    category: social_media
+    codecs:
+      recommended: [h264]
+      profiles:
+        preferred: [high]
+    containers:
+      preferred: [mp4, mov]
+    rules:
+      - condition: {codec_ne: "h264"}
+        level: warning
+        message: "Twitter recommends H.264, not {codec}"
+        suggestion: "Convert to H.264 High Profile for best quality"
+      
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 codec is supported by Twitter"
+      
+      - condition: {container_not_contains: "mp4", container_not_contains: "mov"}
+        level: warning
+        message: "Twitter works best with MP4 or MOV containers"
+        suggestion: "Remux to MP4 container"
+  
+  youtube:
+    name: "YouTube"
+    category: social_media
+    codecs:
+      recommended: [h264]
+      profiles:
+        preferred: [high]
+    containers:
+      preferred: [mp4]
+    rules:
+      - condition: {codec_ne: "h264"}
+        level: warning
+        message: "YouTube recommends H.264, not {codec} for uploads"
+        suggestion: "Upload as H.264 for best quality control and processing speed"
+      
+      - condition: {codec_eq: "h264", profile_contains: "high"}
+        level: compatible
+        message: "H.264 High Profile is optimal for YouTube"
+      
+      - condition: {container_contains: "mp4"}
+        level: compatible
+        message: "MP4 is YouTube's preferred container format"
+  
+  tiktok:
+    name: "TikTok"
+    category: social_media
+    codecs:
+      recommended: [h264]
+      profiles:
+        preferred: [high]
+    containers:
+      preferred: [mp4, mov]
+    rules:
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is the optimal codec for TikTok"
+        reason: "Best compatibility across all devices"
+      
+      - condition: {codec_eq: "hevc"}
+        level: warning
+        message: "HEVC may cause playback issues on some devices"
+        reason: "15-20% of US iOS devices have HEVC compatibility issues"
+        suggestion: "Convert to H.264 for universal compatibility"
+      
+      - condition: {codec_not_in: [h264, hevc]}
+        level: warning
+        message: "TikTok recommends H.264, not {codec}"
+        reason: "TikTok re-encodes all uploads"
+        suggestion: "Upload as H.264 to maintain quality control"
+      
+      - condition: {resolution_gt: [1080, 1920]}
+        level: warning
+        message: "Resolution {width}x{height} will be downscaled"
+        reason: "TikTok displays videos at 1080p maximum"
+        suggestion: "Export at 1080x1920 to avoid wasted bitrate"
+      
+      - condition: {bitrate_lt: 5000000}
+        level: warning
+        message: "Low bitrate ({bitrate_mbps}Mbps) may trigger quality downgrade"
+        reason: "TikTok flags videos below 5 Mbps as low quality"
+        suggestion: "Use 8-15 Mbps for optimal quality"
+      
+      - condition: {bitrate_gt: 20000000}
+        level: warning
+        message: "High bitrate ({bitrate_mbps}Mbps) will be compressed anyway"
+        reason: "TikTok flattens bitrates above 20 Mbps"
+        suggestion: "Use 8-15 Mbps to optimize file size"
+  
+  vimeo:
+    name: "Vimeo"
+    category: social_media
+    codecs:
+      recommended: [h264]
+      profiles:
+        preferred: [high]
+    containers:
+      preferred: [mp4, mov]
+    rules:
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is the recommended codec for Vimeo uploads"
+        reason: "Fast upload and optimal platform processing"
+      
+      - condition: {codec_contains: "prores"}
+        level: warning
+        message: "ProRes is accepted but not recommended for uploads"
+        reason: "ProRes files are very large and slow to upload"
+        suggestion: "Use H.264 for faster uploads; save ProRes for archival"
+      
+      - condition: {codec_not_in: [h264, prores]}
+        level: warning
+        message: "Vimeo recommends H.264, not {codec}"
+        reason: "Vimeo re-encodes all uploads for streaming"
+        suggestion: "Upload as H.264 for best results"
+  
+  facebook:
+    name: "Facebook"
+    category: social_media
+    codecs:
+      recommended: [h264]
+      newer_codecs: [hevc, vp9, av1]
+    containers:
+      preferred: [mp4, mov]
+    rules:
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is the recommended codec for Facebook"
+        reason: "Universal compatibility across Feed, Stories, and Ads"
+      
+      - condition: {codec_in: [hevc, vp9, av1]}
+        level: compatible
+        message: "{codec} is supported for Facebook Reels"
+        reason: "Newer codecs accepted but H.264 recommended for Feed"
+      
+      - condition: {codec_not_in: [h264, hevc, vp9, av1]}
+        level: warning
+        message: "Facebook recommends H.264, not {codec}"
+        reason: "Facebook will re-encode non-standard codecs"
+        suggestion: "Convert to H.264 for best compatibility"
+  
+  # === EDITING PLATFORMS ===
+  davinci:
+    name: "DaVinci Resolve"
+    category: editing
+    codecs:
+      optimal: [dnxhd, dnxhr, prores]
+      gpu_accelerated: [h264, hevc]  # Studio only
+      supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg, av1, braw]
+    rules:
+      - condition: {codec_contains: "dnx"}
+        level: compatible
+        message: "{codec} is optimal for DaVinci Resolve editing"
+        reason: "Intraframe codec with low CPU overhead for timeline playback"
+      
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "{codec} is well-supported in DaVinci Resolve"
+        reason: "Professional codec for editing and grading"
+      
+      - condition: {codec_in: [h264, hevc]}
+        level: warning
+        message: "{codec} may require transcoding for intensive editing/grading"
+        suggestion: "Consider generating optimized media (DNxHR/ProRes)"
+  
+  premiere:
+    name: "Adobe Premiere Pro"
+    category: editing
+    codecs:
+      optimal: [dnxhd, dnxhr, prores]
+      hardware_accelerated: [h264, hevc]
+      supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg, av1, vp9]
+    rules:
+      - condition: {codec_in: [dnxhd, dnxhr, prores]}
+        level: compatible
+        message: "{codec} is native in Premiere Pro for smooth editing"
+      
+      - condition: {codec_in: [h264, hevc]}
+        level: compatible
+        message: "{codec} benefits from Mercury Playback Engine GPU acceleration"
+        suggestion: "Enable GPU acceleration in Project Settings"
+  
+  finalcut:
+    name: "Final Cut Pro"
+    category: editing
+    codecs:
+      native: [prores]
+      supported: [h264, hevc, prores, dnxhd, dnxhr, av1]
+    rules:
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "{codec} is the native codec for Final Cut Pro"
+        reason: "Hardware acceleration on Apple Silicon provides excellent performance"
+      
+      - condition: {codec_in: [h264, hevc]}
+        level: warning
+        message: "{codec} will prompt for Optimized Media workflow"
+        suggestion: "Allow FCP to create optimized media or pre-transcode"
+  
+  avid:
+    name: "Avid Media Composer"
+    category: editing
+    codecs:
+      native: [dnxhd, dnxhr]
+      supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg, mpeg2video]
+    containers:
+      preferred:
+        dnxhd: [mov, mxf]
+        dnxhr: [mov, mxf]
+    rules:
+      - condition: {codec_contains: "dnx"}
+        level: compatible
+        message: "{codec} is the native codec for Avid Media Composer"
+        reason: "Avid DNxHD/DNxHR provides optimal editing performance"
+      
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "{codec} is well-supported in Avid Media Composer"
+        reason: "Professional codec with good compatibility"
+      
+      - condition: {codec_in: [h264, hevc]}
+        level: warning
+        message: "{codec} should be transcoded to DNxHD/DNxHR for editing"
+        reason: "Compressed codecs not optimized for timeline performance"
+        suggestion: "Transcode to DNxHR 115/145 for smooth editing"
+      
+      - condition: {container_contains: "mxf"}
+        level: compatible
+        message: "MXF is Avid's preferred container format"
+        reason: "MXF offers best metadata and workflow integration"
+  
+  aftereffects:
+    name: "Adobe After Effects"
+    category: editing
+    codecs:
+      optimal: [prores, dnxhd, dnxhr]
+      supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg, png_sequence]
+    rules:
+      - condition: {codec_contains: "prores"}
+        level: compatible
+        message: "{codec} is optimal for After Effects"
+        reason: "ProRes provides frame-accurate scrubbing and rendering"
+      
+      - condition: {codec_contains: "dnx"}
+        level: compatible
+        message: "{codec} is well-supported in After Effects"
+        reason: "DNxHD/DNxHR excellent for motion graphics workflows"
+      
+      - condition: {codec_in: [h264, hevc]}
+        level: warning
+        message: "{codec} not ideal for frame-accurate compositing"
+        reason: "Compressed codecs can cause render/preview issues"
+        suggestion: "Convert to ProRes or DNxHR for smoother timeline performance"
+      
+      - condition: {codec_eq: "png_sequence"}
+        level: compatible
+        message: "PNG sequence is optimal for alpha channel compositing"
+        reason: "Lossless with full transparency support"
+  
+  # === STREAMING PLATFORMS ===
+  twitch:
+    name: "Twitch"
+    category: streaming
+    codecs:
+      required: [h264]
+      profiles:
+        recommended: [high, main]
+    containers:
+      preferred: [flv, mp4]
+    rules:
+      - condition: {codec_ne: "h264"}
+        level: incompatible
+        message: "Twitch only accepts H.264 codec"
+        reason: "Twitch streaming requires H.264 for compatibility"
+        suggestion: "Encode stream output to H.264"
+      
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is the required codec for Twitch"
+      
+      - condition: {bitrate_gt: 8000000}
+        level: warning
+        message: "Bitrate ({bitrate_mbps}Mbps) exceeds Twitch recommended max (8Mbps)"
+        reason: "High bitrates can cause buffering for viewers"
+        suggestion: "Use 4.5-6Mbps for 1080p60, max 8Mbps"
+  
+  youtubelive:
+    name: "YouTube Live"
+    category: streaming
+    codecs:
+      recommended: [h264]
+      profiles:
+        preferred: [high, main]
+    containers:
+      preferred: [mp4, flv]
+    rules:
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is the recommended codec for YouTube Live"
+        reason: "Best compatibility and encoding efficiency"
+      
+      - condition: {codec_ne: "h264"}
+        level: warning
+        message: "YouTube Live recommends H.264, not {codec}"
+        suggestion: "Use H.264 for optimal streaming compatibility"
+      
+      - condition: {bitrate_gt: 51000000}
+        level: warning
+        message: "Bitrate ({bitrate_mbps}Mbps) exceeds YouTube Live max (51Mbps for 4K)"
+        reason: "YouTube Live has bitrate limits per resolution"
+        suggestion: "Use 13-34Mbps for 4K, 4.5-9Mbps for 1080p"
+  
+  kick:
+    name: "Kick"
+    category: streaming
+    codecs:
+      required: [h264]
+      profiles:
+        recommended: [high, main]
+    containers:
+      preferred: [flv, mp4]
+    rules:
+      - condition: {codec_ne: "h264"}
+        level: incompatible
+        message: "Kick only accepts H.264 codec"
+        reason: "Kick streaming requires H.264"
+        suggestion: "Encode stream output to H.264"
+      
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is the required codec for Kick"
+      
+      - condition: {bitrate_gt: 16000000}
+        level: warning
+        message: "Bitrate ({bitrate_mbps}Mbps) exceeds Kick recommended max"
+        reason: "Very high bitrates can cause viewer buffering"
+        suggestion: "Use 6-10Mbps for 1080p60"
+  
+  restream:
+    name: "Restream"
+    category: streaming
+    codecs:
+      required: [h264]
+      profiles:
+        recommended: [high, main]
+    containers:
+      preferred: [flv, mp4]
+    rules:
+      - condition: {codec_ne: "h264"}
+        level: warning
+        message: "Restream recommends H.264, not {codec}"
+        reason: "H.264 provides best compatibility across multiple platforms"
+        suggestion: "Use H.264 for multi-platform streaming"
+      
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is optimal for Restream multi-platform streaming"
+      
+      - condition: {bitrate_gt: 10000000}
+        level: warning
+        message: "High bitrate ({bitrate_mbps}Mbps) may limit platform compatibility"
+        reason: "Different platforms have different bitrate limits"
+        suggestion: "Use 6-8Mbps for best multi-platform compatibility"
+  
+  zoom:
+    name: "Zoom"
+    category: streaming
+    codecs:
+      recommended: [h264]
+      supported: [h264, vp8]
+    containers:
+      preferred: [mp4]
+    rules:
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is the optimal codec for Zoom"
+        reason: "Hardware acceleration available on most devices"
+      
+      - condition: {codec_eq: "vp8"}
+        level: compatible
+        message: "VP8 is supported by Zoom"
+        reason: "Used for WebRTC connections"
+      
+      - condition: {codec_not_in: [h264, vp8]}
+        level: warning
+        message: "Zoom recommends H.264, not {codec}"
+        suggestion: "Use H.264 for best Zoom compatibility"
+      
+      - condition: {resolution_gt: [1920, 1080]}
+        level: warning
+        message: "Resolution {width}x{height} exceeds Zoom's 1080p limit"
+        reason: "Zoom meetings max out at 1080p"
+        suggestion: "Downscale to 1080p for Zoom sharing"
+  
+  discord:
+    name: "Discord"
+    category: streaming
+    codecs:
+      recommended: [h264, vp8, vp9]
+    rules:
+      - condition: {codec_in: [h264, vp8, vp9]}
+        level: compatible
+        message: "{codec} is supported by Discord"
+        reason: "Discord uses WebRTC for streaming"
+      
+      - condition: {codec_not_in: [h264, vp8, vp9]}
+        level: warning
+        message: "Discord recommends H.264/VP8/VP9, not {codec}"
+        suggestion: "Use H.264 or VP9 for screen sharing/streaming"
+      
+      - condition: {bitrate_gt: 8000000}
+        level: warning
+        message: "Bitrate ({bitrate_mbps}Mbps) exceeds Discord Nitro limit (8Mbps)"
+        reason: "Discord has quality limits based on subscription tier"
+        suggestion: "Use 4-6Mbps for 1080p (requires Nitro)"
+      
+      - condition: {resolution_gt: [1920, 1080]}
+        level: warning
+        message: "Resolution {width}x{height} exceeds Discord's limits"
+        reason: "Discord streaming limited to 1080p (Nitro required)"
+        suggestion: "Downscale to 1080p or 720p for Discord"
+
+# RULE EVALUATION CONDITIONS
+# Supported operators:
+# - codec_eq, codec_ne, codec_in, codec_not_in, codec_contains
+# - resolution_gt, resolution_gte, resolution_lt, resolution_lte
+# - bitrate_gt, bitrate_gte, bitrate_lt, bitrate_lte
+# - profile_contains, profile_not_contains
+# - container_contains, container_not_contains, container_in
+# - file_size_gt, duration_gt
+
+# MESSAGE TEMPLATES
+# Variables available: {codec}, {profile}, {width}, {height}, {bitrate_mbps}, {container}
