@@ -280,7 +280,7 @@ class TestYouTubeChecker:
 
         # Should have results
         assert len(issues) > 0
-        
+
         # Should not be completely incompatible
         incompatible_issues = [i for i in issues if i.level == CompatibilityLevel.INCOMPATIBLE]
         # May have zero incompatible, or just warnings
