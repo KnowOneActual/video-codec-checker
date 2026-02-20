@@ -59,10 +59,7 @@ class RuleEngine:
                 CompatibilityIssue(
                     level=CompatibilityLevel.UNKNOWN,
                     message=f"Unknown system: {system}",
-                    reason=(
-                        f"Available systems: "
-                        f"{', '.join(self.get_available_systems())}"
-                    ),
+                    reason=(f"Available systems: " f"{', '.join(self.get_available_systems())}"),
                 )
             ]
 
@@ -93,9 +90,7 @@ class RuleEngine:
 
         return issues
 
-    def _evaluate_condition(
-        self, condition: Dict[str, Any], video_info: Dict[str, Any]
-    ) -> bool:
+    def _evaluate_condition(self, condition: Dict[str, Any], video_info: Dict[str, Any]) -> bool:
         """Evaluate a rule condition against video metadata.
 
         Args:
@@ -210,13 +205,8 @@ class RuleEngine:
 
         # Template substitution
         message = self._substitute_template(rule.get("message", ""), template_vars)
-        reason = (
-            self._substitute_template(rule.get("reason", ""), template_vars) or None
-        )
-        suggestion = (
-            self._substitute_template(rule.get("suggestion", ""), template_vars)
-            or None
-        )
+        reason = self._substitute_template(rule.get("reason", ""), template_vars) or None
+        suggestion = self._substitute_template(rule.get("suggestion", ""), template_vars) or None
 
         return CompatibilityIssue(
             level=level,
@@ -271,9 +261,7 @@ class RuleBasedChecker(CompatibilityChecker):
 
 
 # Convenience function for backward compatibility
-def check_compatibility(
-    video_info: Dict[str, Any], system: str
-) -> List[CompatibilityIssue]:
+def check_compatibility(video_info: Dict[str, Any], system: str) -> List[CompatibilityIssue]:
     """Check video compatibility for a specific system.
 
     This function maintains backward compatibility with existing code.
