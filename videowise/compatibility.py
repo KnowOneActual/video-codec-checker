@@ -111,7 +111,7 @@ def get_available_systems() -> List[str]:
 
 # Import editing platform checkers
 try:
-    from .editing_platforms import (
+    from .editing_platforms import (  # noqa: F401
         AdobePremiereProChecker,
         AfterEffectsChecker,
         AvidMediaComposerChecker,
@@ -125,7 +125,7 @@ except ImportError:
 
 # Import streaming platform checkers
 try:
-    from .streaming_checkers import (
+    from .streaming_checkers import (  # noqa: F401
         DiscordChecker,
         KickChecker,
         RestreamChecker,
@@ -140,10 +140,10 @@ except ImportError:
 
 # Import advanced playout checkers
 try:
-    from .advanced_playout import PlaybackProChecker as AdvancedPlaybackProChecker
-    from .advanced_playout import ProVideoPlayerChecker as AdvancedPVPChecker
-    from .advanced_playout import ResolumeChecker as AdvancedResolumeChecker
-    from .advanced_playout import WirecastChecker as AdvancedWirecastChecker
+    from .advanced_playout import PlaybackProChecker as AdvancedPlaybackProChecker  # noqa: F401
+    from .advanced_playout import ProVideoPlayerChecker as AdvancedPVPChecker  # noqa: F401
+    from .advanced_playout import ResolumeChecker as AdvancedResolumeChecker  # noqa: F401
+    from .advanced_playout import WirecastChecker as AdvancedWirecastChecker  # noqa: F401
 
     ADVANCED_PLAYOUT_AVAILABLE = True
 except ImportError:
