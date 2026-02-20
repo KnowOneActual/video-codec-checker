@@ -5,7 +5,7 @@
 > ✅ **What Works**: Full CLI, **31 system checkers**, Python API, preset commands, batch processing, enhanced explanations  
 > 🚧 **In Progress**: Additional features, PyPI package
 >
-> 🎉 **Phase 2 Refactoring Complete**: We've replaced 31 hardcoded checker classes with a rule-based engine! **79% less code, 90% faster to add new systems.** See [REFACTORING.md](REFACTORING.md) for details.
+> 🎉 ** First Phase Refactoring Complete**: Replaced 31 hardcoded checker classes with a rule-based engine! **79% less code, 90% faster to add new systems.** See [REFACTORING.md](REFACTORING.md) for details.
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
