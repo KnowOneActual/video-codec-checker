@@ -16,6 +16,11 @@ live_production:
     containers:
       preferred: ["mov", "mp4"]
     rules:
+      # Explicit compatibility for standard supported codecs
+      - condition: {codec_in: [h264, prores, dnxhd, dnxhr, mpeg2video, mjpeg]}
+        level: compatible
+        message: "{codec} is supported by CasparCG Server"
+        reason: "CasparCG supports this codec for reliable playback"
       - codec: "hap"
         level: "compatible"
         message: "HAP codec provides GPU-accelerated playback"
@@ -36,6 +41,10 @@ live_production:
         level: "warning"
         message: "4K at high bitrate may stress system bandwidth"
         suggestion: "Consider HAP codec for GPU-accelerated 4K playback"
+      - condition: {codec_not_in: [hap, hap_alpha, hap_q, notchlc, prores, prores4444, dnxhd, dnxhr, h264, mpeg2video, mjpeg]}
+        level: incompatible
+        message: "Codec {codec} is not supported by CasparCG"
+        suggestion: "Convert to HAP, ProRes, DNxHD, or H.264"
 
   playoutbee:
     name: "PlayoutBee"
