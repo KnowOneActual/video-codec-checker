@@ -3,7 +3,7 @@
 import pytest
 
 from videowise.compatibility import CompatibilityLevel
-from videowise.rule_engine import RuleEngine, RuleBasedChecker
+from videowise.rule_engine import RuleBasedChecker, RuleEngine
 
 
 class TestRuleEngine:
