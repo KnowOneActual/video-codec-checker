@@ -166,9 +166,10 @@ def check_single_file(
         bitrate = analyzer.get_bitrate()
         file_size = analyzer.get_file_size()
 
+        # Normalize codec and profile to lowercase for rule matching
         video_info = {
             "codec": codec.split()[0].lower(),
-            "profile": codec_profile,
+            "profile": codec_profile.lower() if codec_profile else None,
             "container": container,
             "width": resolution[0] if resolution else None,
             "height": resolution[1] if resolution else None,
