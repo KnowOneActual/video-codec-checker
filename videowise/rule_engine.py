@@ -7,7 +7,7 @@ Reduces codebase from ~150KB to ~30KB while making system addition trivial.
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from .compatibility import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel
 
