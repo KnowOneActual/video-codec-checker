@@ -46,9 +46,9 @@ class CompatibilityChecker:
         raise NotImplementedError
 
 
-# Import editing platform checkers
+# Import editing platform checkers (for backward compatibility)
 try:
-    from .editing_platforms import (
+    from .editing_platforms import (  # noqa: F401
         AdobePremiereProChecker,
         AfterEffectsChecker,
         AvidMediaComposerChecker,
@@ -60,9 +60,9 @@ try:
 except ImportError:
     EDITING_PLATFORMS_AVAILABLE = False
 
-# Import streaming platform checkers
+# Import streaming platform checkers (for backward compatibility)
 try:
-    from .streaming_checkers import (
+    from .streaming_checkers import (  # noqa: F401
         DiscordChecker,
         KickChecker,
         RestreamChecker,
