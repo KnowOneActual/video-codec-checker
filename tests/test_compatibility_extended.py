@@ -71,7 +71,10 @@ def test_propresenter_unsupported_codec():
     video_info = {"codec": "vp9", "container": "webm"}
 
     issues = check_compatibility(video_info, "propresenter")
-    assert any(issue.level in [CompatibilityLevel.INCOMPATIBLE, CompatibilityLevel.WARNING] for issue in issues)
+    assert any(
+        issue.level in [CompatibilityLevel.INCOMPATIBLE, CompatibilityLevel.WARNING]
+        for issue in issues
+    )
 
 
 def test_propresenter_prores4444():
@@ -159,7 +162,10 @@ def test_instagram_wrong_codec():
 
     issues = check_compatibility(video_info, "instagram")
     # ProRes not supported, should have incompatible or warning
-    assert any(issue.level in [CompatibilityLevel.INCOMPATIBLE, CompatibilityLevel.WARNING] for issue in issues)
+    assert any(
+        issue.level in [CompatibilityLevel.INCOMPATIBLE, CompatibilityLevel.WARNING]
+        for issue in issues
+    )
 
 
 # Twitter Tests
