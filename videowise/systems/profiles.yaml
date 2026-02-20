@@ -1,0 +1,329 @@
+# System Profiles - Rule-based compatibility definitions
+# This replaces 31 individual checker classes with declarative rules
+
+# ============================================================================
+# LIVE PRODUCTION SYSTEMS
+# ============================================================================
+
+live_production:
+  casparcg:
+    name: "CasparCG Server"
+    category: "live_production"
+    codecs:
+      optimal: ["hap", "hap_alpha", "hap_q", "notchlc"]
+      recommended: ["prores", "prores4444", "dnxhd", "dnxhr"]
+      supported: ["h264", "mpeg2video", "mjpeg"]
+    containers:
+      preferred: ["mov", "mp4"]
+    rules:
+      - codec: "hap"
+        level: "compatible"
+        message: "HAP codec provides GPU-accelerated playback"
+        reason: "Optimal for real-time playback in CasparCG"
+      - codec: "hap_alpha"
+        level: "compatible"
+        message: "HAP Alpha provides GPU-accelerated playback with transparency"
+        reason: "Ideal for overlays and graphics with alpha channel"
+      - codec: "prores4444"
+        level: "compatible"
+        message: "ProRes 4444 supports alpha channel for transparency"
+        reason: "Professional quality with transparency support"
+      - condition: "codec == 'hap' and container != 'mov'"
+        level: "warning"
+        message: "HAP codec requires MOV container"
+        suggestion: "Remux to MOV container for HAP codec"
+      - condition: "resolution[0] >= 3840 and bitrate > 200000000"
+        level: "warning"
+        message: "4K at high bitrate may stress system bandwidth"
+        suggestion: "Consider HAP codec for GPU-accelerated 4K playback"
+
+  playoutbee:
+    name: "PlayoutBee"
+    category: "live_production"
+    variants:
+      desktop: {}
+      raspberrypi:
+        rules:
+          - condition: "codec == 'hap_q'"
+            level: "warning"
+            message: "HAP Q may be demanding on Raspberry Pi"
+            suggestion: "Use standard HAP for Raspberry Pi deployments"
+          - condition: "bitrate > 50000000"
+            level: "warning"
+            message: "High bitrate may be demanding on Raspberry Pi"
+            suggestion: "Keep bitrate under 50 Mbps or use HAP codec"
+    codecs:
+      optimal: ["hap", "hap_alpha"]
+      recommended: ["h264", "prores"]
+    containers:
+      preferred: ["mov", "mp4"]
+
+  vmix:
+    name: "vMix"
+    category: "live_production"
+    codecs:
+      optimal: ["prores", "dnxhd", "dnxhr"]
+      recommended: ["h264"]
+    rules:
+      - condition: "bitrate > 200000000"
+        level: "warning"
+        message: "Very high bitrate may cause dropped frames"
+        suggestion: "Consider transcoding to 100-150Mbps"
+      - condition: "bitrate > 100000000"
+        level: "warning"
+        message: "High bitrate - monitor for performance issues"
+        suggestion: "Test playback before going live"
+
+  obs:
+    name: "OBS Studio"
+    category: "live_production"
+    codecs:
+      optimal: ["h264", "hevc", "av1"]
+      recommended: ["prores", "dnxhd"]
+    containers:
+      preferred: ["mkv", "mp4", "mov"]
+
+  qlab:
+    name: "QLab"
+    category: "live_production"
+    codecs:
+      optimal: ["prores_proxy", "prores_lt", "prores"]
+      alpha_support: ["prores4444"]
+    rules:
+      - codec: "h264"
+        level: "warning"
+        message: "H.264 performs poorly when scrubbing or changing speed"
+        suggestion: "Convert to ProRes 422 Proxy or LT"
+
+  propresenter:
+    name: "ProPresenter"
+    category: "live_production"
+    codecs:
+      optimal: ["hap"]
+      recommended: ["prores", "prores4444"]
+      supported: ["h264", "hevc"]
+
+# ============================================================================
+# EDITING PLATFORMS
+# ============================================================================
+
+editing:
+  davinci:
+    name: "DaVinci Resolve"
+    category: "editing"
+    variants:
+      free:
+        rules:
+          - codec: ["h264", "hevc"]
+            level: "warning"
+            message: "Free version lacks GPU decode, causing timeline stuttering"
+            suggestion: "Transcode to DNxHR or ProRes, or upgrade to Studio"
+      studio:
+        rules:
+          - codec: ["h264", "hevc"]
+            level: "compatible"
+            message: "GPU hardware decode available in Resolve Studio"
+    codecs:
+      optimal: ["dnxhd", "dnxhr", "prores", "braw"]
+      supported: ["h264", "hevc", "av1"]
+    rules:
+      - codec: "braw"
+        level: "compatible"
+        message: "BRAW (Blackmagic RAW) is natively supported"
+        reason: "RAW format with excellent color grading flexibility"
+      - condition: "codec in ['h264', 'hevc'] and resolution[0] >= 1920"
+        level: "warning"
+        message: "Long-GOP compression makes frame-accurate work slower"
+        suggestion: "Consider generating optimized media (DNxHR/ProRes)"
+
+  premiere:
+    name: "Adobe Premiere Pro"
+    category: "editing"
+    codecs:
+      optimal: ["dnxhd", "dnxhr", "prores"]
+      hardware_accelerated: ["h264", "hevc"]
+      raw: ["r3d", "arriraw"]
+    rules:
+      - condition: "frame_rate == 'variable'"
+        level: "warning"
+        message: "Variable Frame Rate can cause sync issues"
+        suggestion: "Conform to CFR before editing"
+      - condition: "resolution[0] >= 7680"
+        level: "warning"
+        message: "8K footage requires proxy workflow"
+        suggestion: "Create proxies via Ingest Settings"
+
+  finalcut:
+    name: "Final Cut Pro"
+    category: "editing"
+    platform: "mac"
+    codecs:
+      optimal: ["prores", "prores_raw"]
+      optimized: ["prores_proxy", "prores_lt"]
+    variants:
+      mac_apple_silicon:
+        rules:
+          - codec: "prores"
+            level: "compatible"
+            message: "Hardware acceleration on M-series chips provides excellent performance"
+      mac_intel:
+        rules:
+          - codec: "prores"
+            level: "compatible"
+            message: "Native ProRes support on macOS"
+
+  avid:
+    name: "Avid Media Composer"
+    category: "editing"
+    codecs:
+      optimal: ["dnxhd", "dnxhr"]
+      ama: ["h264", "prores", "xavc"]
+    containers:
+      required: ["mxf"]
+    rules:
+      - condition: "codec in ['dnxhd', 'dnxhr'] and container == 'mov'"
+        level: "warning"
+        message: "MXF container preferred for Avid workflows"
+        suggestion: "Rewrap to MXF for full Avid compatibility"
+
+  aftereffects:
+    name: "Adobe After Effects"
+    category: "editing"
+    codecs:
+      optimal: ["prores4444", "qtrle", "png"]
+      recommended: ["prores", "dnxhd", "dnxhr"]
+    rules:
+      - codec: ["h264", "hevc"]
+        level: "warning"
+        message: "Interframe codecs cause slow RAM previews"
+        suggestion: "Use ProRes 422, PNG sequence, or Animation codec"
+
+# ============================================================================
+# SOCIAL MEDIA PLATFORMS
+# ============================================================================
+
+social_media:
+  instagram:
+    name: "Instagram"
+    category: "social_media"
+    codecs:
+      optimal: ["h264"]
+      profile_preferred: "baseline"
+    limits:
+      max_file_size: 104857600  # 100MB
+      max_duration: 60
+      max_resolution: [1080, 1920]
+    rules:
+      - condition: "codec != 'h264'"
+        level: "warning"
+        message: "Instagram will re-encode to H.264 (quality loss)"
+        suggestion: "Pre-encode to H.264 to maintain quality control"
+      - condition: "profile != 'baseline'"
+        level: "warning"
+        message: "Instagram prefers H.264 Baseline profile"
+        suggestion: "Convert to Baseline profile"
+
+  tiktok:
+    name: "TikTok"
+    category: "social_media"
+    codecs:
+      optimal: ["h264"]
+    limits:
+      max_file_size_mobile: 301989888  # 287MB
+      max_file_size_desktop: 10737418240  # 10GB
+      optimal_bitrate_range: [8000000, 15000000]
+    rules:
+      - codec: "hevc"
+        level: "warning"
+        message: "HEVC may cause playback issues on some devices"
+        suggestion: "Convert to H.264 for universal compatibility"
+      - condition: "bitrate < 5000000"
+        level: "warning"
+        message: "Low bitrate may trigger quality downgrade"
+        suggestion: "Use 8-15 Mbps for optimal quality"
+
+  youtube:
+    name: "YouTube"
+    category: "social_media"
+    codecs:
+      optimal: ["h264"]
+      profile_preferred: "high"
+    containers:
+      preferred: ["mp4"]
+    limits:
+      max_file_size: 274877906944  # 256GB
+
+  twitter:
+    name: "Twitter/X"
+    category: "social_media"
+    codecs:
+      optimal: ["h264"]
+    variants:
+      standard:
+        limits:
+          max_file_size: 536870912  # 512MB
+      premium:
+        limits:
+          max_file_size: 8589934592  # 8GB
+
+# ============================================================================
+# BROWSERS
+# ============================================================================
+
+browsers:
+  safari:
+    name: "Safari"
+    category: "browser"
+    codecs:
+      supported: ["h264", "hevc"]
+    containers:
+      preferred: ["mp4"]
+    rules:
+      - condition: "codec not in ['h264', 'hevc']"
+        level: "incompatible"
+        message: "Safari only supports H.264 and HEVC"
+        suggestion: "Convert to H.264 for maximum browser compatibility"
+
+  chrome:
+    name: "Chrome"
+    category: "browser"
+    codecs:
+      supported: ["h264", "vp8", "vp9", "av1"]
+
+  firefox:
+    name: "Firefox"
+    category: "browser"
+    codecs:
+      supported: ["h264", "vp8", "vp9", "av1"]
+      partial: ["hevc"]
+
+# ============================================================================
+# STREAMING PLATFORMS
+# ============================================================================
+
+streaming:
+  twitch:
+    name: "Twitch"
+    category: "streaming"
+    codecs:
+      optimal: ["h264"]
+    limits:
+      recommended_bitrate_1080p60: 6000000  # 6 Mbps
+      max_bitrate: 8000000  # 8 Mbps
+
+  youtube_live:
+    name: "YouTube Live"
+    category: "streaming"
+    codecs:
+      optimal: ["h264"]
+    limits:
+      recommended_bitrate_1080p60: 6000000
+      recommended_bitrate_4k60: 51000000
+
+  zoom:
+    name: "Zoom"
+    category: "streaming"
+    codecs:
+      optimal: ["h264"]
+    limits:
+      max_resolution: [1920, 1080]
