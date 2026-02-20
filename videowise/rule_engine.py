@@ -12,6 +12,28 @@ import yaml
 from .compatibility import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel
 
 
+# Module-level cache for RuleEngine instances
+_ENGINE_CACHE: Dict[Optional[str], "RuleEngine"] = {}
+
+
+def _get_cached_engine(config_path: Optional[Union[str, Path]] = None) -> "RuleEngine":
+    """Get or create a cached RuleEngine instance.
+    
+    Args:
+        config_path: Path to system_profiles.yaml (defaults to bundled file)
+        
+    Returns:
+        Cached RuleEngine instance
+    """
+    # Convert Path to string for cache key, or use None
+    cache_key = str(config_path) if config_path is not None else None
+    
+    if cache_key not in _ENGINE_CACHE:
+        _ENGINE_CACHE[cache_key] = RuleEngine(config_path)
+    
+    return _ENGINE_CACHE[cache_key]
+
+
 class RuleEngine:
     """Evaluates compatibility rules defined in YAML configuration."""
 
@@ -246,7 +268,7 @@ class RuleBasedChecker(CompatibilityChecker):
             config_path: Optional path to custom system_profiles.yaml
         """
         self.system = system
-        self.engine = RuleEngine(config_path)
+        self.engine = _get_cached_engine(config_path)
 
     def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
         """Check video compatibility using rule engine.
@@ -273,7 +295,7 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
     Returns:
         List of compatibility issues
     """
-    engine = RuleEngine()
+    engine = _get_cached_engine()
     return engine.check_compatibility(video_info, system)
 
 
@@ -282,5 +304,5 @@ def get_available_systems() -> List[str]:
 
     Maintains backward compatibility with existing code.
     """
-    engine = RuleEngine()
+    engine = _get_cached_engine()
     return engine.get_available_systems()
