@@ -11,14 +11,14 @@ class TestFirefoxChecker:
 
     # H.264 Tests
     def test_h264_in_mp4_fully_supported(self):
-        """H.264 in MP4 should be fully compatible."""
+        """Test H.264 in MP4 should be fully compatible."""
         video_info = {"codec": "h264", "container": "mp4"}
         issues = check_compatibility(video_info, "firefox")
 
         assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
     def test_h264_in_other_container(self):
-        """H.264 in non-MP4 container should still be compatible."""
+        """Test H.264 in non-MP4 container should still be compatible."""
         video_info = {"codec": "h264", "container": "mov"}
         issues = check_compatibility(video_info, "firefox")
 
@@ -26,21 +26,21 @@ class TestFirefoxChecker:
 
     # VP8/VP9 Tests
     def test_vp9_in_webm_natively_supported(self):
-        """VP9 in WebM should be natively supported."""
+        """Test VP9 in WebM should be natively supported."""
         video_info = {"codec": "vp9", "container": "webm"}
         issues = check_compatibility(video_info, "firefox")
 
         assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
     def test_vp8_in_webm_natively_supported(self):
-        """VP8 in WebM should be natively supported."""
+        """Test VP8 in WebM should be natively supported."""
         video_info = {"codec": "vp8", "container": "webm"}
         issues = check_compatibility(video_info, "firefox")
 
         assert any(issue.level == CompatibilityLevel.COMPATIBLE for issue in issues)
 
     def test_vp9_in_mp4(self):
-        """VP9 in MP4 should be compatible but not optimal."""
+        """Test VP9 in MP4 should be compatible but not optimal."""
         video_info = {"codec": "vp9", "container": "mp4"}
         issues = check_compatibility(video_info, "firefox")
 
@@ -48,7 +48,7 @@ class TestFirefoxChecker:
 
     # AV1 Tests
     def test_av1_supported(self):
-        """AV1 should be supported by Firefox."""
+        """Test AV1 should be supported by Firefox."""
         video_info = {"codec": "av1", "container": "webm"}
         issues = check_compatibility(video_info, "firefox")
 
@@ -56,7 +56,7 @@ class TestFirefoxChecker:
 
     # HEVC Tests
     def test_hevc_limited_support(self):
-        """HEVC should show limited support warning."""
+        """Test HEVC should show limited support warning."""
         video_info = {"codec": "hevc", "container": "mp4"}
         issues = check_compatibility(video_info, "firefox")
 
@@ -65,14 +65,14 @@ class TestFirefoxChecker:
 
     # Unsupported Codec Tests
     def test_prores_not_supported(self):
-        """ProRes should not be supported."""
+        """Test that ProRes should not be supported."""
         video_info = {"codec": "prores", "container": "mov"}
         issues = check_compatibility(video_info, "firefox")
 
         assert any(issue.level == CompatibilityLevel.INCOMPATIBLE for issue in issues)
 
     def test_unsupported_codec_with_suggestion(self):
-        """Unsupported codecs should include conversion suggestions."""
+        """Test unsupported codecs should include conversion suggestions."""
         video_info = {"codec": "dnxhd", "container": "mov"}
         issues = check_compatibility(video_info, "firefox")
 
@@ -84,7 +84,7 @@ class TestYouTubeChecker:
 
     # H.264 Tests
     def test_h264_high_profile_in_mp4_optimal(self):
-        """H.264 High Profile in MP4 should be optimal for YouTube."""
+        """Test H.264 High Profile in MP4 should be optimal for YouTube."""
         video_info = {
             "codec": "h264",
             "profile": "high",
@@ -98,7 +98,7 @@ class TestYouTubeChecker:
         assert len(compatible_issues) >= 1
 
     def test_h264_baseline_profile_warning(self):
-        """H.264 Baseline Profile may show warning."""
+        """Test H.264 Baseline Profile may show warning."""
         video_info = {
             "codec": "h264",
             "profile": "baseline",
@@ -111,7 +111,7 @@ class TestYouTubeChecker:
         assert len(issues) > 0
 
     def test_h264_main_profile_warning(self):
-        """H.264 Main Profile should be acceptable."""
+        """Test H.264 Main Profile should be acceptable."""
         video_info = {
             "codec": "h264",
             "profile": "main",
@@ -123,7 +123,7 @@ class TestYouTubeChecker:
         assert len(issues) > 0
 
     def test_h264_without_profile(self):
-        """H.264 without profile info should be compatible."""
+        """Test H.264 without profile info should be compatible."""
         video_info = {
             "codec": "h264",
             "container": "mp4",
@@ -136,7 +136,7 @@ class TestYouTubeChecker:
 
     # Container Tests
     def test_mp4_container_preferred(self):
-        """MP4 container should be marked as preferred."""
+        """Test MP4 container should be marked as preferred."""
         video_info = {
             "codec": "h264",
             "container": "mp4",
@@ -148,7 +148,7 @@ class TestYouTubeChecker:
         assert len(compatible_issues) >= 1
 
     def test_mov_container_accepted_with_warning(self):
-        """MOV container may be accepted."""
+        """Test MOV container may be accepted."""
         video_info = {
             "codec": "h264",
             "container": "mov",
@@ -159,7 +159,7 @@ class TestYouTubeChecker:
         assert len(issues) > 0
 
     def test_avi_container_accepted_with_warning(self):
-        """AVI container may be accepted."""
+        """Test that AVI container may be accepted."""
         video_info = {
             "codec": "h264",
             "container": "avi",
@@ -170,7 +170,7 @@ class TestYouTubeChecker:
         assert len(issues) > 0
 
     def test_webm_container_with_warning(self):
-        """WebM container may show warning."""
+        """Test WebM container may show warning."""
         video_info = {
             "codec": "vp9",
             "container": "webm",
@@ -183,7 +183,7 @@ class TestYouTubeChecker:
 
     # Codec Tests
     def test_vp9_codec_with_warning(self):
-        """VP9 may work but with note about H.264 preference."""
+        """Test VP9 may work but with note about H.264 preference."""
         video_info = {
             "codec": "vp9",
             "container": "webm",
@@ -194,7 +194,7 @@ class TestYouTubeChecker:
         assert len(issues) > 0
 
     def test_hevc_with_warning(self):
-        """HEVC may show warning."""
+        """Test that HEVC may show warning."""
         video_info = {
             "codec": "hevc",
             "container": "mp4",
@@ -205,7 +205,7 @@ class TestYouTubeChecker:
         assert len(issues) > 0
 
     def test_prores_with_warning(self):
-        """ProRes may show warning."""
+        """Test that ProRes may show warning."""
         video_info = {
             "codec": "prores",
             "container": "mov",
@@ -217,7 +217,7 @@ class TestYouTubeChecker:
 
     # File Size Tests
     def test_file_size_under_limit(self):
-        """Files under 256GB should be accepted."""
+        """Test files under 256GB should be accepted."""
         video_info = {
             "codec": "h264",
             "container": "mp4",
@@ -230,7 +230,7 @@ class TestYouTubeChecker:
         assert len(issues) > 0
 
     def test_file_size_over_limit(self):
-        """Files over 256GB should be rejected."""
+        """Test files over 256GB should be rejected."""
         video_info = {
             "codec": "h264",
             "container": "mp4",
@@ -242,7 +242,7 @@ class TestYouTubeChecker:
         assert len(issues) > 0
 
     def test_file_size_exactly_at_limit(self):
-        """Files exactly at 256GB may be accepted."""
+        """Test files exactly at 256GB may be accepted."""
         video_info = {
             "codec": "h264",
             "container": "mp4",
