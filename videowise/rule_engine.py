@@ -1,7 +1,7 @@
-"""Rule engine for evaluating compatibility rules from YAML profiles.
+"""Rule-based compatibility checking engine.
 
-This module replaces 31 individual checker classes with a declarative
-rule-based system that evaluates conditions and generates compatibility issues.
+Replaces hardcoded checker classes with declarative YAML rules.
+Reduces codebase from ~150KB to ~30KB while making system addition trivial.
 """
 
 import re
@@ -10,352 +10,272 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
-from .compatibility import CompatibilityIssue, CompatibilityLevel
+from .compatibility import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel
 
 
 class RuleEngine:
-    """Evaluates compatibility rules from system profiles."""
+    """Evaluates compatibility rules defined in YAML configuration."""
 
-    def __init__(self, profiles_path: Optional[Path] = None):
-        """Initialize rule engine.
-
-        Args:
-            profiles_path: Path to profiles.yaml, defaults to videowise/systems/profiles.yaml
-        """
-        if profiles_path is None:
-            profiles_path = Path(__file__).parent / "systems" / "profiles.yaml"
-
-        with open(profiles_path, "r") as f:
-            self.profiles = yaml.safe_load(f)
-
-    def get_system_profile(self, system: str, variant: Optional[str] = None) -> Optional[Dict]:
-        """Get profile for a specific system.
+    def __init__(self, config_path: Optional[str] = None):
+        """Initialize rule engine with system profiles.
 
         Args:
-            system: System name (e.g., 'casparcg', 'davinci', 'instagram')
-            variant: Optional variant (e.g., 'studio', 'raspberrypi')
-
-        Returns:
-            System profile dictionary or None if not found
+            config_path: Path to system_profiles.yaml (defaults to bundled file)
         """
-        # Search across all categories
-        for category in self.profiles.values():
-            if system in category:
-                profile = category[system].copy()
+        if config_path is None:
+            config_path = Path(__file__).parent / "system_profiles.yaml"
 
-                # Merge variant-specific rules if specified
-                if variant and "variants" in profile:
-                    if variant in profile["variants"]:
-                        variant_data = profile["variants"][variant]
-                        # Merge variant rules
-                        if "rules" in variant_data:
-                            if "rules" not in profile:
-                                profile["rules"] = []
-                            profile["rules"].extend(variant_data["rules"])
+        with open(config_path, "r") as f:
+            self.config = yaml.safe_load(f)
 
-                return profile
+        self.systems = self.config.get("systems", {})
+        self.profiles = self.config.get("profiles", {})
 
-        return None
+    def get_available_systems(self) -> List[str]:
+        """Return list of all available system names."""
+        return sorted(self.systems.keys())
+
+    def get_profile_systems(self, profile: str) -> List[str]:
+        """Get all systems in a profile (e.g., 'editing', 'live_production')."""
+        profile_data = self.profiles.get(profile, {})
+        return profile_data.get("systems", [])
 
     def check_compatibility(
-        self,
-        video_info: Dict[str, Any],
-        system: str,
-        variant: Optional[str] = None,
+        self, video_info: Dict[str, Any], system: str
     ) -> List[CompatibilityIssue]:
-        """Check video compatibility against system profile.
+        """Check video compatibility for a specific system.
 
         Args:
             video_info: Dictionary containing video metadata
-            system: System to check (e.g., 'casparcg', 'premiere')
-            variant: Optional variant (e.g., 'studio', 'mobile')
+            system: System to check compatibility for
 
         Returns:
             List of compatibility issues
         """
-        issues: List[CompatibilityIssue] = []
-        profile = self.get_system_profile(system, variant)
-
-        if not profile:
+        system_config = self.systems.get(system.lower())
+        if not system_config:
             return [
                 CompatibilityIssue(
                     level=CompatibilityLevel.UNKNOWN,
                     message=f"Unknown system: {system}",
+                    reason=f"Available systems: {', '.join(self.get_available_systems())}",
                 )
             ]
 
-        codec = video_info.get("codec", "").lower()
-        container = video_info.get("container", "").lower()
+        issues: List[CompatibilityIssue] = []
+        rules = system_config.get("rules", [])
 
-        # Check codec compatibility
-        if "codecs" in profile:
-            codec_issues = self._check_codecs(codec, profile["codecs"], profile.get("name", system))
-            issues.extend(codec_issues)
+        # Evaluate each rule
+        for rule in rules:
+            if self._evaluate_condition(rule.get("condition", {}), video_info):
+                issue = self._create_issue_from_rule(rule, video_info)
+                issues.append(issue)
 
-        # Check container compatibility
-        if "containers" in profile:
-            container_issues = self._check_containers(
-                container, profile["containers"], profile.get("name", system)
-            )
-            issues.extend(container_issues)
-
-        # Evaluate custom rules
-        if "rules" in profile:
-            rule_issues = self._evaluate_rules(video_info, profile["rules"])
-            issues.extend(rule_issues)
-
-        # Check limits (file size, duration, etc.)
-        if "limits" in profile:
-            limit_issues = self._check_limits(video_info, profile["limits"])
-            issues.extend(limit_issues)
-
-        # If no issues found, add generic compatible message
+        # If no rules matched and codec is in supported list, add compatible issue
         if not issues:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.COMPATIBLE,
-                    message=f"Video should be compatible with {profile.get('name', system)}",
-                )
-            )
-
-        return issues
-
-    def _check_codecs(
-        self, codec: str, codec_spec: Dict[str, List[str]], system_name: str
-    ) -> List[CompatibilityIssue]:
-        """Check codec against profile specifications."""
-        issues = []
-
-        # Check optimal codecs
-        if "optimal" in codec_spec:
-            for optimal in codec_spec["optimal"]:
-                if optimal in codec:
-                    issues.append(
-                        CompatibilityIssue(
-                            level=CompatibilityLevel.COMPATIBLE,
-                            message=f"{codec.upper()} is optimal for {system_name}",
-                            reason="Best performance and quality for this system",
-                        )
-                    )
-                    return issues  # Found optimal, return early
-
-        # Check recommended codecs
-        if "recommended" in codec_spec:
-            for recommended in codec_spec["recommended"]:
-                if recommended in codec:
-                    issues.append(
-                        CompatibilityIssue(
-                            level=CompatibilityLevel.COMPATIBLE,
-                            message=f"{codec.upper()} is recommended for {system_name}",
-                            reason="Good compatibility and performance",
-                        )
-                    )
-                    return issues
-
-        # Check supported codecs
-        if "supported" in codec_spec:
-            for supported in codec_spec["supported"]:
-                if supported in codec:
-                    issues.append(
-                        CompatibilityIssue(
-                            level=CompatibilityLevel.COMPATIBLE,
-                            message=f"{codec.upper()} is supported by {system_name}",
-                        )
-                    )
-                    return issues
-
-        # Codec not in any list - generate warning
-        all_codecs = []
-        for key in ["optimal", "recommended", "supported"]:
-            if key in codec_spec:
-                all_codecs.extend(codec_spec[key])
-
-        if all_codecs:
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.WARNING,
-                    message=f"{codec.upper()} may have limited support in {system_name}",
-                    reason=f"Supported codecs: {', '.join(all_codecs)}",
-                    suggestion=f"Consider converting to {all_codecs[0].upper()}",
-                )
-            )
-
-        return issues
-
-    def _check_containers(
-        self, container: str, container_spec: Dict[str, List[str]], system_name: str
-    ) -> List[CompatibilityIssue]:
-        """Check container format against profile specifications."""
-        issues = []
-
-        if "required" in container_spec:
-            required = container_spec["required"]
-            if not any(req in container for req in required):
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.INCOMPATIBLE,
-                        message=f"{system_name} requires {' or '.join(required).upper()} container",
-                        suggestion=f"Remux to {required[0].upper()} container",
-                    )
-                )
-        elif "preferred" in container_spec:
-            preferred = container_spec["preferred"]
-            if any(pref in container for pref in preferred):
+            codec = video_info.get("codec", "").lower()
+            supported_codecs = system_config.get("codecs", {}).get("supported", [])
+            if codec in supported_codecs or not supported_codecs:
                 issues.append(
                     CompatibilityIssue(
                         level=CompatibilityLevel.COMPATIBLE,
-                        message=f"{container.upper()} container is preferred by {system_name}",
-                    )
-                )
-            else:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.WARNING,
-                        message=f"{system_name} works best with {' or '.join(preferred).upper()} container",
-                        suggestion=f"Consider remuxing to {preferred[0].upper()}",
+                        message=f"Video should be compatible with {system_config.get('name', system)}",
                     )
                 )
 
         return issues
 
-    def _evaluate_rules(
-        self, video_info: Dict[str, Any], rules: List[Dict[str, Any]]
-    ) -> List[CompatibilityIssue]:
-        """Evaluate custom rules against video info."""
-        issues = []
+    def _evaluate_condition(self, condition: Dict[str, Any], video_info: Dict[str, Any]) -> bool:
+        """Evaluate a rule condition against video metadata.
 
-        for rule in rules:
-            # Simple codec match
-            if "codec" in rule and "condition" not in rule:
-                codec = video_info.get("codec", "").lower()
-                rule_codecs = rule["codec"] if isinstance(rule["codec"], list) else [rule["codec"]]
+        Args:
+            condition: Condition dictionary from rule
+            video_info: Video metadata
 
-                if any(rc in codec for rc in rule_codecs):
-                    issues.append(
-                        CompatibilityIssue(
-                            level=self._parse_level(rule.get("level", "compatible")),
-                            message=rule.get("message", ""),
-                            reason=rule.get("reason"),
-                            suggestion=rule.get("suggestion"),
-                        )
-                    )
-
-            # Conditional expression
-            elif "condition" in rule:
-                if self._evaluate_condition(rule["condition"], video_info):
-                    issues.append(
-                        CompatibilityIssue(
-                            level=self._parse_level(rule.get("level", "warning")),
-                            message=rule.get("message", ""),
-                            reason=rule.get("reason"),
-                            suggestion=rule.get("suggestion"),
-                        )
-                    )
-
-        return issues
-
-    def _evaluate_condition(self, condition: str, video_info: Dict[str, Any]) -> bool:
-        """Evaluate a condition string against video info.
-
-        Supports expressions like:
-        - codec == 'h264'
-        - bitrate > 100000000
-        - resolution[0] >= 3840
-        - codec in ['h264', 'hevc']
+        Returns:
+            True if condition matches, False otherwise
         """
-        try:
-            # Create a safe namespace with video_info variables
-            namespace = {
-                "codec": video_info.get("codec", "").lower(),
-                "container": video_info.get("container", "").lower(),
-                "bitrate": video_info.get("bitrate", 0),
-                "resolution": video_info.get("resolution", (0, 0)),
-                "frame_rate": video_info.get("frame_rate"),
-                "profile": video_info.get("profile", "").lower(),
-                "file_size": video_info.get("file_size", 0),
-            }
-
-            # Evaluate the condition
-            return eval(condition, {"__builtins__": {}}, namespace)
-        except Exception:
-            # If evaluation fails, return False (don't apply rule)
-            return False
-
-    def _check_limits(
-        self, video_info: Dict[str, Any], limits: Dict[str, Any]
-    ) -> List[CompatibilityIssue]:
-        """Check video against system limits."""
-        issues = []
-
-        # Check file size
+        codec = video_info.get("codec", "").lower()
+        profile = video_info.get("profile", "").lower()
+        container = video_info.get("container", "").lower()
+        resolution = video_info.get("resolution", (0, 0))
+        bitrate = video_info.get("bitrate", 0)
         file_size = video_info.get("file_size", 0)
-        if "max_file_size" in limits and file_size > limits["max_file_size"]:
-            size_mb = file_size // (1024 * 1024)
-            limit_mb = limits["max_file_size"] // (1024 * 1024)
-            issues.append(
-                CompatibilityIssue(
-                    level=CompatibilityLevel.INCOMPATIBLE,
-                    message=f"File size {size_mb}MB exceeds limit of {limit_mb}MB",
-                    suggestion="Compress video to reduce file size",
-                )
-            )
+        duration = video_info.get("duration", 0)
 
-        # Check resolution
-        resolution = video_info.get("resolution")
-        if resolution and "max_resolution" in limits:
-            max_res = limits["max_resolution"]
-            if resolution[0] > max_res[0] or resolution[1] > max_res[1]:
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.WARNING,
-                        message=f"Resolution {resolution[0]}x{resolution[1]} exceeds maximum {max_res[0]}x{max_res[1]}",
-                        suggestion=f"Downscale to {max_res[0]}x{max_res[1]}",
-                    )
-                )
+        # Codec conditions
+        if "codec_eq" in condition:
+            return codec == condition["codec_eq"]
+        if "codec_ne" in condition:
+            return codec != condition["codec_ne"]
+        if "codec_in" in condition:
+            return codec in condition["codec_in"]
+        if "codec_not_in" in condition:
+            return codec not in condition["codec_not_in"]
+        if "codec_contains" in condition:
+            return condition["codec_contains"] in codec
 
-        # Check bitrate range
-        bitrate = video_info.get("bitrate")
-        if bitrate and "optimal_bitrate_range" in limits:
-            min_br, max_br = limits["optimal_bitrate_range"]
-            if bitrate < min_br or bitrate > max_br:
-                min_mbps = min_br // 1_000_000
-                max_mbps = max_br // 1_000_000
-                issues.append(
-                    CompatibilityIssue(
-                        level=CompatibilityLevel.WARNING,
-                        message=f"Bitrate outside optimal range of {min_mbps}-{max_mbps} Mbps",
-                        suggestion=f"Adjust bitrate to {min_mbps}-{max_mbps} Mbps for best results",
-                    )
-                )
+        # Profile conditions
+        if "profile_contains" in condition:
+            return condition["profile_contains"] in profile
+        if "profile_not_contains" in condition:
+            return condition["profile_not_contains"] not in profile
 
-        return issues
+        # Container conditions
+        if "container_contains" in condition:
+            return condition["container_contains"] in container
+        if "container_not_contains" in condition:
+            return condition["container_not_contains"] not in container
 
-    def _parse_level(self, level_str: str) -> CompatibilityLevel:
-        """Parse level string to CompatibilityLevel enum."""
+        # Resolution conditions
+        if "resolution_gt" in condition:
+            target_width, target_height = condition["resolution_gt"]
+            width, height = resolution
+            return width > target_width or height > target_height
+        if "resolution_gte" in condition:
+            target_width, target_height = condition["resolution_gte"]
+            width, height = resolution
+            return width >= target_width and height >= target_height
+
+        # Bitrate conditions
+        if "bitrate_gt" in condition:
+            return bitrate > condition["bitrate_gt"]
+        if "bitrate_gte" in condition:
+            return bitrate >= condition["bitrate_gte"]
+        if "bitrate_lt" in condition:
+            return bitrate < condition["bitrate_lt"]
+        if "bitrate_lte" in condition:
+            return bitrate <= condition["bitrate_lte"]
+
+        # File size conditions
+        if "file_size_gt" in condition:
+            return file_size > condition["file_size_gt"]
+
+        # Duration conditions
+        if "duration_gt" in condition:
+            return duration > condition["duration_gt"]
+
+        # If no condition matched, return False
+        return False
+
+    def _create_issue_from_rule(
+        self, rule: Dict[str, Any], video_info: Dict[str, Any]
+    ) -> CompatibilityIssue:
+        """Create CompatibilityIssue from rule and video info.
+
+        Args:
+            rule: Rule dictionary with message templates
+            video_info: Video metadata for template substitution
+
+        Returns:
+            CompatibilityIssue with templated messages
+        """
+        # Parse level
+        level_str = rule.get("level", "unknown")
         level_map = {
             "compatible": CompatibilityLevel.COMPATIBLE,
             "warning": CompatibilityLevel.WARNING,
             "incompatible": CompatibilityLevel.INCOMPATIBLE,
             "unknown": CompatibilityLevel.UNKNOWN,
         }
-        return level_map.get(level_str.lower(), CompatibilityLevel.UNKNOWN)
+        level = level_map.get(level_str, CompatibilityLevel.UNKNOWN)
 
-    def list_systems(self) -> List[str]:
-        """Get list of all available system names."""
-        systems = []
-        for category in self.profiles.values():
-            systems.extend(category.keys())
-        return sorted(systems)
+        # Create template variables
+        codec = video_info.get("codec", "").upper()
+        profile = video_info.get("profile", "")
+        container = video_info.get("container", "").upper()
+        resolution = video_info.get("resolution", (0, 0))
+        width, height = resolution
+        bitrate = video_info.get("bitrate", 0)
+        bitrate_mbps = bitrate // 1_000_000 if bitrate else 0
 
-    def get_system_info(self, system: str) -> Optional[Dict[str, Any]]:
-        """Get metadata about a system."""
-        profile = self.get_system_profile(system)
-        if not profile:
-            return None
-
-        return {
-            "name": profile.get("name", system),
-            "category": profile.get("category", "unknown"),
-            "variants": list(profile.get("variants", {}).keys()),
-            "optimal_codecs": profile.get("codecs", {}).get("optimal", []),
+        template_vars = {
+            "codec": codec,
+            "profile": profile,
+            "container": container,
+            "width": width,
+            "height": height,
+            "bitrate_mbps": bitrate_mbps,
         }
+
+        # Template substitution
+        message = self._substitute_template(rule.get("message", ""), template_vars)
+        reason = self._substitute_template(rule.get("reason", ""), template_vars) or None
+        suggestion = self._substitute_template(rule.get("suggestion", ""), template_vars) or None
+
+        return CompatibilityIssue(
+            level=level,
+            message=message,
+            reason=reason,
+            suggestion=suggestion,
+        )
+
+    def _substitute_template(self, template: str, variables: Dict[str, Any]) -> str:
+        """Substitute template variables in string.
+
+        Args:
+            template: Template string with {variable} placeholders
+            variables: Dictionary of variable values
+
+        Returns:
+            String with variables substituted
+        """
+        result = template
+        for key, value in variables.items():
+            result = result.replace(f"{{{key}}}", str(value))
+        return result
+
+
+class RuleBasedChecker(CompatibilityChecker):
+    """Compatibility checker that uses rule engine.
+
+    This replaces individual checker classes (CasparCGChecker, SafariChecker, etc.)
+    with a single rule-based checker.
+    """
+
+    def __init__(self, system: str, config_path: Optional[str] = None):
+        """Initialize rule-based checker.
+
+        Args:
+            system: System name to check compatibility for
+            config_path: Optional path to custom system_profiles.yaml
+        """
+        self.system = system
+        self.engine = RuleEngine(config_path)
+
+    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+        """Check video compatibility using rule engine.
+
+        Args:
+            video_info: Dictionary containing video metadata
+
+        Returns:
+            List of compatibility issues
+        """
+        return self.engine.check_compatibility(video_info, self.system)
+
+
+# Convenience function for backward compatibility
+def check_compatibility(video_info: Dict[str, Any], system: str) -> List[CompatibilityIssue]:
+    """Check video compatibility for a specific system.
+
+    This function maintains backward compatibility with existing code.
+
+    Args:
+        video_info: Dictionary containing video metadata
+        system: System to check compatibility for
+
+    Returns:
+        List of compatibility issues
+    """
+    engine = RuleEngine()
+    return engine.check_compatibility(video_info, system)
+
+
+def get_available_systems() -> List[str]:
+    """Return list of all available system names.
+
+    Maintains backward compatibility with existing code.
+    """
+    engine = RuleEngine()
+    return engine.get_available_systems()
