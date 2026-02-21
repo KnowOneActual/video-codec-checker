@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2026-02-21
+
+### Added
+- Added missing `dxv` codec support and optimization rules for ProVideoPlayer and Resolume.
+
+### Changed
+- Updated minimum Python requirement to `>=3.10`, officially dropping support for Python 3.8 and 3.9 to leverage modern Python features and speed up CI pipelines.
+
+### Fixed
+- **Rule Engine Logic:** Fixed a critical bug in `RuleEngine._evaluate_condition` where rules with multiple conditions (like checking both codec and profile) were evaluating improperly by exiting early. It now correctly enforces `AND` logic across all sub-conditions.
+- **Profile Case-Sensitivity:** Fixed an issue where video profiles with varied casing (e.g., "Constrained Baseline") were failing to match lowercase YAML rules.
+- **Advanced Playout Fallbacks:** Added missing "unsupported codec" catch-all rules for Resolume, PlaybackPro, and ProVideoPlayer so they correctly flag incompatible files.
+- **PlaybackPro Containers:** Corrected PlaybackPro rules to properly require the MOV container.
+
+
 ## [Unreleased]
 
 ### Added
