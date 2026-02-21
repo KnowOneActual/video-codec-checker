@@ -204,7 +204,7 @@ class RuleEngine:
         """
         # Create safe namespace with video info
         codec = video_info.get("codec", "").lower()
-        profile = video_info.get("profile", "")
+        profile = video_info.get("profile", "").lower()
         container = video_info.get("container", "").lower()
         resolution = video_info.get("resolution", (0, 0))
         bitrate = video_info.get("bitrate", 0)
@@ -240,7 +240,7 @@ class RuleEngine:
             True if condition matches, False otherwise
         """
         codec = video_info.get("codec", "").lower()
-        profile = video_info.get("profile", "")
+        profile = video_info.get("profile", "").lower()
         container = video_info.get("container", "").lower()
         resolution = video_info.get("resolution", (0, 0))
         bitrate = video_info.get("bitrate", 0)
@@ -261,11 +261,11 @@ class RuleEngine:
 
         # Profile conditions
         if "profile_eq" in condition:
-            return bool(profile.lower() == condition["profile_eq"].lower())
+            return bool(profile == condition["profile_eq"].lower())
         if "profile_contains" in condition:
-            return bool(condition["profile_contains"] in profile)
+            return bool(condition["profile_contains"].lower() in profile)
         if "profile_not_contains" in condition:
-            return bool(condition["profile_not_contains"] not in profile)
+            return bool(condition["profile_not_contains"].lower() not in profile)
 
         # Container conditions
         if "container_eq" in condition:

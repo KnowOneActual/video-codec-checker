@@ -306,6 +306,17 @@ systems:
         level: warning
         message: "4K playback requires powerful GPU for smooth performance"
         suggestion: "Use HAP codec for 4K multi-layer playback"
+
+      - condition: {codec_not_in: [h264, prores, hap]}
+        level: warning
+        message: "{codec} may not be optimal for PlaybackPro"
+        suggestion: "Convert to ProRes 422 for best reliability"
+
+      - condition: {container_not_contains: "mov"}
+        level: incompatible
+        message: "PlaybackPro requires MOV container"
+        reason: "PlaybackPro only supports MOV container"
+        suggestion: "Remux to MOV container"
   
   easyworship:
     name: "EasyWorship"
@@ -352,8 +363,8 @@ systems:
     name: "ProVideoPlayer"
     category: live_production
     codecs:
-      optimal: [hap, prores]
-      supported: [h264, hevc, prores, hap]
+      optimal: [hap, prores, dxv]
+      supported: [h264, hevc, prores, hap, dxv]
       alpha_support: [prores4444, hap_alpha, hap_q_alpha]
     containers:
       preferred:
@@ -370,6 +381,11 @@ systems:
         level: compatible
         message: "{codec} is well-supported in ProVideoPlayer"
         reason: "Hardware acceleration on Apple Silicon"
+
+      - condition: {codec_contains: "dxv"}
+        level: compatible
+        message: "DXV codec works perfectly with PVP timecode features"
+        reason: "GPU-accelerated with excellent timecode sync"
       
       - condition: {codec_in: [h264, hevc]}
         level: compatible
@@ -380,6 +396,12 @@ systems:
         level: warning
         message: "4K requires HAP codec for multi-output performance"
         suggestion: "Use HAP for 4K multi-projector setups"
+
+      - condition: {codec_not_in: [h264, hevc, prores, hap, dxv]}
+        level: warning
+        message: "PVP may have limited support for {codec}"
+        reason: "PVP works best with DXV, HAP, ProRes, or H.264"
+        suggestion: "Convert to DXV for optimal timecode and multi-screen performance"
   
   # === MEDIA PLAYERS / VJ SOFTWARE ===
   vlc:
@@ -445,6 +467,12 @@ systems:
         level: warning
         message: "4K requires HAP/DXV codec for smooth VJ performance"
         suggestion: "Use HAP or DXV for 4K content with real-time effects"
+
+      - condition: {codec_not_in: [h264, hevc, prores, hap, dxv]}
+        level: warning
+        message: "{codec} may not be optimal for Resolume"
+        reason: "Resolume works best with DXV, HAP, or PhotoJPEG"
+        suggestion: "Convert to DXV for best performance"
   
   mitti:
     name: "Mitti"
