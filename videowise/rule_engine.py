@@ -239,6 +239,9 @@ class RuleEngine:
         Returns:
             True if condition matches, False otherwise
         """
+        if not condition:
+            return False
+
         codec = video_info.get("codec", "").lower()
         profile = video_info.get("profile", "").lower()
         container = video_info.get("container", "").lower()
@@ -247,66 +250,75 @@ class RuleEngine:
         file_size = video_info.get("file_size", 0)
         duration = video_info.get("duration", 0)
 
+        # Apply AND logic: if any provided condition fails, return False immediately
+
         # Codec conditions
-        if "codec_eq" in condition:
-            return bool(codec == condition["codec_eq"])
-        if "codec_ne" in condition:
-            return bool(codec != condition["codec_ne"])
-        if "codec_in" in condition:
-            return bool(codec in condition["codec_in"])
-        if "codec_not_in" in condition:
-            return bool(codec not in condition["codec_not_in"])
-        if "codec_contains" in condition:
-            return bool(condition["codec_contains"] in codec)
+        if "codec_eq" in condition and not (codec == condition["codec_eq"]):
+            return False
+        if "codec_ne" in condition and not (codec != condition["codec_ne"]):
+            return False
+        if "codec_in" in condition and not (codec in condition["codec_in"]):
+            return False
+        if "codec_not_in" in condition and not (codec not in condition["codec_not_in"]):
+            return False
+        if "codec_contains" in condition and not (condition["codec_contains"] in codec):
+            return False
 
         # Profile conditions
-        if "profile_eq" in condition:
-            return bool(profile == condition["profile_eq"].lower())
-        if "profile_contains" in condition:
-            return bool(condition["profile_contains"].lower() in profile)
-        if "profile_not_contains" in condition:
-            return bool(condition["profile_not_contains"].lower() not in profile)
+        if "profile_eq" in condition and not (profile == condition["profile_eq"].lower()):
+            return False
+        if "profile_contains" in condition and not (
+            condition["profile_contains"].lower() in profile
+        ):
+            return False
+        if "profile_not_contains" in condition and not (
+            condition["profile_not_contains"].lower() not in profile
+        ):
+            return False
 
         # Container conditions
-        if "container_eq" in condition:
-            return bool(container == condition["container_eq"])
-        if "container_in" in condition:
-            return bool(container in condition["container_in"])
-        if "container_contains" in condition:
-            return bool(condition["container_contains"] in container)
-        if "container_not_contains" in condition:
-            return bool(condition["container_not_contains"] not in container)
+        if "container_eq" in condition and not (container == condition["container_eq"]):
+            return False
+        if "container_in" in condition and not (container in condition["container_in"]):
+            return False
+        if "container_contains" in condition and not (condition["container_contains"] in container):
+            return False
+        if "container_not_contains" in condition and not (
+            condition["container_not_contains"] not in container
+        ):
+            return False
 
         # Resolution conditions
+        width, height = resolution
         if "resolution_gt" in condition:
             target_width, target_height = condition["resolution_gt"]
-            width, height = resolution
-            return bool(width > target_width or height > target_height)
+            if not (width > target_width or height > target_height):
+                return False
         if "resolution_gte" in condition:
             target_width, target_height = condition["resolution_gte"]
-            width, height = resolution
-            return bool(width >= target_width and height >= target_height)
+            if not (width >= target_width and height >= target_height):
+                return False
 
         # Bitrate conditions
-        if "bitrate_gt" in condition:
-            return bool(bitrate > condition["bitrate_gt"])
-        if "bitrate_gte" in condition:
-            return bool(bitrate >= condition["bitrate_gte"])
-        if "bitrate_lt" in condition:
-            return bool(bitrate < condition["bitrate_lt"])
-        if "bitrate_lte" in condition:
-            return bool(bitrate <= condition["bitrate_lte"])
+        if "bitrate_gt" in condition and not (bitrate > condition["bitrate_gt"]):
+            return False
+        if "bitrate_gte" in condition and not (bitrate >= condition["bitrate_gte"]):
+            return False
+        if "bitrate_lt" in condition and not (bitrate < condition["bitrate_lt"]):
+            return False
+        if "bitrate_lte" in condition and not (bitrate <= condition["bitrate_lte"]):
+            return False
 
         # File size conditions
-        if "file_size_gt" in condition:
-            return bool(file_size > condition["file_size_gt"])
+        if "file_size_gt" in condition and not (file_size > condition["file_size_gt"]):
+            return False
 
         # Duration conditions
-        if "duration_gt" in condition:
-            return bool(duration > condition["duration_gt"])
+        if "duration_gt" in condition and not (duration > condition["duration_gt"]):
+            return False
 
-        # If no condition matched, return False
-        return False
+        # If we made it through all checks without returning False, all conditions are met!
+        return True
 
     def _create_issue_from_rule(
         self, rule: Dict[str, Any], video_info: Dict[str, Any]
