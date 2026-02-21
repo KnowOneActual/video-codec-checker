@@ -429,7 +429,7 @@ social_media:
       max_duration: 60
       max_resolution: [1080, 1920]
     rules:
-      - condition: "codec == 'h264' and profile == 'baseline'"
+      - condition: "codec == 'h264' and profile and 'baseline' in profile.lower()"
         level: compatible
         message: "H.264 Baseline is optimal for Instagram"
         reason: "Instagram's preferred codec and profile"
@@ -437,7 +437,7 @@ social_media:
         level: "warning"
         message: "Instagram will re-encode to H.264 (quality loss)"
         suggestion: "Pre-encode to H.264 to maintain quality control"
-      - condition: "profile != 'baseline'"
+      - condition: "profile and 'baseline' not in profile.lower()"
         level: "warning"
         message: "Instagram prefers H.264 Baseline profile"
         suggestion: "Convert to Baseline profile"
