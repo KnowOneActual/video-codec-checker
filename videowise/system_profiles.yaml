@@ -74,6 +74,12 @@ systems:
         dnxhr: [mov, mxf]
         hap: [mov]
     rules:
+      # Explicit compatibility for standard supported codecs
+      - condition: {codec_in: [h264, prores, dnxhd, dnxhr, mpeg2video, mjpeg]}
+        level: compatible
+        message: "{codec} is supported by CasparCG Server"
+        reason: "CasparCG supports this codec for reliable playback"
+      
       - condition: {codec_contains: "hap"}
         level: compatible
         message: "HAP codec provides GPU-accelerated playback"
@@ -84,7 +90,7 @@ systems:
         message: "ProRes 4444 supports alpha channel for transparency"
         reason: "Professional quality with transparency support"
       
-      - condition: {codec_not_in: [h264, prores, dnxhd, dnxhr, hap, notchlc]}
+      - condition: {codec_not_in: [h264, prores, dnxhd, dnxhr, mpeg2video, mjpeg, hap, notchlc]}
         level: incompatible
         message: "CasparCG does not support {codec} codec"
         suggestion: "Convert to HAP (GPU-accelerated), ProRes, DNxHD, or H.264"

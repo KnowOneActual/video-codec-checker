@@ -783,6 +783,14 @@ else:
         """Basic Wirecast checker."""
 
         def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+            """Check video compatibility for Wirecast.
+
+            Args:
+                video_info: Dictionary containing video metadata
+
+            Returns:
+                List of compatibility issues
+            """
             return [
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
@@ -794,6 +802,14 @@ else:
         """Basic PlaybackPro checker."""
 
         def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+            """Check video compatibility for PlaybackPro.
+
+            Args:
+                video_info: Dictionary containing video metadata
+
+            Returns:
+                List of compatibility issues
+            """
             return [
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
@@ -805,6 +821,14 @@ else:
         """Basic Resolume checker."""
 
         def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+            """Check video compatibility for Resolume.
+
+            Args:
+                video_info: Dictionary containing video metadata
+
+            Returns:
+                List of compatibility issues
+            """
             return [
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
@@ -816,6 +840,14 @@ else:
         """Basic PVP checker."""
 
         def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
+            """Check video compatibility for ProVideoPlayer.
+
+            Args:
+                video_info: Dictionary containing video metadata
+
+            Returns:
+                List of compatibility issues
+            """
             return [
                 CompatibilityIssue(
                     level=CompatibilityLevel.COMPATIBLE,
