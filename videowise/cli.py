@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 @click.version_option(version=__version__)
 @click.pass_context
 def cli(ctx):
-    r"""VideoWise - Video Codec Compatibility Checker.
+    r"""VideoWise video codec compatibility checker.
 
     Check if your videos work with CasparCG, Instagram, browsers, and more.
 
@@ -293,7 +293,7 @@ def check_single_file(
         click.secho(f"\n❌ Error analyzing {file_path}:", fg="red", err=True)
         click.secho(f"   {error_msg}", fg="red", err=True)
         if logger.level == logging.DEBUG:
-            click.secho(f"\nFull traceback:", fg="yellow", err=True)
+            click.secho("\nFull traceback:", fg="yellow", err=True)
             click.echo(traceback.format_exc(), err=True)
 
         return (
