@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 @click.version_option(version=__version__)
 @click.pass_context
 def cli(ctx):
-    r"""VideoWise video codec compatibility checker.
+    r"""Video Codec Compatibility Checker.
 
     Check if your videos work with CasparCG, Instagram, browsers, and more.
 
