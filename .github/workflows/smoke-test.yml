@@ -76,6 +76,33 @@ jobs:
           print(f"Bitrate: {analyzer.get_bitrate()}")
           PYTHON_EOF
       
+      - name: Debug CLI check_single_file function
+        run: |
+          echo "=== Testing check_single_file function directly ==="
+          python3 << 'PYTHON_EOF'
+          from pathlib import Path
+          from videowise.cli import check_single_file
+          import json
+          
+          print("Calling check_single_file...")
+          result, exit_code, analyzer = check_single_file(
+              Path("test_video.mp4"),
+              ["casparcg"],
+              verbose=True,
+              show_progress=False
+          )
+          
+          print(f"\nResult: {json.dumps(result, indent=2)}")
+          print(f"\nExit code: {exit_code}")
+          print(f"\nAnalyzer is None: {analyzer is None}")
+          
+          if analyzer:
+              print(f"\nAnalyzer codec name: {analyzer.get_codec_name()}")
+              print(f"Analyzer container: {analyzer.get_container_format()}")
+          else:
+              print("\n❌ ERROR: Analyzer is None!")
+          PYTHON_EOF
+      
       - name: Test videowise check
         run: |
           echo "=== Testing videowise check command ==="
