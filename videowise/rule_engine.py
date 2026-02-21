@@ -91,7 +91,7 @@ class RuleEngine:
         for rule in rules:
             # Normalize rule to handle shorthand syntax
             normalized_rule = self._normalize_rule(rule)
-            
+
             # Evaluate the condition
             if self._evaluate_rule(normalized_rule, video_info):
                 issue = self._create_issue_from_rule(rule, video_info)
@@ -117,31 +117,31 @@ class RuleEngine:
 
     def _normalize_rule(self, rule: Dict[str, Any]) -> Dict[str, Any]:
         """Normalize rule to handle shorthand syntax.
-        
+
         Converts shorthand like:
             codec: "dxv"
         To full condition format:
             condition: {codec_eq: "dxv"}
-            
+
         Also handles string conditions (Python expressions).
-        
+
         Args:
             rule: Rule dictionary (may use shorthand)
-            
+
         Returns:
             Normalized rule with proper condition field
         """
         # If rule already has a condition key, return as-is (but handle string conditions)
         if "condition" in rule:
-            condition = rule["condition"]
+            existing_condition = rule["condition"]
             # If condition is a string, it's a Python expression to evaluate
-            if isinstance(condition, str):
-                return {"condition_expr": condition, **rule}
+            if isinstance(existing_condition, str):
+                return {"condition_expr": existing_condition, **rule}
             return rule
-        
+
         # Convert shorthand to condition dict
         condition: Dict[str, Any] = {}
-        
+
         # Codec shorthand
         if "codec" in rule:
             codec_value = rule["codec"]
@@ -149,11 +149,11 @@ class RuleEngine:
                 condition["codec_in"] = codec_value
             else:
                 condition["codec_eq"] = codec_value
-        
+
         # Profile shorthand
         if "profile" in rule:
             condition["profile_eq"] = rule["profile"]
-        
+
         # Container shorthand
         if "container" in rule:
             container_value = rule["container"]
@@ -161,44 +161,44 @@ class RuleEngine:
                 condition["container_in"] = container_value
             else:
                 condition["container_eq"] = container_value
-        
+
         # If we built a condition, return normalized rule
         if condition:
             return {"condition": condition, **rule}
-        
+
         # No condition found - return original rule
         return rule
 
     def _evaluate_rule(self, rule: Dict[str, Any], video_info: Dict[str, Any]) -> bool:
         """Evaluate a rule against video metadata.
-        
+
         Handles both dict conditions and Python expression strings.
-        
+
         Args:
             rule: Normalized rule dictionary
             video_info: Video metadata
-            
+
         Returns:
             True if rule matches, False otherwise
         """
         # Handle Python expression conditions
         if "condition_expr" in rule:
             return self._evaluate_expression(rule["condition_expr"], video_info)
-        
+
         # Handle dict conditions
         if "condition" in rule:
             return self._evaluate_condition(rule["condition"], video_info)
-        
+
         # No condition means always match (for default rules)
         return True
 
     def _evaluate_expression(self, expr: str, video_info: Dict[str, Any]) -> bool:
         """Evaluate a Python expression condition.
-        
+
         Args:
             expr: Python expression string
             video_info: Video metadata for expression evaluation
-            
+
         Returns:
             Boolean result of expression
         """
@@ -210,7 +210,7 @@ class RuleEngine:
         bitrate = video_info.get("bitrate", 0)
         file_size = video_info.get("file_size", 0)
         duration = video_info.get("duration", 0)
-        
+
         # Safe namespace for eval
         namespace = {
             "codec": codec,
@@ -221,7 +221,7 @@ class RuleEngine:
             "file_size": file_size,
             "duration": duration,
         }
-        
+
         try:
             result = eval(expr, {"__builtins__": {}}, namespace)
             return bool(result)
