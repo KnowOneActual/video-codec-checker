@@ -46,6 +46,212 @@ live_production:
         message: "Codec {codec} is not supported by CasparCG"
         suggestion: "Convert to HAP, ProRes, DNxHD, or H.264"
 
+  wirecast:
+    name: "Wirecast"
+    category: "live_production"
+    codecs:
+      optimal: ["h264", "hevc"]
+      recommended: ["prores", "dnxhd"]
+      supported: ["mpeg2video", "mjpeg"]
+    containers:
+      preferred: ["mp4", "mov"]
+    rules:
+      - condition: {codec_in: [h264, hevc]}
+        level: compatible
+        message: "{codec} is recommended for Wirecast"
+        reason: "Hardware acceleration via Intel QuickSync or NVIDIA NVENC"
+      - codec: "prores"
+        level: compatible
+        message: "ProRes provides high-quality playback in Wirecast"
+        reason: "Professional codec for broadcast workflows"
+      - codec: "mjpeg"
+        level: compatible
+        message: "MJPEG is supported by Wirecast"
+        reason: "Intraframe codec with good compatibility"
+      - condition: {codec_in: [dnxhd, mpeg2video]}
+        level: compatible
+        message: "{codec} is supported by Wirecast"
+      - condition: {container_in: [mp4, mov]}
+        level: compatible
+        message: "{container} container is supported by Wirecast"
+      - condition: "container == 'wmv'"
+        level: warning
+        message: "WMV container may have limited support, MP4/MOV preferred"
+        suggestion: "Use MP4 or MOV for better compatibility"
+      - condition: "resolution[0] >= 3840 and resolution[1] >= 2160"
+        level: warning
+        message: "4K streaming requires powerful hardware (i7 3.0GHz+)"
+        reason: "4K encoding is CPU/GPU intensive"
+        suggestion: "Use hardware encoding (QuickSync/NVENC) for 4K"
+      - condition: "bitrate > 100000000"
+        level: warning
+        message: "Very high bitrate may stress system resources"
+        reason: "High bitrates require fast storage and powerful hardware"
+        suggestion: "Use SSD storage and ensure adequate CPU/GPU capacity"
+      - condition: {codec_not_in: [h264, hevc, prores, dnxhd, mpeg2video, mjpeg]}
+        level: warning
+        message: "Wirecast may not support {codec}"
+        suggestion: "Convert to H.264 or ProRes for best compatibility"
+
+  resolume:
+    name: "Resolume"
+    category: "live_production"
+    codecs:
+      optimal: ["dxv", "hap", "hap_alpha", "hap_q"]
+      recommended: ["photojpeg", "notchlc"]
+      supported: ["prores", "h264", "mjpeg"]
+    containers:
+      preferred: ["mov", "avi", "mp4"]
+    rules:
+      - codec: "dxv"
+        level: compatible
+        message: "DXV is the optimal codec for Resolume"
+        reason: "Hardware-accelerated with Resolume's own GPU decoder"
+      - condition: {codec_in: [hap, hap_alpha, hap_q]}
+        level: compatible
+        message: "HAP codec is optimal for Resolume"
+        reason: "GPU-accelerated, second only to DXV"
+      - codec: "notchlc"
+        level: compatible
+        message: "NotchLC codec is supported by Resolume"
+        reason: "GPU-accelerated codec with good performance"
+      - codec: "photojpeg"
+        level: compatible
+        message: "PhotoJPEG provides fast playback in Resolume"
+        reason: "Hardware-accelerated with Resolume's own decoder"
+      - condition: "codec == 'prores' and '4444' in codec"
+        level: compatible
+        message: "ProRes 4444 provides high quality with alpha support"
+        reason: "Good for quality, but more CPU intensive than HAP/DXV"
+        suggestion: "Consider converting to HAP Alpha for better performance"
+      - condition: "codec == 'prores' and '4444' not in codec"
+        level: warning
+        message: "ProRes is CPU-based"
+        reason: "No hardware acceleration"
+        suggestion: "Convert to DXV or HAP for better performance"
+      - codec: "h264"
+        level: warning
+        message: "H.264 is CPU playback via system codecs (not optimal)"
+        reason: "Relies on MediaFoundation/AVFoundation, less efficient"
+        suggestion: "Convert to DXV or HAP for optimal live performance"
+      - codec: "hevc"
+        level: warning
+        message: "HEVC not recommended for Resolume"
+        reason: "High CPU overhead for decoding"
+        suggestion: "Convert to DXV or HAP for better performance"
+      - condition: "resolution[0] >= 3840 and resolution[1] >= 2160"
+        level: warning
+        message: "4K requires careful layer management"
+        reason: "Multiple 4K layers can stress even GPU-accelerated playback"
+        suggestion: "Limit layer count or use lower resolution for layers"
+      - condition: "bitrate > 200000000"
+        level: warning
+        message: "Very high bitrate may stress disk I/O"
+        reason: "High data rates can cause stuttering during playback"
+        suggestion: "Use SSD storage for high-bitrate media"
+      - condition: {container_in: [mov, avi, mp4, gif]}
+        level: compatible
+        message: "{container} container is supported by Resolume"
+      - condition: {codec_not_in: [dxv, hap, hap_alpha, hap_q, notchlc, photojpeg, prores, prores4444, h264, mjpeg, hevc]}
+        level: warning
+        message: "{codec} may not be optimal for Resolume"
+        reason: "Resolume works best with DXV, HAP, or PhotoJPEG"
+        suggestion: "Convert to DXV for best performance"
+
+  playbackpro:
+    name: "PlaybackPro"
+    category: "live_production"
+    platform: "mac"
+    codecs:
+      optimal: ["prores", "prores422"]
+      recommended: ["h264"]
+      supported: ["hevc"]  # Plus version only
+    containers:
+      required: ["mov"]
+    rules:
+      - condition: {codec_in: [prores, prores422]}
+        level: compatible
+        message: "ProRes is the recommended codec for PlaybackPro"
+        reason: "Optimal for reliable playback in live events"
+      - codec: "prores4444"
+        level: compatible
+        message: "ProRes 4444 supports alpha channel"
+        reason: "Professional quality with transparency support"
+      - codec: "h264"
+        level: compatible
+        message: "H.264 is supported by PlaybackPro"
+        reason: "Good compatibility with variable bitrate encoding"
+      - codec: "hevc"
+        level: compatible
+        message: "H.265/HEVC is supported in PlaybackPro Plus"
+        reason: "Efficient codec for high-resolution playback"
+      - condition: "container == 'mov'"
+        level: compatible
+        message: "MOV container is required for PlaybackPro"
+      - condition: "container != 'mov'"
+        level: incompatible
+        message: "PlaybackPro requires MOV container"
+        reason: "PlaybackPro only supports MOV container"
+        suggestion: "Remux to MOV container"
+      - condition: "resolution[0] >= 3840 and resolution[1] >= 2160 and bitrate < 30000000"
+        level: warning
+        message: "4K bitrate is outside recommended range"
+        reason: "PlaybackPro recommends 30-40 Mbps for 4K"
+        suggestion: "Increase bitrate to 30-40 Mbps for 4K playback"
+      - condition: "resolution[0] >= 1920 and resolution[1] >= 1080 and bitrate < 15000000"
+        level: warning
+        message: "HD bitrate is outside recommended range"
+        reason: "PlaybackPro recommends 15-30 Mbps for HD"
+        suggestion: "Increase bitrate to 15-30 Mbps for HD playback"
+      - condition: {codec_not_in: [prores, prores422, prores4444, h264, hevc]}
+        level: warning
+        message: "{codec} may not be optimal for PlaybackPro"
+        suggestion: "Convert to ProRes 422 for best reliability"
+
+  provideoplayer:
+    name: "ProVideoPlayer (PVP)"
+    category: "live_production"
+    codecs:
+      optimal: ["dxv", "hap", "hap_alpha"]
+      recommended: ["prores", "prores4444"]
+      supported: ["h264", "hevc"]
+    containers:
+      preferred: ["mov", "mp4"]
+    rules:
+      - codec: "dxv"
+        level: compatible
+        message: "DXV codec works perfectly with PVP timecode features"
+        reason: "GPU-accelerated with excellent timecode sync"
+      - codec: "hap"
+        level: compatible
+        message: "HAP codec provides excellent performance in PVP"
+        reason: "GPU-accelerated for smooth multi-layer playback"
+      - codec: "hap_alpha"
+        level: compatible
+        message: "HAP Alpha provides GPU-accelerated playback with transparency for overlays"
+        reason: "Ideal for overlays and multi-layer compositions"
+      - codec: "prores4444"
+        level: compatible
+        message: "ProRes 4444 supports alpha channel for transparency"
+        reason: "Professional quality for multi-screen setups"
+      - condition: {codec_in: [prores, h264, hevc]}
+        level: compatible
+        message: "{codec} is supported by PVP"
+        reason: "Hardware acceleration available"
+        suggestion: "Consider DXV or HAP for better multi-layer performance"
+      - condition: {container_in: [mov, mp4]}
+        level: compatible
+        message: "{container} container is supported by PVP"
+      - condition: {codec_in: [dxv, hap, hap_alpha]}
+        level: compatible
+        message: "Timecode following and triggering fully supported"
+        reason: "GPU codecs work excellently with PVP's timecode features"
+      - condition: {codec_not_in: [dxv, hap, hap_alpha, prores, prores4444, h264, hevc]}
+        level: warning
+        message: "PVP may have limited support for {codec}"
+        reason: "PVP works best with DXV, HAP, ProRes, or H.264"
+        suggestion: "Convert to DXV for optimal timecode and multi-screen performance"
+
   playoutbee:
     name: "PlayoutBee"
     category: "live_production"
@@ -223,6 +429,10 @@ social_media:
       max_duration: 60
       max_resolution: [1080, 1920]
     rules:
+      - condition: "codec == 'h264' and profile == 'baseline'"
+        level: compatible
+        message: "H.264 Baseline is optimal for Instagram"
+        reason: "Instagram's preferred codec and profile"
       - condition: "codec != 'h264'"
         level: "warning"
         message: "Instagram will re-encode to H.264 (quality loss)"
