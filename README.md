@@ -1,5 +1,6 @@
 # VideoWise
 
+> # The current state of this project isn’t working right now. I'm actively working on fixing it, but it might take a little time. Thanks so much for your patience!
 > ⚠️ **UNDER DEVELOPMENT**: Core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
 >
 > ✅ **What Works**: Full CLI, **31 system checkers**, Python API, preset commands, batch processing, enhanced explanations  
