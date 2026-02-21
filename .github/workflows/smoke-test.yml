@@ -49,6 +49,32 @@ jobs:
           ffprobe -v error -select_streams v:0 \
             -show_entries stream=codec_name,profile \
             -of default=noprint_wrappers=1 test_video.mp4
+          
+          echo ""
+          echo "=== FFprobe JSON output (what VideoAnalyzer should see) ==="
+          ffprobe -v quiet -print_format json -show_format -show_streams test_video.mp4
+      
+      - name: Debug VideoAnalyzer directly
+        run: |
+          echo "=== Testing VideoAnalyzer directly ==="
+          python3 << 'PYTHON_EOF'
+          from videowise.analyzer import VideoAnalyzer
+          import json
+          
+          analyzer = VideoAnalyzer("test_video.mp4")
+          metadata = analyzer.get_metadata()
+          
+          print("Metadata returned by get_metadata():")
+          print(json.dumps(metadata, indent=2) if metadata else "None")
+          print()
+          
+          print(f"Codec name: {analyzer.get_codec_name()}")
+          print(f"Codec profile: {analyzer.get_codec_profile()}")
+          print(f"Container: {analyzer.get_container_format()}")
+          print(f"Resolution: {analyzer.get_resolution()}")
+          print(f"Frame rate: {analyzer.get_frame_rate()}")
+          print(f"Bitrate: {analyzer.get_bitrate()}")
+          PYTHON_EOF
       
       - name: Test videowise check
         run: |
