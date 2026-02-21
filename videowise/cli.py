@@ -161,10 +161,10 @@ def check_single_file(
         logger.debug(f"Checking file: {file_path}")
         logger.debug(f"File exists: {file_path.exists()}")
         logger.debug(f"Systems to check: {systems_to_check}")
-        
+
         analyzer = VideoAnalyzer(str(file_path))
         logger.debug("VideoAnalyzer created successfully")
-        
+
         metadata = analyzer.get_metadata()
         logger.debug(f"Metadata retrieved: {metadata is not None}")
         if metadata:
@@ -186,14 +186,14 @@ def check_single_file(
         codec = analyzer.get_codec_name()
         logger.debug(f"Codec name: {codec}")
         codec = codec or "unknown"
-        
+
         codec_profile = analyzer.get_codec_profile()
         logger.debug(f"Codec profile: {codec_profile}")
-        
+
         container = analyzer.get_container_format()
         logger.debug(f"Container format: {container}")
         container = container or "unknown"
-        
+
         resolution = analyzer.get_resolution()
         framerate = analyzer.get_frame_rate()
         bitrate = analyzer.get_bitrate()
@@ -288,14 +288,14 @@ def check_single_file(
         logger.error(error_msg)
         logger.error(f"Exception type: {type(e).__name__}")
         logger.error(f"Full traceback:\n{traceback.format_exc()}")
-        
+
         # Print error to stderr for visibility in CI
         click.secho(f"\n❌ Error analyzing {file_path}:", fg="red", err=True)
         click.secho(f"   {error_msg}", fg="red", err=True)
         if logger.level == logging.DEBUG:
             click.secho(f"\nFull traceback:", fg="yellow", err=True)
             click.echo(traceback.format_exc(), err=True)
-        
+
         return (
             {
                 "file": str(file_path),
@@ -320,10 +320,10 @@ def run_compatibility_check(
     """Core compatibility checking logic shared between commands."""
     # Enable debug logging if verbose mode
     if verbose:
-        logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(message)s')
+        logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
     else:
         logging.basicConfig(level=logging.WARNING)
-    
+
     # Parse extensions
     ext_list: Optional[List[str]] = None
     if extensions:
