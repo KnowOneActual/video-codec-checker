@@ -100,6 +100,8 @@ VideoWise analyzes video files and provides:
 
 ### Prerequisites
 
+You need Python 3.10 or greater.
+
 You need FFmpeg installed:
 
 ```bash
