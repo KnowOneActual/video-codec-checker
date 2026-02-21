@@ -34,12 +34,18 @@ jobs:
       
       - name: Create test video (H.264 high profile)
         run: |
+          echo "=== Working directory ==="
+          pwd
+          echo ""
           echo "=== Creating test video ==="
           ffmpeg -f lavfi -i testsrc=duration=1:size=1280x720:rate=30 \
             -c:v libx264 -profile:v high -level 4.1 -pix_fmt yuv420p \
             -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
             -t 1 test_video.mp4 -y
           
+          echo ""
+          echo "=== File created ==="
+          ls -lh test_video.mp4
           echo ""
           echo "=== Video created, checking with FFprobe ==="
           ffprobe -v error -show_streams -show_format test_video.mp4
@@ -57,9 +63,17 @@ jobs:
       - name: Debug VideoAnalyzer directly
         run: |
           echo "=== Testing VideoAnalyzer directly ==="
+          echo "Working directory: $(pwd)"
+          echo "File exists: $(test -f test_video.mp4 && echo 'YES' || echo 'NO')"
+          echo ""
           python3 << 'PYTHON_EOF'
           from videowise.analyzer import VideoAnalyzer
           import json
+          import os
+          
+          print(f"Python working dir: {os.getcwd()}")
+          print(f"File exists from Python: {os.path.exists('test_video.mp4')}")
+          print()
           
           analyzer = VideoAnalyzer("test_video.mp4")
           metadata = analyzer.get_metadata()
@@ -83,24 +97,31 @@ jobs:
           from pathlib import Path
           from videowise.cli import check_single_file
           import json
+          import traceback
           
           print("Calling check_single_file...")
-          result, exit_code, analyzer = check_single_file(
-              Path("test_video.mp4"),
-              ["casparcg"],
-              verbose=True,
-              show_progress=False
-          )
-          
-          print(f"\nResult: {json.dumps(result, indent=2)}")
-          print(f"\nExit code: {exit_code}")
-          print(f"\nAnalyzer is None: {analyzer is None}")
-          
-          if analyzer:
-              print(f"\nAnalyzer codec name: {analyzer.get_codec_name()}")
-              print(f"Analyzer container: {analyzer.get_container_format()}")
-          else:
-              print("\n❌ ERROR: Analyzer is None!")
+          try:
+              result, exit_code, analyzer = check_single_file(
+                  Path("test_video.mp4"),
+                  ["casparcg"],
+                  verbose=True,
+                  show_progress=False
+              )
+              
+              print(f"\nResult: {json.dumps(result, indent=2)}")
+              print(f"\nExit code: {exit_code}")
+              print(f"\nAnalyzer is None: {analyzer is None}")
+              
+              if analyzer:
+                  print(f"\nAnalyzer codec name: {analyzer.get_codec_name()}")
+                  print(f"Analyzer container: {analyzer.get_container_format()}")
+              else:
+                  print("\n❌ ERROR: Analyzer is None!")
+                  if 'error' in result:
+                      print(f"Error in result: {result['error']}")
+          except Exception as e:
+              print(f"\n❌ EXCEPTION in check_single_file: {e}")
+              traceback.print_exc()
           PYTHON_EOF
       
       - name: Test videowise check
