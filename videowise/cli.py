@@ -1,7 +1,9 @@
 """Command-line interface for video codec checker."""
 
 import json
+import logging
 import sys
+import traceback
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -29,12 +31,15 @@ DEFAULT_VIDEO_EXTENSIONS = [
     ".mxf",
 ]
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
 
 @click.group(invoke_without_command=True)
 @click.version_option(version=__version__)
 @click.pass_context
 def cli(ctx):
-    r"""VideoWise - Video Codec Compatibility Checker.
+    r"""VideoWise video codec compatibility checker.
 
     Check if your videos work with CasparCG, Instagram, browsers, and more.
 
@@ -152,23 +157,43 @@ def check_single_file(
         Tuple of (result_dict, exit_code, analyzer_instance)
     """
     try:
+        # Log detailed debugging info
+        logger.debug(f"Checking file: {file_path}")
+        logger.debug(f"File exists: {file_path.exists()}")
+        logger.debug(f"Systems to check: {systems_to_check}")
+
         analyzer = VideoAnalyzer(str(file_path))
+        logger.debug("VideoAnalyzer created successfully")
+
         metadata = analyzer.get_metadata()
+        logger.debug(f"Metadata retrieved: {metadata is not None}")
+        if metadata:
+            logger.debug(f"Metadata keys: {metadata.keys()}")
 
         if not metadata:
+            error_msg = "Unable to extract video metadata (ffprobe returned no data)"
+            logger.error(error_msg)
             return (
                 {
                     "file": str(file_path),
-                    "error": "Unable to extract video metadata",
+                    "error": error_msg,
                     "results": [],
                 },
                 2,
                 None,
             )
 
-        codec = analyzer.get_codec_name() or "unknown"
+        codec = analyzer.get_codec_name()
+        logger.debug(f"Codec name: {codec}")
+        codec = codec or "unknown"
+
         codec_profile = analyzer.get_codec_profile()
-        container = analyzer.get_container_format() or "unknown"
+        logger.debug(f"Codec profile: {codec_profile}")
+
+        container = analyzer.get_container_format()
+        logger.debug(f"Container format: {container}")
+        container = container or "unknown"
+
         resolution = analyzer.get_resolution()
         framerate = analyzer.get_frame_rate()
         bitrate = analyzer.get_bitrate()
@@ -186,6 +211,7 @@ def check_single_file(
             "bitrate": bitrate,
             "file_size": file_size,
         }
+        logger.debug(f"Video info created: {video_info}")
 
         # Check all systems with optional progress bar
         all_results: List[Dict[str, Any]] = []
@@ -241,13 +267,39 @@ def check_single_file(
             "exit_code": exit_code,
         }
 
+        logger.debug(f"Check complete, exit code: {exit_code}")
         return result, exit_code, analyzer
 
-    except Exception as e:
+    except FileNotFoundError as e:
+        error_msg = f"File not found: {e}"
+        logger.error(error_msg)
+        logger.error(traceback.format_exc())
         return (
             {
                 "file": str(file_path),
-                "error": str(e),
+                "error": error_msg,
+                "results": [],
+            },
+            2,
+            None,
+        )
+    except Exception as e:
+        error_msg = f"Error processing video: {e}"
+        logger.error(error_msg)
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Full traceback:\n{traceback.format_exc()}")
+
+        # Print error to stderr for visibility in CI
+        click.secho(f"\n❌ Error analyzing {file_path}:", fg="red", err=True)
+        click.secho(f"   {error_msg}", fg="red", err=True)
+        if logger.level == logging.DEBUG:
+            click.secho("\nFull traceback:", fg="yellow", err=True)
+            click.echo(traceback.format_exc(), err=True)
+
+        return (
+            {
+                "file": str(file_path),
+                "error": error_msg,
                 "results": [],
             },
             2,
@@ -266,6 +318,12 @@ def run_compatibility_check(
     no_color: bool = False,
 ):
     """Core compatibility checking logic shared between commands."""
+    # Enable debug logging if verbose mode
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
+    else:
+        logging.basicConfig(level=logging.WARNING)
+
     # Parse extensions
     ext_list: Optional[List[str]] = None
     if extensions:
