@@ -7,7 +7,7 @@
 > ✅ **What Works**: Full CLI, **31 system checkers**, Python API, preset commands, batch processing, enhanced explanations  
 > 🚧 **In Progress**: Additional features, PyPI package
 >
-> 🎉 ** First Phase Refactoring Complete**: Replaced 31 hardcoded checker classes with a rule-based engine! **79% less code, 90% faster to add new systems.** See [REFACTORING.md](REFACTORING.md) for details.
+> 🎉 ** First Phase Refactoring Complete**: Replaced 31 hardcoded checker classes with a rule-based engine! **79% less code, 90% faster to add new systems.** See [REFACTORING.md](docs/REFACTORING.md) for details.
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -175,7 +175,7 @@ systems:
 
 That's it! No Python code, no tests to write. The rule engine handles everything.
 
-**[Learn more about the architecture →](REFACTORING.md)**
+**[Learn more about the architecture →](docs/REFACTORING.md)**
 
 ## Documentation
 
@@ -185,13 +185,13 @@ That's it! No Python code, no tests to write. The rule engine handles everything
 - **[Compatibility Matrix](docs/COMPATIBILITY_MATRIX.md)** - Detailed system compatibility features
 - **[Media Players & VJ Software](docs/MEDIA_PLAYERS_VJ.md)** - In-depth guide for VLC, Resolume, Mitti, Millumin
 - **[Editing Platforms](docs/EDITING_PLATFORMS.md)** - Comprehensive guide for DaVinci, Premiere, Final Cut, Avid, After Effects
-- **[Architecture Refactoring](REFACTORING.md)** - How we reduced code by 79% and made contributions 10x easier
+- **[Architecture Refactoring](docs/REFACTORING.md)** - How we reduced code by 79% and made contributions 10x easier
 
 ## Development
 
 - **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
-- **[Testing Guide](TESTING.md)** - Running tests and adding test coverage
-- **[Development Setup](DEVELOPMENT.md)** - Setting up your development environment
+- **[Testing Guide](docs/TESTING.md)** - Running tests and adding test coverage
+- **[Development Setup](docs/DEVELOPMENT.md)** - Setting up your development environment
 
 **Quick development commands:**
 
@@ -230,7 +230,7 @@ make check         # Run all quality checks
 - [ ] Web interface
 - [ ] PyPI package
 
-**[View detailed roadmap →](ROADMAP.md)**
+**[View detailed roadmap →](docs/ROADMAP.md)**
 
 ## Contributing
 

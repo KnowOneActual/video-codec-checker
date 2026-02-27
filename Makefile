@@ -37,29 +37,29 @@ setup-hooks:
 	@echo "✓ Pre-commit hooks installed"
 
 test:
-	pytest
+	export PYTHONPATH=$${PYTHONPATH}:$(shell pwd)/src && pytest
 
 test-v:
-	pytest -v
+	export PYTHONPATH=$${PYTHONPATH}:$(shell pwd)/src && pytest -v
 
 test-cov:
-	pytest --cov=videowise --cov-report=html --cov-report=term
+	export PYTHONPATH=$${PYTHONPATH}:$(shell pwd)/src && pytest --cov=videowise --cov-report=html --cov-report=term
 	@echo "Coverage report: htmlcov/index.html"
 
 black:
-	black videowise tests examples
+	black src tests examples
 
 isort:
-	isort videowise tests examples
+	isort src tests examples
 
 flake8:
-	flake8 videowise tests \
+	flake8 src tests \
 		--max-line-length=100 \
 		--extend-ignore=E203,W503 \
 		--exclude=.git,__pycache__,.venv,.eggs,*.egg,build,dist
 
 mypy:
-	mypy videowise --ignore-missing-imports --no-strict-optional
+	mypy src --ignore-missing-imports --no-strict-optional
 
 format: black isort
 	@echo "✓ Code formatted"
@@ -69,11 +69,11 @@ lint: black isort flake8
 
 check:
 	@echo "Running black check..."
-	black --check --diff videowise tests examples
+	black --check --diff src tests examples
 	@echo "Running isort check..."
-	isort --check-only --diff videowise tests examples
+	isort --check-only --diff src tests examples
 	@echo "Running flake8..."
-	flake8 videowise tests \
+	flake8 src tests \
 		--max-line-length=100 \
 		--extend-ignore=E203,W503 \
 		--exclude=.git,__pycache__,.venv,.eggs,*.egg,build,dist

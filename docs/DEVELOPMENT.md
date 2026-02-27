@@ -4,6 +4,22 @@ Guide for contributing to VideoWise development.
 
 ## Setup
 
+### Project Structure
+
+```text
+video-codec-checker/
+├── docs/               # Documentation and guides
+├── src/                # Source code
+│   └── videowise/      # Main package
+│       ├── legacy/     # Legacy checker classes (preserved for BC)
+│       ├── types.py    # Core shared types
+│       └── ...
+├── tests/              # Test suite
+│   └── assets/         # Test media assets
+├── pyproject.toml      # Build & tool configuration
+└── README.md           # Project entry point
+```
+
 ### Prerequisites
 
 - Python 3.8 or higher
@@ -252,7 +268,7 @@ pre-commit autoupdate
 
 - Check existing [Issues](https://github.com/KnowOneActual/video-codec-checker/issues)
 - Start a [Discussion](https://github.com/KnowOneActual/video-codec-checker/discussions)
-- Read the [README](README.md) and [CLI Usage Guide](docs/CLI_USAGE.md)
+- Read the [README](../README.md) and [CLI Usage Guide](./CLI_USAGE.md)
 
 ## Resources
 

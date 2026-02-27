@@ -4,7 +4,7 @@ This directory contains YAML-based system profiles that define compatibility rul
 
 ## Quick Start: Adding a New System
 
-### 1. Edit `profiles.yaml`
+### 1. Edit `videowise/system_profiles.yaml`
 
 Add your system under the appropriate category:
 
@@ -374,7 +374,7 @@ your_system:
 
 ## Need Help?
 
-- **Examples**: Look at existing profiles in `profiles.yaml`
+- **Examples**: Look at existing profiles in `videowise/system_profiles.yaml`
 - **Discussion**: [Open a discussion](https://github.com/KnowOneActual/video-codec-checker/discussions)
 - **Issues**: [Report bugs](https://github.com/KnowOneActual/video-codec-checker/issues)
 - **Documentation**: See `docs/REFACTORING_GUIDE.md`

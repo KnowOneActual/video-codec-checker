@@ -80,17 +80,42 @@ systems:
         message: "{codec} is supported by CasparCG Server"
         reason: "CasparCG supports this codec for reliable playback"
       
+      - condition: {codec_eq: "hap_alpha"}
+        level: compatible
+        message: "HAP Alpha provides GPU-accelerated playback with transparency"
+        reason: "Ideal for overlays and graphics with transparency"
+      
+      - condition: {codec_eq: "hap_q"}
+        level: compatible
+        message: "HAP Q provides high-quality GPU-accelerated playback"
+        reason: "Optimal for high-resolution high-quality playback"
+
       - condition: {codec_contains: "hap"}
         level: compatible
         message: "HAP codec provides GPU-accelerated playback"
         reason: "Optimal for real-time playback in CasparCG"
+
+      - condition: {codec_eq: "notchlc"}
+        level: compatible
+        message: "NotchLC is supported for high-quality broadcast playback"
+        reason: "Professional high-quality codec support"
+      
+      - condition: {codec_eq: "prores4444"}
+        level: compatible
+        message: "ProRes 4444 supports alpha channel for transparency"
+        reason: "Professional quality with transparency support"
       
       - condition: {codec_eq: "prores", profile_contains: "4444"}
         level: compatible
         message: "ProRes 4444 supports alpha channel for transparency"
         reason: "Professional quality with transparency support"
+
+      - condition: {codec_contains: "hap", container_ne: "mov"}
+        level: warning
+        message: "HAP codec works best in MOV container"
+        suggestion: "Remux to MOV for optimal performance"
       
-      - condition: {codec_not_in: [h264, prores, dnxhd, dnxhr, mpeg2video, mjpeg, hap, notchlc]}
+      - condition: {codec_not_in: [h264, prores, prores4444, dnxhd, dnxhr, mpeg2video, mjpeg, hap, hap_alpha, hap_q, notchlc]}
         level: incompatible
         message: "CasparCG does not support {codec} codec"
         suggestion: "Convert to HAP (GPU-accelerated), ProRes, DNxHD, or H.264"
@@ -112,7 +137,54 @@ systems:
         hap: [mov]
         h264: [mp4, mov]
         prores: [mov]
+    variants:
+      raspberrypi:
+        rules:
+          - condition: {codec_eq: "hap_q"}
+            level: warning
+            message: "HAP Q may be too demanding for Raspberry Pi"
+            suggestion: "Use standard HAP for better performance"
+          - condition: {codec_contains: "prores"}
+            level: warning
+            message: "ProRes is demanding on Raspberry Pi; H.264 or HAP preferred"
+            suggestion: "Convert to H.264 or HAP"
+          - condition: {bitrate_gt: 40000000}
+            level: warning
+            message: "High bitrate may exceed Raspberry Pi hardware limits"
+            suggestion: "Target 20-30 Mbps for H.264"
+          - condition: {resolution_gte: [3840, 2160]}
+            level: warning
+            message: "4K resolution is too high for reliable playback on Raspberry Pi"
+            suggestion: "Use 1080p resolution"
+      desktop:
+        rules:
+          - condition: {codec_eq: "hap_q"}
+            level: compatible
+            message: "HAP Q is optimal for high-quality desktop playback"
     rules:
+      - condition: {codec_eq: "hap_alpha"}
+        level: compatible
+        message: "HAP Alpha supports transparency for overlays"
+        reason: "Alpha channel detected for transparent graphics"
+      
+      - condition: {codec_eq: "prores4444"}
+        level: compatible
+        message: "ProRes 4444 supports transparency"
+        reason: "Alpha channel detected"
+
+      - condition: {codec_contains: "hap", container_ne: "mov"}
+        level: warning
+        message: "HAP requires MOV container for PlayoutBee"
+        suggestion: "Remux to MOV"
+
+      - condition: {container_eq: "mov"}
+        level: compatible
+        message: "MOV container is supported by PlayoutBee"
+
+      - condition: {container_eq: "mp4"}
+        level: compatible
+        message: "MP4 container is supported by PlayoutBee"
+
       - condition: {codec_contains: "hap"}
         level: compatible
         message: "HAP codec is optimal for PlayoutBee"
@@ -140,6 +212,10 @@ systems:
       - condition: {codec_in: [prores, dnxhd, dnxhr]}
         level: compatible
         message: "{codec} is well-supported by vMix"
+
+      - condition: {codec_eq: "h264"}
+        level: compatible
+        message: "H.264 is natively supported by vMix"
   
   obs:
     name: "OBS Studio"
@@ -187,6 +263,11 @@ systems:
         level: compatible
         message: "{codec} is compatible with QLab"
         reason: "QLab works best with ProRes codecs"
+
+      - condition: {codec_in: [h264, h265, hevc]}
+        level: warning
+        message: "{codec} may not perform well in QLab"
+        suggestion: "Convert to ProRes Proxy or LT for best reliability"
       
       - condition: {codec_eq: "h264"}
         level: warning
@@ -811,6 +892,17 @@ systems:
       optimal: [dnxhd, dnxhr, prores]
       gpu_accelerated: [h264, hevc]  # Studio only
       supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg, av1, braw]
+    variants:
+      studio:
+        rules:
+          - condition: {codec_in: [h264, hevc]}
+            level: compatible
+            message: "GPU hardware decoding for {codec} available in Studio"
+      mac_apple_silicon:
+        rules:
+          - condition: {codec_contains: "prores"}
+            level: compatible
+            message: "ProRes hardware acceleration on Apple Silicon"
     rules:
       - condition: {codec_contains: "dnx"}
         level: compatible
@@ -826,7 +918,16 @@ systems:
         level: warning
         message: "{codec} may require transcoding for intensive editing/grading"
         suggestion: "Consider generating optimized media (DNxHR/ProRes)"
-  
+
+      - condition: {codec_eq: "braw"}
+        level: compatible
+        message: "Blackmagic RAW (BRAW) is natively supported"
+        reason: "Excellent performance and grading flexibility"
+
+      - condition: {codec_eq: "hevc", resolution_gte: [3840, 2160]}
+        level: compatible
+        message: "Hardware-accelerated H.265 (HEVC) 4K decoding supported"
+
   premiere:
     name: "Adobe Premiere Pro"
     category: editing
@@ -843,6 +944,35 @@ systems:
         level: compatible
         message: "{codec} benefits from Mercury Playback Engine GPU acceleration"
         suggestion: "Enable GPU acceleration in Project Settings"
+
+      - condition: {codec_eq: "h264", resolution_gte: [3840, 2160]}
+        level: compatible
+        message: "H.264 Level 5.1+ recommended for 4K in Premiere Pro"
+
+      - condition: {frame_rate_mode_eq: "vfr"}
+        level: warning
+        message: "Variable Frame Rate (VFR) can cause audio sync issues in Premiere Pro"
+        suggestion: "Convert to Constant Frame Rate (CFR) before importing"
+
+      - condition: {resolution_gte: [7680, 4320]}
+        level: warning
+        message: "8K resolution requires a Proxy workflow for reliable playback in Premiere Pro"
+        suggestion: "Create Proxies using ProRes Proxy or DNxHR LB"
+
+      - condition: {codec_eq: "r3d"}
+        level: compatible
+        message: "RED RAW (R3D) is natively supported"
+        reason: "Premiere Pro provides excellent support for RED digital cinema workflows"
+
+      - condition: {codec_eq: "xavc"}
+        level: compatible
+        message: "Sony XAVC is natively supported"
+        reason: "Professional camera format with good stability"
+
+      - condition: {bitrate_gt: 100000000, resolution_gte: [3840, 2160]}
+        level: warning
+        message: "High bitrate 4K may require Proxy workflow for smooth editing"
+        suggestion: "Create Proxies using ProRes Proxy or DNxHR LB"
   
   finalcut:
     name: "Final Cut Pro"
@@ -850,16 +980,35 @@ systems:
     codecs:
       native: [prores]
       supported: [h264, hevc, prores, dnxhd, dnxhr, av1]
+    variants:
+      mac_apple_silicon:
+        rules:
+          - condition: {codec_contains: "prores"}
+            level: compatible
+            message: "ProRes hardware acceleration on Apple Silicon"
     rules:
       - condition: {codec_contains: "prores"}
         level: compatible
         message: "{codec} is the native codec for Final Cut Pro"
         reason: "Hardware acceleration on Apple Silicon provides excellent performance"
+
+      - condition: {codec_in: [h264, hevc]}
+        level: compatible
+        message: "{codec} hardware acceleration available in Final Cut Pro"
+
+      - condition: {container_eq: "mov"}
+        level: compatible
+        message: "MOV container is natively supported by Final Cut Pro"
       
       - condition: {codec_in: [h264, hevc]}
         level: warning
         message: "{codec} will prompt for Optimized Media workflow"
         suggestion: "Allow FCP to create optimized media or pre-transcode"
+
+      - condition: {codec_eq: "hevc", bitrate_gt: 50000000}
+        level: warning
+        message: "High bitrate HEVC may require background rendering for smooth playback"
+        suggestion: "Enable Background Render in Preferences or transcode to ProRes"
   
   avid:
     name: "Avid Media Composer"
@@ -879,8 +1028,18 @@ systems:
       
       - condition: {codec_contains: "prores"}
         level: compatible
-        message: "{codec} is well-supported in Avid Media Composer"
-        reason: "Professional codec with good compatibility"
+        message: "{codec} is well-supported in Avid Media Composer for collaboration"
+        reason: "Excellent for cross-platform workflows between FCP/Premiere and Avid"
+
+      - condition: {audio_codec_in: [pcm_s16le, pcm_s24le]}
+        level: compatible
+        message: "Broadcast-standard PCM audio detected"
+        reason: "Standard for professional broadcast workflows"
+
+      - condition: {container_ne: "mxf"}
+        level: warning
+        message: "Avid Media Composer prefers MXF container for native workflows"
+        suggestion: "Use MXF OP1a or rewrap to MXF"
       
       - condition: {codec_in: [h264, hevc]}
         level: warning
@@ -909,17 +1068,41 @@ systems:
         level: compatible
         message: "{codec} is well-supported in After Effects"
         reason: "DNxHD/DNxHR excellent for motion graphics workflows"
-      
+
+      - condition: {codec_eq: "prores4444"}
+        level: compatible
+        message: "ProRes 4444 supports alpha channel for transparency in After Effects"
+        reason: "Alpha channel detected for compositing"
+
+      - condition: {codec_eq: "png_sequence"}
+        level: compatible
+        message: "PNG sequence is recommended for high-quality masters/renders"
+
+      - condition: {codec_eq: "qtrle"}
+        level: compatible
+        message: "Legacy Animation codec (QT RLE) is supported for alpha channel"
+        reason: "Still used for legacy assets, though ProRes 4444 preferred"
+
+      - condition: {codec_in: [prores, dnxhd, dnxhr]}
+        level: compatible
+        message: "Ideal for Adobe Dynamic Link between Premiere and After Effects"
+        reason: "Native performance across Creative Cloud applications"
+
       - condition: {codec_in: [h264, hevc]}
         level: warning
-        message: "{codec} not ideal for frame-accurate compositing"
+        message: "{codec} not ideal for frame-accurate compositing in After Effects"
         reason: "Compressed codecs can cause render/preview issues"
+        suggestion: "Use ProRes or DNxHR for best stability"
         suggestion: "Convert to ProRes or DNxHR for smoother timeline performance"
       
       - condition: {codec_eq: "png_sequence"}
         level: compatible
         message: "PNG sequence is optimal for alpha channel compositing"
         reason: "Lossless with full transparency support"
+
+      - condition: {codec_in: [prores, dnxhd, dnxhr]}
+        level: compatible
+        message: "GPU hardware acceleration available for {codec} in After Effects"
   
   # === STREAMING PLATFORMS ===
   twitch:

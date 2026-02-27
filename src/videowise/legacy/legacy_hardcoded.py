@@ -7,44 +7,9 @@ Legacy hardcoded checker classes are preserved for backward compatibility and
 can still be imported and used directly if needed.
 """
 
-from dataclasses import dataclass
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-
-class CompatibilityLevel(Enum):
-    """Compatibility status levels."""
-
-    COMPATIBLE = "compatible"
-    WARNING = "warning"
-    INCOMPATIBLE = "incompatible"
-    UNKNOWN = "unknown"
-
-
-@dataclass
-class CompatibilityIssue:
-    """Represents a compatibility issue or warning."""
-
-    level: CompatibilityLevel
-    message: str
-    reason: Optional[str] = None
-    suggestion: Optional[str] = None
-
-
-class CompatibilityChecker:
-    """Base class for compatibility checking."""
-
-    def check(self, video_info: Dict[str, Any]) -> List[CompatibilityIssue]:
-        """Check compatibility and return list of issues.
-
-        Args:
-            video_info: Dictionary containing video metadata
-
-        Returns:
-            List of compatibility issues
-        """
-        raise NotImplementedError
-
+from ..types import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel
 
 # Import editing platform checkers (for backward compatibility)
 try:
@@ -2045,7 +2010,7 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
         >>> for issue in issues:
         ...     print(f"{issue.level.value}: {issue.message}")
     """
-    from .rule_engine import RuleEngine
+    from ..rule_engine import RuleEngine
 
     engine = RuleEngine()
     return engine.check_compatibility(video_info, system)
@@ -2064,7 +2029,7 @@ def get_available_systems() -> List[str]:
         >>> print(f"Found {len(systems)} systems")
         >>> print(systems[:5])  # First 5 systems
     """
-    from .rule_engine import RuleEngine
+    from ..rule_engine import RuleEngine
 
     engine = RuleEngine()
     return engine.get_available_systems()

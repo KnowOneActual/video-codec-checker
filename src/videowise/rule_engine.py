@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import yaml  # type: ignore[import-untyped]
 
-from .compatibility import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel
+from .types import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel
 
 # Module-level cache for RuleEngine instances
 _ENGINE_CACHE: Dict[Optional[str], "RuleEngine"] = {}
@@ -63,13 +63,14 @@ class RuleEngine:
         return list(profile_data.get("systems", []))
 
     def check_compatibility(
-        self, video_info: Dict[str, Any], system: str
+        self, video_info: Dict[str, Any], system: str, variant: Optional[str] = None
     ) -> List[CompatibilityIssue]:
         """Check video compatibility for a specific system.
 
         Args:
             video_info: Dictionary containing video metadata
             system: System to check compatibility for
+            variant: Optional system variant (e.g., 'studio', 'free')
 
         Returns:
             List of compatibility issues
@@ -85,7 +86,15 @@ class RuleEngine:
             ]
 
         issues: List[CompatibilityIssue] = []
+
+        # Get base rules
         rules: List[Dict[str, Any]] = system_config.get("rules", [])
+
+        # Add variant rules if applicable
+        if variant and "variants" in system_config:
+            variant_config = system_config["variants"].get(variant)
+            if variant_config:
+                rules.extend(variant_config.get("rules", []))
 
         # Evaluate each rule
         for rule in rules:
@@ -362,8 +371,8 @@ class RuleEngine:
 
         # Template substitution
         message = self._substitute_template(rule.get("message", ""), template_vars)
-        reason = self._substitute_template(rule.get("reason", ""), template_vars) or None
-        suggestion = self._substitute_template(rule.get("suggestion", ""), template_vars) or None
+        reason = self._substitute_template(rule.get("reason", ""), template_vars)
+        suggestion = self._substitute_template(rule.get("suggestion", ""), template_vars)
 
         return CompatibilityIssue(
             level=level,
@@ -372,7 +381,7 @@ class RuleEngine:
             suggestion=suggestion,
         )
 
-    def _substitute_template(self, template: str, variables: Dict[str, Any]) -> str:
+    def _substitute_template(self, template: Optional[str], variables: Dict[str, Any]) -> str:
         """Substitute template variables in string.
 
         Args:
@@ -382,6 +391,9 @@ class RuleEngine:
         Returns:
             String with variables substituted
         """
+        if not template:
+            return ""
+
         result = template
         for key, value in variables.items():
             result = result.replace(f"{{{key}}}", str(value))
@@ -418,7 +430,9 @@ class RuleBasedChecker(CompatibilityChecker):
 
 
 # Convenience function for backward compatibility
-def check_compatibility(video_info: Dict[str, Any], system: str) -> List[CompatibilityIssue]:
+def check_compatibility(
+    video_info: Dict[str, Any], system: str, variant: Optional[str] = None
+) -> List[CompatibilityIssue]:
     """Check video compatibility for a specific system.
 
     This function maintains backward compatibility with existing code.
@@ -426,12 +440,13 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
     Args:
         video_info: Dictionary containing video metadata
         system: System to check compatibility for
+        variant: Optional system variant
 
     Returns:
         List of compatibility issues
     """
     engine = _get_cached_engine()
-    return engine.check_compatibility(video_info, system)
+    return engine.check_compatibility(video_info, system, variant)
 
 
 def get_available_systems() -> List[str]:

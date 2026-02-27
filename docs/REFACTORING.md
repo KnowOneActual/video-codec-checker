@@ -549,7 +549,7 @@ YAML parsing happens once at startup; rule evaluation is pure Python.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for:
 - How to add new systems to `system_profiles.yaml`
 - Rule syntax reference
 - Testing guidelines

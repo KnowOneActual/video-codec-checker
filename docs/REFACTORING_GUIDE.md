@@ -34,7 +34,7 @@ This document describes the Phase 2 refactoring that transforms VideoWise from a
 
 ## Architecture Components
 
-### 1. System Profiles (`videowise/systems/profiles.yaml`)
+### 1. System Profiles (`videowise/system_profiles.yaml`)
 
 Declarative YAML definitions for all 31+ systems. Example:
 

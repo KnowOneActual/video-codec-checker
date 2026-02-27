@@ -446,6 +446,6 @@ videowise learn video.mp4  # For educational mode
 
 ## What's Next?
 
-- See [ROADMAP.md](../ROADMAP.md) for upcoming features
+- See [ROADMAP.md](./ROADMAP.md) for upcoming features
 - Report issues on [GitHub](https://github.com/KnowOneActual/video-codec-checker/issues)
 - Contribute improvements via pull requests

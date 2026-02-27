@@ -15,29 +15,37 @@ authors = [
 maintainers = [
     {name = "Beau Bremer", email = "beau.bremer@gmail.com"}
 ]
-keywords = ["video", "codec", "compatibility", "ffmpeg", "live-production"]
+keywords = ["video", "codec", "compatibility", "ffmpeg", "live-production", "casparcg", "vmix", "obs", "qlab", "propresenter", "content-creation"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: End Users/Desktop",
     "Topic :: Multimedia :: Video",
+    "Topic :: Multimedia :: Video :: Conversion",
+    "Topic :: System :: Systems Administration",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
 ]
 
 dependencies = [
     "click>=8.1.0",
-    "PyYAML>=5.4",
+    "PyYAML>=6.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
-    "black>=22.0",
-    "isort>=5.0",
-    "flake8>=5.0",
-    "mypy>=0.990",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "black>=24.0.0",
+    "isort>=5.13.0",
+    "flake8>=7.0.0",
+    "mypy>=1.8.0",
+    "types-PyYAML>=6.0.0",
     "pre-commit>=2.21.0,<3.0",
 ]
 
@@ -50,6 +58,9 @@ Roadmap = "https://github.com/KnowOneActual/video-codec-checker/blob/main/ROADMA
 
 [project.scripts]
 videowise = "videowise.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.black]
 line-length = 100
@@ -70,6 +81,7 @@ profile = "black"
 line_length = 100
 skip_gitignore = true
 known_first_party = ["videowise"]
+src_paths = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -83,7 +95,7 @@ addopts = [
 ]
 
 [tool.coverage.run]
-source = ["videowise"]
+source = ["src/videowise"]
 omit = [
     "*/tests/*",
     "*/__pycache__/*",

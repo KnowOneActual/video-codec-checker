@@ -258,7 +258,7 @@ pip install -r requirements.txt
 ### Next Steps
 
 - Read [ARCHITECTURE.md](ARCHITECTURE.md) to understand how the code works
-- Check [ROADMAP.md](../ROADMAP.md) to see what's coming next
+- Check [ROADMAP.md](./ROADMAP.md) to see what's coming next
 - See [CONTRIBUTING.md](../CONTRIBUTING.md) to contribute
 - Open an [issue](https://github.com/KnowOneActual/video-codec-checker/issues) with questions
 
@@ -270,4 +270,4 @@ pip install -r requirements.txt
 
 ---
 
-**Ready to build the CLI?** See [ROADMAP.md](../ROADMAP.md) Phase 2 for what's coming next!
+**Ready to build the CLI?** See [ROADMAP.md](./ROADMAP.md) Phase 2 for what's coming next!

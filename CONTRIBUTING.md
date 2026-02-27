@@ -159,7 +159,7 @@ def check_compatibility(video_info: Dict[str, Any], system: str) -> List[Compati
 ### Writing Tests
 
 1. **One test file per source file**
-   - `videowise/analyzer.py` → `tests/test_analyzer.py`
+   - `src/videowise/analyzer.py` → `tests/test_analyzer.py`
 
 2. **Test naming convention**
    ```python
@@ -337,7 +337,7 @@ some_function(
 
 ```bash
 # Auto-fix with isort
-isort videowise/ tests/
+isort src/ tests/
 
 # Or
 make format
@@ -382,8 +382,8 @@ git add . && git commit -m "..."    # Commit (hooks run automatically)
 
 # Manual checks
 pre-commit run --all-files          # Run all hooks manually
-flake8 videowise/ tests/            # Check linting
-black --check videowise/ tests/     # Check formatting
+flake8 src/ tests/                  # Check linting
+black --check src/ tests/           # Check formatting
 ```
 
 ## 💡 Pro Tips

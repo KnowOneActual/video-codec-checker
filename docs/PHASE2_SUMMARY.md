@@ -293,7 +293,7 @@ Open an issue or discussion on GitHub:
 
 ## Links
 
-- [Full Architecture Documentation](REFACTORING.md)
-- [System Profiles YAML](videowise/system_profiles.yaml)
-- [Rule Engine Code](videowise/rule_engine.py)
-- [Tests](tests/test_rule_engine.py)
+- [Full Architecture Documentation](./REFACTORING.md)
+- [System Profiles YAML](../videowise/system_profiles.yaml)
+- [Rule Engine Code](../videowise/rule_engine.py)
+- [Tests](../tests/test_rule_engine.py)

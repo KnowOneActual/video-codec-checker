@@ -16,7 +16,7 @@ Usage:
 
 from typing import Any, Dict, List
 
-from .compatibility import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel
+from ..types import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel
 
 
 class DaVinciResolveChecker(CompatibilityChecker):

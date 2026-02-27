@@ -8,11 +8,11 @@ This module tests compatibility checkers for professional video editing software
 - After Effects
 """
 
-from videowise.compatibility import CompatibilityLevel
-from videowise.editing_platforms import (
+from videowise import (
     AdobePremiereProChecker,
     AfterEffectsChecker,
     AvidMediaComposerChecker,
+    CompatibilityLevel,
     DaVinciResolveChecker,
     FinalCutProChecker,
 )

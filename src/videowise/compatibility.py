@@ -4,33 +4,13 @@ This module maintains the existing API while internally using the new
 rule-based engine. Existing code continues to work without changes.
 """
 
-from dataclasses import dataclass
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from .rule_engine import RuleEngine
+from .types import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel  # noqa: F401
 
 
-class CompatibilityLevel(Enum):
-    """Compatibility status levels."""
-
-    COMPATIBLE = "compatible"
-    WARNING = "warning"
-    INCOMPATIBLE = "incompatible"
-    UNKNOWN = "unknown"
-
-
-@dataclass
-class CompatibilityIssue:
-    """Represents a compatibility issue or warning."""
-
-    level: CompatibilityLevel
-    message: str
-    reason: Optional[str] = None
-    suggestion: Optional[str] = None
-
-
-class CompatibilityChecker:
+class RuleEngineCompatibilityChecker(CompatibilityChecker):
     """Base class for compatibility checking using rule engine."""
 
     system_name: str = ""
@@ -49,7 +29,10 @@ class CompatibilityChecker:
         Returns:
             List of compatibility issues
         """
-        return self._engine.check_compatibility(video_info, self.system_name, self.variant)
+        return cast(
+            List[CompatibilityIssue],
+            self._engine.check_compatibility(video_info, self.system_name, self.variant),
+        )
 
 
 # ============================================================================
@@ -57,45 +40,55 @@ class CompatibilityChecker:
 # ============================================================================
 
 
-class CasparCGChecker(CompatibilityChecker):
+class CasparCGChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for CasparCG Server."""
 
     system_name = "casparcg"
 
     def __init__(self, version: str = "2.3"):
+        """Initialize CasparCG checker.
+
+        Args:
+            version: CasparCG Server version
+        """
         super().__init__()
         self.version = version
 
 
-class PlayoutBeeChecker(CompatibilityChecker):
+class PlayoutBeeChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for PlayoutBee playout software."""
 
     system_name = "playoutbee"
 
     def __init__(self, platform: str = "desktop"):
+        """Initialize PlayoutBee checker.
+
+        Args:
+            platform: Targeted hardware platform (e.g., 'desktop', 'raspberrypi')
+        """
         super().__init__()
         self.variant = platform
 
 
-class VmixChecker(CompatibilityChecker):
+class VmixChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for vMix."""
 
     system_name = "vmix"
 
 
-class OBSChecker(CompatibilityChecker):
+class OBSChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for OBS Studio."""
 
     system_name = "obs"
 
 
-class QLabChecker(CompatibilityChecker):
+class QLabChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for QLab."""
 
     system_name = "qlab"
 
 
-class ProPresenterChecker(CompatibilityChecker):
+class ProPresenterChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for ProPresenter."""
 
     system_name = "propresenter"
@@ -106,49 +99,70 @@ class ProPresenterChecker(CompatibilityChecker):
 # ============================================================================
 
 
-class DaVinciResolveChecker(CompatibilityChecker):
+class DaVinciResolveChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for DaVinci Resolve."""
 
     system_name = "davinci"
 
     def __init__(self, version: str = "studio", platform: str = "windows"):
+        """Initialize DaVinci Resolve checker.
+
+        Args:
+            version: Resolve version ('studio' or 'free')
+            platform: Operating system platform
+        """
         super().__init__()
         self.variant = version
         self.platform = platform
 
 
-class AdobePremiereProChecker(CompatibilityChecker):
+class AdobePremiereProChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for Adobe Premiere Pro."""
 
     system_name = "premiere"
 
     def __init__(self, platform: str = "windows"):
+        """Initialize Premiere Pro checker.
+
+        Args:
+            platform: Operating system platform
+        """
         super().__init__()
         self.platform = platform
 
 
-class FinalCutProChecker(CompatibilityChecker):
+class FinalCutProChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for Final Cut Pro."""
 
     system_name = "finalcut"
 
     def __init__(self, platform: str = "mac_apple_silicon"):
+        """Initialize Final Cut Pro checker.
+
+        Args:
+            platform: Mac platform (e.g., 'mac_apple_silicon')
+        """
         super().__init__()
         self.variant = platform
 
 
-class AvidMediaComposerChecker(CompatibilityChecker):
+class AvidMediaComposerChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for Avid Media Composer."""
 
     system_name = "avid"
 
 
-class AfterEffectsChecker(CompatibilityChecker):
+class AfterEffectsChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for Adobe After Effects."""
 
     system_name = "aftereffects"
 
     def __init__(self, workflow: str = "motion_graphics"):
+        """Initialize After Effects checker.
+
+        Args:
+            workflow: Animation/compositing workflow type
+        """
         super().__init__()
         self.workflow = workflow
 
@@ -158,34 +172,44 @@ class AfterEffectsChecker(CompatibilityChecker):
 # ============================================================================
 
 
-class InstagramChecker(CompatibilityChecker):
+class InstagramChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for Instagram."""
 
     system_name = "instagram"
 
 
-class TwitterChecker(CompatibilityChecker):
+class TwitterChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for Twitter/X."""
 
     system_name = "twitter"
 
     def __init__(self, account_type: str = "standard"):
+        """Initialize Twitter checker.
+
+        Args:
+            account_type: Twitter account type
+        """
         super().__init__()
         self.variant = account_type
 
 
-class YouTubeChecker(CompatibilityChecker):
+class YouTubeChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for YouTube."""
 
     system_name = "youtube"
 
 
-class TikTokChecker(CompatibilityChecker):
+class TikTokChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for TikTok."""
 
     system_name = "tiktok"
 
     def __init__(self, upload_source: str = "mobile"):
+        """Initialize TikTok checker.
+
+        Args:
+            upload_source: Device used for upload
+        """
         super().__init__()
         self.upload_source = upload_source
 
@@ -195,19 +219,19 @@ class TikTokChecker(CompatibilityChecker):
 # ============================================================================
 
 
-class SafariChecker(CompatibilityChecker):
+class SafariChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for Safari browser."""
 
     system_name = "safari"
 
 
-class ChromeChecker(CompatibilityChecker):
+class ChromeChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for Chrome browser."""
 
     system_name = "chrome"
 
 
-class FirefoxChecker(CompatibilityChecker):
+class FirefoxChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for Firefox browser."""
 
     system_name = "firefox"
@@ -218,19 +242,19 @@ class FirefoxChecker(CompatibilityChecker):
 # ============================================================================
 
 
-class TwitchChecker(CompatibilityChecker):
+class TwitchChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for Twitch."""
 
     system_name = "twitch"
 
 
-class YouTubeLiveChecker(CompatibilityChecker):
+class YouTubeLiveChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for YouTube Live."""
 
     system_name = "youtube_live"
 
 
-class ZoomChecker(CompatibilityChecker):
+class ZoomChecker(RuleEngineCompatibilityChecker):
     """Compatibility checker for Zoom."""
 
     system_name = "zoom"
@@ -244,7 +268,7 @@ class ZoomChecker(CompatibilityChecker):
 def get_available_systems() -> List[str]:
     """Return list of all available system names."""
     engine = RuleEngine()
-    return engine.list_systems()
+    return engine.get_available_systems()
 
 
 def check_compatibility(video_info: Dict[str, Any], system: str) -> List[CompatibilityIssue]:

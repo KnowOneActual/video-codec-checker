@@ -32,20 +32,20 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Black (format check)
-        run: black --check --diff videowise tests
+        run: black --check --diff src tests
 
       - name: Run isort (import check)
-        run: isort --check-only --diff videowise tests
+        run: isort --check-only --diff src tests
 
       - name: Run flake8 (linting)
         run: |
-          flake8 videowise tests \
+          flake8 src tests \
             --max-line-length=100 \
             --extend-ignore=E203,W503 \
             --exclude=.git,__pycache__,.venv,.eggs,*.egg,build,dist
 
       - name: Run mypy (type checking)
-        run: mypy videowise --ignore-missing-imports --no-strict-optional
+        run: mypy src --ignore-missing-imports --no-strict-optional
         continue-on-error: true # Don't fail on type errors yet
 
   test:
@@ -83,7 +83,9 @@ jobs:
           pip install -e .
 
       - name: Run tests with coverage
-        run: pytest -v --cov=videowise --cov-report=xml --cov-report=term
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+          pytest -v --cov=videowise --cov-report=xml --cov-report=term
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.11'
