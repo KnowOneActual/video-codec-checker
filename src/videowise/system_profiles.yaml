@@ -150,12 +150,12 @@ systems:
             suggestion: "Convert to H.264 or HAP"
           - condition: {bitrate_gt: 40000000}
             level: warning
-            message: "High bitrate may exceed Raspberry Pi hardware limits"
-            suggestion: "Target 20-30 Mbps for H.264"
+            message: "High bitrate ({bitrate_mbps}Mbps) may exceed Raspberry Pi hardware limits"
+            suggestion: "Target 20-30 Mbps for H.264 (max 50 Mbps)"
           - condition: {resolution_gte: [3840, 2160]}
             level: warning
             message: "4K resolution is too high for reliable playback on Raspberry Pi"
-            suggestion: "Use 1080p resolution"
+            suggestion: "Use 1080p resolution or HAP codec"
       desktop:
         rules:
           - condition: {codec_eq: "hap_q"}
@@ -169,7 +169,7 @@ systems:
       
       - condition: {codec_eq: "prores4444"}
         level: compatible
-        message: "ProRes 4444 supports transparency"
+        message: "ProRes 4444 supports alpha channel for transparency"
         reason: "Alpha channel detected"
 
       - condition: {codec_contains: "hap", container_ne: "mov"}
@@ -264,7 +264,7 @@ systems:
         message: "{codec} is compatible with QLab"
         reason: "QLab works best with ProRes codecs"
 
-      - condition: {codec_in: [h264, h265, hevc]}
+      - condition: {codec_not_in: [prores, prores4444, hap]}
         level: warning
         message: "{codec} may not perform well in QLab"
         suggestion: "Convert to ProRes Proxy or LT for best reliability"
@@ -890,12 +890,12 @@ systems:
     category: editing
     codecs:
       optimal: [dnxhd, dnxhr, prores]
-      gpu_accelerated: [h264, hevc]  # Studio only
-      supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg, av1, braw]
+      gpu_accelerated: [h264, hevc, h265]  # Studio only
+      supported: [h264, hevc, h265, prores, dnxhd, dnxhr, mjpeg, av1, braw]
     variants:
       studio:
         rules:
-          - condition: {codec_in: [h264, hevc]}
+          - condition: {codec_in: [h264, hevc, h265]}
             level: compatible
             message: "GPU hardware decoding for {codec} available in Studio"
       mac_apple_silicon:
@@ -903,6 +903,11 @@ systems:
           - condition: {codec_contains: "prores"}
             level: compatible
             message: "ProRes hardware acceleration on Apple Silicon"
+      mac_intel:
+        rules:
+          - condition: {codec_contains: "prores"}
+            level: compatible
+            message: "ProRes is well-supported on Intel Mac"
     rules:
       - condition: {codec_contains: "dnx"}
         level: compatible
@@ -914,9 +919,9 @@ systems:
         message: "{codec} is well-supported in DaVinci Resolve"
         reason: "Professional codec for editing and grading"
       
-      - condition: {codec_in: [h264, hevc]}
+      - condition: {codec_in: [h264, hevc, h265]}
         level: warning
-        message: "{codec} may require transcoding for intensive editing/grading"
+        message: "{codec} may require transcoding / re-encoding for intensive editing/grading"
         suggestion: "Consider generating optimized media (DNxHR/ProRes)"
 
       - condition: {codec_eq: "braw"}
@@ -924,23 +929,28 @@ systems:
         message: "Blackmagic RAW (BRAW) is natively supported"
         reason: "Excellent performance and grading flexibility"
 
-      - condition: {codec_eq: "hevc", resolution_gte: [3840, 2160]}
+      - condition: {codec_in: [hevc, h265], resolution_gte: [3840, 2160]}
         level: compatible
         message: "Hardware-accelerated H.265 (HEVC) 4K decoding supported"
+      
+      - condition: {bit_depth: 10}
+        level: compatible
+        message: "10-bit color depth provides excellent grading headroom"
+        reason: "Essential for professional color correction in Resolve"
 
   premiere:
     name: "Adobe Premiere Pro"
     category: editing
     codecs:
       optimal: [dnxhd, dnxhr, prores]
-      hardware_accelerated: [h264, hevc]
-      supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg, av1, vp9]
+      hardware_accelerated: [h264, hevc, h265]
+      supported: [h264, hevc, h265, prores, dnxhd, dnxhr, mjpeg, av1, vp9]
     rules:
       - condition: {codec_in: [dnxhd, dnxhr, prores]}
         level: compatible
         message: "{codec} is native in Premiere Pro for smooth editing"
       
-      - condition: {codec_in: [h264, hevc]}
+      - condition: {codec_in: [h264, hevc, h265]}
         level: compatible
         message: "{codec} benefits from Mercury Playback Engine GPU acceleration"
         suggestion: "Enable GPU acceleration in Project Settings"
@@ -979,7 +989,7 @@ systems:
     category: editing
     codecs:
       native: [prores]
-      supported: [h264, hevc, prores, dnxhd, dnxhr, av1]
+      supported: [h264, hevc, h265, prores, dnxhd, dnxhr, av1]
     variants:
       mac_apple_silicon:
         rules:
@@ -992,7 +1002,7 @@ systems:
         message: "{codec} is the native codec for Final Cut Pro"
         reason: "Hardware acceleration on Apple Silicon provides excellent performance"
 
-      - condition: {codec_in: [h264, hevc]}
+      - condition: {codec_in: [h264, hevc, h265]}
         level: compatible
         message: "{codec} hardware acceleration available in Final Cut Pro"
 
@@ -1000,22 +1010,26 @@ systems:
         level: compatible
         message: "MOV container is natively supported by Final Cut Pro"
       
-      - condition: {codec_in: [h264, hevc]}
+      - condition: {codec_in: [h264, hevc, h265]}
         level: warning
         message: "{codec} will prompt for Optimized Media workflow"
         suggestion: "Allow FCP to create optimized media or pre-transcode"
 
-      - condition: {codec_eq: "hevc", bitrate_gt: 50000000}
+      - condition: {codec_in: [hevc, h265], bitrate_gt: 50000000}
         level: warning
-        message: "High bitrate HEVC may require background rendering for smooth playback"
+        message: "High bitrate {codec} may require background rendering for smooth playback"
         suggestion: "Enable Background Render in Preferences or transcode to ProRes"
+      
+      - condition: {bitrate_gt: 80000000, resolution_gte: [3840, 2160]}
+        level: warning
+        message: "Enable Background Rendering for smooth playback of complex footage"
   
   avid:
     name: "Avid Media Composer"
     category: editing
     codecs:
       native: [dnxhd, dnxhr]
-      supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg, mpeg2video]
+      supported: [h264, hevc, h265, prores, dnxhd, dnxhr, mjpeg, mpeg2video]
     containers:
       preferred:
         dnxhd: [mov, mxf]
@@ -1031,6 +1045,10 @@ systems:
         message: "{codec} is well-supported in Avid Media Composer for collaboration"
         reason: "Excellent for cross-platform workflows between FCP/Premiere and Avid"
 
+      - condition: {codec_eq: "xavc"}
+        level: compatible
+        message: "XAVC requires Avid codec pack or AMA for Sony camera workflows"
+
       - condition: {audio_codec_in: [pcm_s16le, pcm_s24le]}
         level: compatible
         message: "Broadcast-standard PCM audio detected"
@@ -1041,7 +1059,7 @@ systems:
         message: "Avid Media Composer prefers MXF container for native workflows"
         suggestion: "Use MXF OP1a or rewrap to MXF"
       
-      - condition: {codec_in: [h264, hevc]}
+      - condition: {codec_in: [h264, hevc, h265]}
         level: warning
         message: "{codec} should be transcoded to DNxHD/DNxHR for editing"
         reason: "Compressed codecs not optimized for timeline performance"
@@ -1057,7 +1075,7 @@ systems:
     category: editing
     codecs:
       optimal: [prores, dnxhd, dnxhr]
-      supported: [h264, hevc, prores, dnxhd, dnxhr, mjpeg, png_sequence]
+      supported: [h264, hevc, h265, prores, dnxhd, dnxhr, mjpeg, png_sequence]
     rules:
       - condition: {codec_contains: "prores"}
         level: compatible
@@ -1071,7 +1089,7 @@ systems:
 
       - condition: {codec_eq: "prores4444"}
         level: compatible
-        message: "ProRes 4444 supports alpha channel for transparency in After Effects"
+        message: "ProRes 4444 is ideal for After Effects with alpha channel support"
         reason: "Alpha channel detected for compositing"
 
       - condition: {codec_eq: "png_sequence"}
@@ -1080,7 +1098,7 @@ systems:
 
       - condition: {codec_eq: "qtrle"}
         level: compatible
-        message: "Legacy Animation codec (QT RLE) is supported for alpha channel"
+        message: "Animation codec provides lossless output with alpha channel"
         reason: "Still used for legacy assets, though ProRes 4444 preferred"
 
       - condition: {codec_in: [prores, dnxhd, dnxhr]}
@@ -1088,13 +1106,20 @@ systems:
         message: "Ideal for Adobe Dynamic Link between Premiere and After Effects"
         reason: "Native performance across Creative Cloud applications"
 
-      - condition: {codec_in: [h264, hevc]}
+      - condition: {codec_in: [h264, hevc, h265]}
         level: warning
-        message: "{codec} not ideal for frame-accurate compositing in After Effects"
+        message: "{codec} should be avoided for intermediate renders in After Effects"
         reason: "Compressed codecs can cause render/preview issues"
         suggestion: "Use ProRes or DNxHR for best stability"
-        suggestion: "Convert to ProRes or DNxHR for smoother timeline performance"
       
+      - condition: {codec_in: [h264, hevc, h265]}
+        level: warning
+        message: "For motion graphics work, PNG sequence is recommended over video files"
+      
+      - condition: {codec_in: [h264, hevc, h265]}
+        level: warning
+        message: "{codec} does not support alpha channel (transparency)"
+
       - condition: {codec_eq: "png_sequence"}
         level: compatible
         message: "PNG sequence is optimal for alpha channel compositing"
@@ -1103,6 +1128,7 @@ systems:
       - condition: {codec_in: [prores, dnxhd, dnxhr]}
         level: compatible
         message: "GPU hardware acceleration available for {codec} in After Effects"
+
   
   # === STREAMING PLATFORMS ===
   twitch:

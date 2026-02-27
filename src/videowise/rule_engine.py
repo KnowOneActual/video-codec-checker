@@ -63,14 +63,17 @@ class RuleEngine:
         return list(profile_data.get("systems", []))
 
     def check_compatibility(
-        self, video_info: Dict[str, Any], system: str, variant: Optional[str] = None
+        self,
+        video_info: Dict[str, Any],
+        system: str,
+        variant: Optional[Union[str, List[str]]] = None,
     ) -> List[CompatibilityIssue]:
         """Check video compatibility for a specific system.
 
         Args:
             video_info: Dictionary containing video metadata
             system: System to check compatibility for
-            variant: Optional system variant (e.g., 'studio', 'free')
+            variant: Optional system variant or list of variants
 
         Returns:
             List of compatibility issues
@@ -87,14 +90,16 @@ class RuleEngine:
 
         issues: List[CompatibilityIssue] = []
 
-        # Get base rules
-        rules: List[Dict[str, Any]] = system_config.get("rules", [])
+        # Get base rules (make a copy to avoid modifying cache)
+        rules: List[Dict[str, Any]] = list(system_config.get("rules", []))
 
         # Add variant rules if applicable
         if variant and "variants" in system_config:
-            variant_config = system_config["variants"].get(variant)
-            if variant_config:
-                rules.extend(variant_config.get("rules", []))
+            variants = [variant] if isinstance(variant, str) else variant
+            for v in variants:
+                variant_config = system_config["variants"].get(v)
+                if variant_config:
+                    rules.extend(variant_config.get("rules", []))
 
         # Evaluate each rule
         for rule in rules:

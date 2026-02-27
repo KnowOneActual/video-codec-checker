@@ -4,7 +4,7 @@ This module maintains the existing API while internally using the new
 rule-based engine. Existing code continues to work without changes.
 """
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from .rule_engine import RuleEngine
 from .types import CompatibilityChecker, CompatibilityIssue, CompatibilityLevel  # noqa: F401
@@ -14,7 +14,7 @@ class RuleEngineCompatibilityChecker(CompatibilityChecker):
     """Base class for compatibility checking using rule engine."""
 
     system_name: str = ""
-    variant: Optional[str] = None
+    variant: Optional[Union[str, List[str]]] = None
 
     def __init__(self):
         """Initialize checker with rule engine."""
@@ -112,7 +112,8 @@ class DaVinciResolveChecker(RuleEngineCompatibilityChecker):
             platform: Operating system platform
         """
         super().__init__()
-        self.variant = version
+        self.variant = [version, platform]
+        self.version = version
         self.platform = platform
 
 
@@ -128,6 +129,7 @@ class AdobePremiereProChecker(RuleEngineCompatibilityChecker):
             platform: Operating system platform
         """
         super().__init__()
+        self.variant = platform
         self.platform = platform
 
 
@@ -164,6 +166,7 @@ class AfterEffectsChecker(RuleEngineCompatibilityChecker):
             workflow: Animation/compositing workflow type
         """
         super().__init__()
+        self.variant = workflow
         self.workflow = workflow
 
 
