@@ -1,13 +1,11 @@
 # VideoWise
 
-> # (02/20/2025) Currently, this project is broken. I'm actively fixing several issues and also taking this time to refactor to prevent future problems, but it may take some time. This is definitely a learning experience, and I am trying to learn as much as possible. Thanks so much for your patience!
-> 
 > ⚠️ **UNDER DEVELOPMENT**: Core compatibility engine works, but many planned features are still in progress. Expect breaking changes between releases.
 >
 > ✅ **What Works**: Full CLI, **31 system checkers**, Python API, preset commands, batch processing, enhanced explanations  
 > 🚧 **In Progress**: Additional features, PyPI package
 >
-> 🎉 ** First Phase Refactoring Complete**: Replaced 31 hardcoded checker classes with a rule-based engine! **79% less code, 90% faster to add new systems.** See [REFACTORING.md](docs/REFACTORING.md) for details.
+> 🎉 **Refactoring Complete**: Replaced 31 hardcoded checker classes with a rule-based engine! **79% less code, 90% faster to add new systems.** See [REFACTORING.md](docs/REFACTORING.md) for details.
 
 [![CI](https://github.com/KnowOneActual/video-codec-checker/workflows/CI/badge.svg)](https://github.com/KnowOneActual/video-codec-checker/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -153,7 +151,7 @@ VideoWise uses a **rule-based architecture** that makes adding new systems trivi
 #### Adding a New System (Example)
 
 ```yaml
-# In videowise/system_profiles.yaml
+# In src/videowise/system_profiles.yaml
 systems:
   twitch:
     name: "Twitch"
@@ -221,8 +219,8 @@ make check         # Run all quality checks
 - ✅ **Streaming platforms** (Twitch, YouTube Live, Kick, Restream, Zoom, Discord)
 
 ### Coming Next (Phase 3-4)
-- [ ] Migrate remaining 16 systems to rule-based engine
-- [ ] CLI integration with rule engine (default to YAML definitions)
+- ✅ Migrate remaining 16 systems to rule-based engine
+- ✅ CLI integration with rule engine (default to YAML definitions)
 - [ ] Additional live production systems (Blackmagic ATEM, Roland V-Series)
 - [ ] Media servers (Catalyst, Disguise, Watchout)
 - [ ] Auto-generate ffmpeg fix commands
@@ -238,7 +236,7 @@ make check         # Run all quality checks
 
 ### Add a New System (No Python Required!)
 
-1. Edit `videowise/system_profiles.yaml`
+1. Edit `src/videowise/system_profiles.yaml`
 2. Add 5-15 lines of YAML
 3. Submit a pull request
 
