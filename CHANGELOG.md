@@ -5,25 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2026-02-21
-
-### Added
-- Added missing `dxv` codec support and optimization rules for ProVideoPlayer and Resolume.
-
-### Changed
-- Updated minimum Python requirement to `>=3.10`, officially dropping support for Python 3.8 and 3.9 to leverage modern Python features and speed up CI pipelines.
-
-### Fixed
-- **Rule Engine Logic:** Fixed a critical bug in `RuleEngine._evaluate_condition` where rules with multiple conditions (like checking both codec and profile) were evaluating improperly by exiting early. It now correctly enforces `AND` logic across all sub-conditions.
-- **Profile Case-Sensitivity:** Fixed an issue where video profiles with varied casing (e.g., "Constrained Baseline") were failing to match lowercase YAML rules.
-- **Advanced Playout Fallbacks:** Added missing "unsupported codec" catch-all rules for Resolume, PlaybackPro, and ProVideoPlayer so they correctly flag incompatible files.
-- **PlaybackPro Containers:** Corrected PlaybackPro rules to properly require the MOV container.
-
-
 ## [Unreleased]
 
 ### Added
-- TBD - Phase 4 planning in progress
+- **System Variants Support:** The rule engine now supports system-specific variants (e.g., `mac_apple_silicon`, `studio` vs `free`, `raspberrypi`).
+- **New Core Types Module:** Created `src/videowise/types.py` to house shared data structures and resolve circular dependencies.
+- **Enhanced YAML Rules:** Significantly expanded `system_profiles.yaml` with rules for hardware acceleration, alpha channels, 10-bit color, and broadcast standards.
+
+### Changed
+- **Modern Project Layout:** Transitioned to a full `src/` layout (`src/videowise/`) for better package distribution and testing practices.
+- **Documentation Reorganization:** All root-level `.md` guides (Refactoring, Roadmap, etc.) have been consolidated into the `docs/` directory.
+- **Build Consolidation:** Consolidated all build metadata into `pyproject.toml` and removed the redundant `setup.py`.
+- **Legacy Code Isolation:** Moved all hardcoded legacy checker classes into `src/videowise/legacy/` to separate them from the modern rule-based engine.
+- **CI/CD Modernization:** Updated GitHub Actions workflows and the `Makefile` to support the new project structure.
+
+### Fixed
+- **Circular Imports:** Resolved a long-standing issue between `compatibility.py` and `rule_engine.py` by decoupling core types.
+- **Test Asset Organization:** Moved `test_video.mp4` to `tests/assets/` to clean up the project root.
+- **Linting & Type Safety:** Fixed numerous `flake8`, `black`, and `mypy` issues triggered by the structural changes.
+
+## [0.6.2] - 2026-02-21
 
 ## [0.6.1] - 2026-02-20
 
